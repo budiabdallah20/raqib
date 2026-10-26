@@ -42,7 +42,7 @@ const LOGO_TONES = [
 
 export default function BrandPage() {
   return (
-    <div className="min-h-screen bg-mesh-gold pb-16" dir="rtl">
+    <div className="site-dark min-h-screen bg-[#060805] pb-16" dir="rtl">
       <div className="mx-auto max-w-5xl px-4 py-12">
         <header className="mb-12">
           <Logo stacked showWordmark className="mx-auto w-fit" markClassName="h-16 w-16" tone="ink" />

@@ -60,7 +60,7 @@ export type Dict = {
     copyright: string; collage: string;
     devTitle: string; devName: string; devRole: string; devBio: string; devLoc: string;
     devLinks: { label: string; href: string }[];
-    engineered: string;
+    engineered: string; engineeredRole: string;
     quote: string; quoteRef: string;
     watermark: string;
     finalWords: string;
@@ -195,7 +195,8 @@ const AR: Dict = {
       { label: 'Phone', href: 'tel:+201065228072' },
       { label: 'Portfolio', href: 'https://budi-portfolio-dev.vercel.app/' },
     ],
-    engineered: 'تم التصميم والبرمجة على يد',
+    engineered: 'تصميم وبناء',
+    engineeredRole: '·',
     quote: 'وَقُل رَّبِّ زِدْنِي عِلْمًا',
     quoteRef: '— سورة طه ١١٤',
     watermark: 'رقــيب',
@@ -342,7 +343,8 @@ const EN: Dict = {
       { label: 'Phone', href: 'tel:+201065228072' },
       { label: 'Portfolio', href: 'https://budi-portfolio-dev.vercel.app/' },
     ],
-    engineered: 'Designed & engineered by',
+    engineered: 'Design & build',
+    engineeredRole: '·',
     quote: '“My Lord, increase me in knowledge.”',
     quoteRef: '— Quran 20:114',
     watermark: 'RAQiB',

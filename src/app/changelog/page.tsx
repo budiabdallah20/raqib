@@ -43,7 +43,7 @@ const RELEASES = [
 
 export default function ChangelogPage() {
   return (
-    <main className="mx-auto min-h-screen max-w-2xl px-4 py-16" dir="rtl">
+    <main className="site-dark mx-auto min-h-screen max-w-2xl bg-[#060805] px-4 py-16" dir="rtl">
       <header className="mb-10 flex items-center justify-between">
         <a href="/" className="text-sm font-semibold text-brand-700 hover:underline">← رقيب</a>
         <span className="rounded-full border border-gold-600/20 bg-gold-500/[0.08] px-3 py-1 text-[10px] text-gold-700">سجل الإصدارات</span>

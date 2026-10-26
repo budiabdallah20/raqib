@@ -4,7 +4,7 @@ import { Logo } from '@/components/shared/Logo';
 
 export default function NotFound() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center gap-5 overflow-hidden px-6 text-center">
+    <main className="site-dark relative flex min-h-screen flex-col items-center justify-center gap-5 overflow-hidden bg-[#060805] px-6 text-center">
       <div className="pointer-events-none absolute inset-0 bg-mesh-gold opacity-50" />
       <div className="pointer-events-none absolute inset-0 bg-dot-grid opacity-20" />
       <div className="relative">

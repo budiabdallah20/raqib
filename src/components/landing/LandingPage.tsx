@@ -11,6 +11,7 @@ import {
   BarChart3,
   BellRing,
   BookOpen,
+  Calendar,
   Check,
   ChevronDown,
   Clock3,
@@ -198,10 +199,10 @@ function ClockChip() {
   }, []);
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/55 px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] text-ink-600 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] backdrop-blur-md">
-      <Clock3 className="h-3 w-3 text-brand-600" />
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#c8a24b]/30 bg-[#c8a24b]/[0.09] px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] text-gold-200 shadow-[inset_0_1px_0_rgba(255,255,255,.06)] backdrop-blur-md">
+      <Clock3 className="h-3 w-3 text-[#e6cb78]" />
       <span dir="ltr">{now ? now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
-      <span className="h-1 w-1 rounded-full bg-gold-500/70" />
+      <span className="h-1 w-1 rounded-full bg-[#e6cb78]/80" />
     </span>
   );
 }
@@ -210,7 +211,8 @@ function DateChip() {
   const [now, setNow] = React.useState<Date | null>(null);
   React.useEffect(() => setNow(new Date()), []);
   return (
-    <span className="hidden items-center gap-1.5 rounded-full border border-white/70 bg-white/45 px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] text-ink-600 backdrop-blur-md 2xl:inline-flex">
+    <span className="hidden items-center gap-1.5 rounded-full border border-[#a3e635]/25 bg-[#a3e635]/[0.07] px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] text-[#d9f99d] backdrop-blur-md 2xl:inline-flex">
+      <Calendar className="h-3 w-3 text-[#bef264]" />
       <span dir="ltr">{now ? now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—'}</span>
     </span>
   );
@@ -295,14 +297,21 @@ export function LandingPage() {
   ];
 
   return (
-    <div className="relative min-h-screen overflow-clip bg-[#f7faf7] text-ink-950">
+    <div className="site-dark relative min-h-screen overflow-clip bg-[#060805] text-ink-950">
       {/* ambient canvas */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-mesh-gold opacity-70" />
-        <div className="absolute inset-0 bg-grid opacity-[0.30] [mask-image:linear-gradient(180deg,#000_0%,#000_54%,transparent_100%)]" />
-        <div className="orb -left-32 top-[8%] h-[30rem] w-[30rem] bg-brand-400/20" />
-        <div className="orb -right-28 top-[2%] h-[24rem] w-[24rem] bg-gold-400/18" />
-        <div className="orb left-[36%] top-[42%] h-[26rem] w-[26rem] bg-brand-300/10" />
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              'radial-gradient(ellipse 55% 38% at 50% -4%, rgba(163,230,53,0.10), transparent 60%), radial-gradient(ellipse 40% 30% at 88% 8%, rgba(200,162,75,0.08), transparent 58%), radial-gradient(ellipse 45% 34% at 6% 62%, rgba(163,230,53,0.06), transparent 62%)',
+          }}
+        />
+        <div className="absolute inset-0 bg-grid-dark opacity-[0.35] [mask-image:linear-gradient(180deg,#000_0%,#000_54%,transparent_100%)]" />
+        <div className="orb -left-32 top-[8%] h-[30rem] w-[30rem] bg-brand-400/14" />
+        <div className="orb -right-28 top-[2%] h-[24rem] w-[24rem] bg-gold-400/14" />
+        <div className="orb left-[36%] top-[42%] h-[26rem] w-[26rem] bg-brand-300/8" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-500/45 to-transparent" />
       </div>
 
@@ -312,7 +321,7 @@ export function LandingPage() {
       <header
         className={`sticky top-0 z-50 transition-all duration-500 ${
           scrolled
-            ? 'border-b border-white/70 bg-[#f7faf7]/78 shadow-[0_18px_45px_-32px_rgba(19,56,44,.32)] backdrop-blur-2xl'
+            ? 'border-b border-white/10 bg-[#080b06]/78 shadow-[0_18px_45px_-32px_rgba(0,0,0,.9)] backdrop-blur-2xl'
             : 'border-b border-transparent bg-transparent'
         }`}
       >
@@ -321,15 +330,15 @@ export function LandingPage() {
             <Logo markClassName="h-10 w-10 transition-transform duration-500 group-hover:rotate-[-4deg]" />
           </Link>
 
-          <nav className="hidden items-center gap-0.5 rounded-full border border-white/60 bg-white/38 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] backdrop-blur-xl lg:flex">
+          <nav className="hidden items-center gap-0.5 rounded-full border border-[#c8a24b]/25 bg-[#0b0f07]/85 p-1 shadow-[0_10px_30px_-18px_rgba(0,0,0,.85),inset_0_1px_0_rgba(255,255,255,.05)] backdrop-blur-xl lg:flex">
             {NAV_ANCHORS.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="group relative rounded-full px-4 py-2 text-[13px] font-semibold text-ink-600 transition-colors duration-200 hover:bg-white/65 hover:text-ink-950"
+                className="group relative rounded-full px-4 py-2 text-[13px] font-semibold text-[#d9f99d]/65 transition-all duration-300 hover:bg-[#a3e635]/10 hover:text-[#f6f9ef]"
               >
                 {t.nav[item.key]}
-                <span className="absolute inset-x-4 -bottom-[1px] h-px origin-center scale-x-0 bg-gradient-to-r from-transparent via-gold-500/70 to-transparent transition-transform duration-300 group-hover:scale-x-100" />
+                <span className="absolute inset-x-4 -bottom-[1px] h-px origin-center scale-x-0 bg-gradient-to-r from-transparent via-[#a3e635]/70 to-transparent transition-transform duration-300 group-hover:scale-x-100" />
               </a>
             ))}
           </nav>
@@ -348,7 +357,7 @@ export function LandingPage() {
             </Link>
             <Link
               href="/login?tab=register"
-              className="group relative hidden h-10 items-center gap-2 overflow-hidden rounded-full bg-[#0b1f19] px-4 text-[12px] font-bold text-[#f6fbf7] shadow-[0_12px_30px_-12px_rgba(11,31,25,.45)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#123429] hover:shadow-[0_18px_38px_-12px_rgba(11,31,25,.5)] sm:inline-flex"
+              className="group relative hidden h-10 items-center gap-2 overflow-hidden rounded-full bg-[linear-gradient(135deg,#8a6424_0%,#c8a24b_45%,#e6cb78_75%,#f0e0a9_100%)] px-4 text-[12px] font-bold text-[#1c1503] shadow-[0_14px_32px_-12px_rgba(200,162,75,.55),inset_0_1px_0_rgba(255,255,255,.35)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-108 hover:shadow-[0_20px_40px_-12px_rgba(200,162,75,.65)] sm:inline-flex"
             >
               <span className="relative z-10">{t.nav.start}</span>
               <ArrowLeft className="relative z-10 h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-0.5" />
@@ -359,7 +368,7 @@ export function LandingPage() {
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={t.nav.menu}
               aria-expanded={menuOpen}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/55 text-ink-700 backdrop-blur-md transition-colors hover:bg-white lg:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#a3e635]/30 bg-[#a3e635]/10 text-[#bef264] backdrop-blur-md transition-all duration-300 hover:bg-[#a3e635]/20 lg:hidden"
             >
               {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
@@ -821,7 +830,7 @@ export function LandingPage() {
                         <span className="font-latin text-[28px] font-bold leading-none text-white/[0.09]">0{i + 1}</span>
                       </div>
                       <h3 className="mt-7 font-display text-lg font-bold tracking-[-0.02em] text-[#f2faf4]">{step.title}</h3>
-                      <p className="mt-2.5 text-[12px] leading-[1.9] text-brand-100/50">{step.body}</p>
+                      <p className="mt-2.5 text-[12px] leading-[1.9] text-[#d9f99d]/60">{step.body}</p>
                       <div className="mt-6 h-px w-full bg-gradient-to-r from-white/[0.08] to-transparent" />
                       <p className="mt-4 font-latin text-[8px] font-bold uppercase tracking-[0.22em] text-brand-200/30">Step {key} / 03</p>
                     </motion.div>
@@ -1011,13 +1020,13 @@ export function LandingPage() {
       {/* ---------------------------------------------------------------- */}
       {/* footer                                                           */}
       {/* ---------------------------------------------------------------- */}
-      <footer className="relative overflow-clip border-t border-white/[0.06] bg-[#0a0c07] text-[#f2f8e8]">
+      <footer className="relative overflow-clip border-t border-white/[0.06] bg-[#0d1206] text-[#f2f8e8]">
         <span aria-hidden className="absolute inset-x-0 top-0 h-px overflow-hidden">
           <span className="animate-bar-shine block h-full w-full bg-gradient-to-r from-transparent via-gold-300 to-transparent" />
         </span>
-        <div aria-hidden className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(163,230,53,0.09), transparent 65%)' }} />
-        <div aria-hidden className="animate-aurora-a pointer-events-none absolute left-[2%] top-[30%] h-[280px] w-[280px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(163,230,53,0.10) 0%, transparent 65%)' }} />
-        <div aria-hidden className="animate-aurora-b pointer-events-none absolute bottom-[5%] right-[3%] h-[260px] w-[260px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(200,162,75,0.14) 0%, transparent 65%)' }} />
+        <div aria-hidden className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(163,230,53,0.13), transparent 65%)' }} />
+        <div aria-hidden className="animate-aurora-a pointer-events-none absolute left-[2%] top-[26%] h-[340px] w-[340px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(163,230,53,0.16) 0%, transparent 65%)' }} />
+        <div aria-hidden className="animate-aurora-b pointer-events-none absolute bottom-[5%] right-[3%] h-[300px] w-[300px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(200,162,75,0.18) 0%, transparent 65%)' }} />
         <div aria-hidden className="absolute -right-8 top-40 font-display text-[18vw] font-bold leading-none text-white/[0.02]">رقيب</div>
 
         <div className="relative mx-auto w-full max-w-7xl px-5 pb-8 pt-14 sm:px-8 sm:pt-16">
@@ -1070,21 +1079,21 @@ export function LandingPage() {
               <p className="relative mt-5 max-w-xs text-[12px] leading-[1.9] text-brand-100/45">{t.footer.tagline}</p>
               <div className="mt-6 flex flex-wrap items-center gap-2">
                 <StatusPill dark />
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 font-latin text-[9px] font-semibold text-brand-100/50">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 font-latin text-[9px] font-semibold text-[#d9f99d]/70">
                   <ShieldCheck className="h-3 w-3 text-gold-300/65" />
                   {t.footer.secure}
                 </span>
               </div>
-              <p className="mt-4 font-latin text-[9px] uppercase tracking-[0.22em] text-brand-100/28">{t.footer.stackNote}</p>
+              <p className="mt-4 font-latin text-[9px] uppercase tracking-[0.22em] text-gold-200/50">{t.footer.stackNote}</p>
 
               <div className="mt-8 border-t border-white/[0.07] pt-5">
                 <p className="font-display text-[15px] leading-8 text-gold-200/70">{t.footer.quote}</p>
-                <p className="mt-1 font-latin text-[9px] tracking-[0.16em] text-brand-100/30">{t.footer.quoteRef}</p>
+                <p className="mt-1 font-latin text-[9px] tracking-[0.16em] text-gold-200/45">{t.footer.quoteRef}</p>
               </div>
             </div>
 
             <nav aria-label={t.footer.navTitle}>
-              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-brand-100/30">{t.footer.navTitle}</h3>
+              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.navTitle}</h3>
               <ul className="mt-5 space-y-3">
                 {t.footer.linksNav.map((link, i) => (
                   <li key={link.href}>
@@ -1099,7 +1108,7 @@ export function LandingPage() {
             </nav>
 
             <nav aria-label={t.footer.platform}>
-              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-brand-100/30">{t.footer.platform}</h3>
+              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.platform}</h3>
               <ul className="mt-5 space-y-3">
                 {t.footer.linksPlatform.map((link, i) => (
                   <li key={link.label}>
@@ -1111,7 +1120,7 @@ export function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <h3 className="mt-7 font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-brand-100/30">{t.footer.legal}</h3>
+              <h3 className="mt-7 font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.legal}</h3>
               <ul className="mt-4 space-y-2.5">
                 {[
                   { label: t.footer.privacy, tab: 'privacy' as PolicyTab },
@@ -1128,7 +1137,7 @@ export function LandingPage() {
             </nav>
 
             <div>
-              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-brand-100/30">{t.footer.contactTitle}</h3>
+              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.contactTitle}</h3>
               <ul className="mt-5 space-y-3">
                 {t.footer.devLinks.map((link) => {
                   const icons = {
@@ -1144,7 +1153,7 @@ export function LandingPage() {
                         href={link.href}
                         target={link.href.startsWith('http') ? '_blank' : undefined}
                         rel={link.href.startsWith('http') ? 'noreferrer' : undefined}
-                        className="group inline-flex items-center gap-2.5 text-[11px] font-medium text-brand-100/50 transition-colors hover:text-[#f6f9ef]"
+                        className="group inline-flex items-center gap-2.5 text-[11px] font-medium text-[#e8f3d2]/75 transition-colors hover:text-[#f6f9ef]"
                       >
                         <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/[0.045] text-gold-200/60 transition-colors group-hover:border-gold-300/25 group-hover:text-gold-200">
                           <Icon className="h-3 w-3" />
@@ -1155,6 +1164,40 @@ export function LandingPage() {
                   );
                 })}
               </ul>
+              {/* صف أيقونات السوشيال — لوجوهات رسمية */}
+              <p className="mt-6 font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.socialsTitle}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {[
+                  { name: 'WhatsApp', href: 'https://wa.me/201065228072', color: '#25D366', file: 'whatsapp.svg' },
+                  { name: 'GitHub', href: 'https://github.com/budiabdallah20', color: '#f2f8e8', file: 'github.svg' },
+                  { name: 'LinkedIn', href: 'https://linkedin.com/in/budi-abdallah-ba61323a7', color: '#0A66C2', file: 'linkedin.svg' },
+                  { name: 'TikTok', href: 'https://tiktok.com/@mohamedabdallah_10', color: '#f2f8e8', file: 'tiktok.svg' },
+                  { name: 'Facebook', href: 'https://facebook.com/mohamed.abdallah.45254', color: '#0866FF', file: 'facebook.svg' },
+                  { name: 'Instagram', href: 'https://instagram.com/mohamedabdallahh_18', color: '#E4405F', file: 'instagram.svg' },
+                  { name: 'Email', href: 'mailto:budiabdallah922@gmail.com', color: '#c8a24b', file: null },
+                  { name: 'Phone', href: 'tel:+201065228072', color: '#a3e635', file: null },
+                ].map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    target={social.href.startsWith('http') ? '_blank' : undefined}
+                    rel={social.href.startsWith('http') ? 'noreferrer' : undefined}
+                    aria-label={social.name}
+                    title={social.name}
+                    className="group flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_28px_-10px_rgba(0,0,0,.7)]"
+                    style={{ color: social.color }}
+                  >
+                    {social.file ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={`/brand-icons/${social.file}`} alt="" className="h-4 w-4 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+                    ) : social.name === 'Email' ? (
+                      <Mail className="h-3.5 w-3.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+                    ) : (
+                      <Phone className="h-3.5 w-3.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+                    )}
+                  </a>
+                ))}
+              </div>
               <div className="mt-6 flex items-center gap-2 text-[10px] text-brand-100/35">
                 <MapPin className="h-3 w-3 text-gold-300/50" />
                 {t.footer.devLoc}
@@ -1211,6 +1254,10 @@ export function LandingPage() {
                   rel="noreferrer"
                   className="group inline-flex h-9 items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-4 font-latin text-[8px] font-bold uppercase tracking-[0.18em] text-brand-100/60 transition-colors hover:border-gold-300/30 hover:text-gold-200"
                 >
+                  <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-md">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/brand-icons/budi.svg" alt="" className="h-5 w-5" />
+                  </span>
                   Portfolio
                   <ArrowUpRight className="h-3 w-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </a>
@@ -1220,14 +1267,24 @@ export function LandingPage() {
 
           <div className="mt-10 flex flex-col gap-4 border-t border-white/[0.07] pt-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="font-latin text-[9px] tracking-[0.12em] text-brand-100/28">{t.footer.copyright}</span>
+              <span className="font-latin text-[9px] tracking-[0.12em] text-[#d9f99d]/45">{t.footer.copyright}</span>
               <span aria-hidden className="hidden h-3 w-px bg-white/10 sm:block" />
-              <span className="font-latin text-[9px] tracking-[0.12em] text-brand-100/22">{t.footer.collage}</span>
+              <span className="font-latin text-[9px] tracking-[0.12em] text-[#d9f99d]/35">{t.footer.collage}</span>
             </div>
-            <div className="flex items-center gap-2 text-[9px] text-brand-100/30">
-              <span>{t.footer.engineered}</span>
-              <a href="https://budi-portfolio-dev.vercel.app/" target="_blank" rel="noreferrer" className="font-bold text-gold-200/70 underline decoration-gold-300/20 underline-offset-4 transition-colors hover:text-gold-200">
-                {t.footer.devName}
+            <div className="flex items-center gap-2 text-[9px] text-brand-100/40">
+              <span className="text-gold-200/55">{t.footer.engineered}</span>
+              <a href="https://budi-portfolio-dev.vercel.app/" target="_blank" rel="noreferrer" className="group inline-flex items-center gap-2 rounded-full border border-gold-300/25 bg-gold-300/[0.07] py-1.5 pr-3.5 pl-1.5 transition-all duration-300 hover:border-gold-300/50 hover:bg-gold-300/[0.12]">
+                <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-md ring-1 ring-gold-300/40">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/brand-icons/budi.svg" alt="" className="h-5 w-5" />
+                </span>
+                <span className="font-latin text-[8px] font-semibold uppercase tracking-[0.14em] text-gold-200/70">
+                  {t.footer.engineeredRole ?? ''}
+                </span>
+                <span className="bg-[linear-gradient(100deg,#e6cb78,#f0e0a9,#c8a24b)] bg-clip-text text-[11px] font-bold text-transparent">
+                  {t.footer.devName}
+                </span>
+                <ArrowUpRight className="h-3 w-3 text-gold-200/70 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               </a>
             </div>
           </div>
