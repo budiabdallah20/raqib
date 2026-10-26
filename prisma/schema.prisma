@@ -1,0 +1,297 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String?   @unique
+  phone               String?   @unique
+  passwordHash        String
+  name                String
+  role                String    @default("STUDENT")
+  studentCode         String?   @unique
+  group               String? // جروب الطالب: A / B
+  level               String? // الفرقة: 1..4
+  nationalId          String?   @unique // الرقم القومي (14 رقم) — مصدر تاريخ الميلاد وعيد الميلاد
+  gender              String?
+  birthDate           DateTime?
+  avatarUrl           String?
+  faceEnrolled        Boolean   @default(false)
+  fingerprintEnrolled Boolean   @default(false)
+  isActive            Boolean   @default(true)
+  approvedAt          DateTime? // للحسابات التي تحتاج موافقة الإدارة (الدكاترة)
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  passwordChangedAt   DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  taughtCourses       Course[]             @relation("CourseProfessor")
+  enrollments         Enrollment[]
+  lectures            Lecture[]            @relation("LectureProfessor")
+  attendances         Attendance[]
+  passwordResetTokens PasswordResetToken[]
+  grades              Grade[]              @relation("GradeStudent")
+  auditLogs           AuditLog[]
+  tasks               Task[]               @relation("TaskAuthor")
+  taskSubmissions     TaskSubmission[]     @relation("TaskSubmissionStudent")
+  notifications       Notification[]
+  sessions            Session[]
+
+  @@index([role, isActive])
+  @@index([lockedUntil])
+}
+
+// جلسات الدخول — كل توكن JWT مرتبط بجلسة قابلة للإبطال من السيرفر
+model Session {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique
+  ip         String?
+  userAgent  String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  lastSeenAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int       @default(0)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  englishName String?
+  department  String   @default("رياضيات وعلوم الحاسب")
+  professorId String
+  professor   User     @relation("CourseProfessor", fields: [professorId], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  enrollments Enrollment[]
+  lectures    Lecture[]
+  slots       ScheduleSlot[]
+  tasks       Task[]
+  grades      Grade[]
+  resources   Resource[]
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  studentId String
+  courseId  String
+  createdAt DateTime @default(now())
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
+}
+
+model Lecture {
+  id          String    @id @default(cuid())
+  courseId    String
+  professorId String
+  title       String
+  location    String?
+  startsAt    DateTime  @default(now())
+  qrToken     String?   @unique
+  qrExpiresAt DateTime?
+  isOpen      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  professor   User         @relation("LectureProfessor", fields: [professorId], references: [id], onDelete: Restrict)
+  attendances Attendance[]
+  resources   Resource[]
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  lectureId String
+  studentId String
+  status    String   @default("PRESENT")
+  scannedAt DateTime @default(now())
+  lecture   Lecture  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([lectureId, studentId])
+}
+
+// ───────────────────────────────────────────────────────────────
+// نظام الجداول — الجريد اللي يتسحب ويترمى فيه الكروت
+// day: 1=الأحد 2=الاثنين 3=الثلاثاء 4=الأربعاء 5=الخميس 6=الجمعة 7=السبت
+// period: 1..4  (08:30·10:30 / 10:30·12:30 / 12:30·14:30 / 14:30·16:30)
+// ───────────────────────────────────────────────────────────────
+model ScheduleSlot {
+  id        String   @id @default(cuid())
+  group     String // "A" | "B" | ...
+  day       Int // 1..7
+  period    Int // 1..4
+  kind      String   @default("LECTURE") // LECTURE | SECTION | LAB
+  room      String?
+  isVip     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([group, day, period])
+  @@index([group])
+  @@index([courseId])
+}
+
+// إعدادات المنصة (مفتاح/قيمة) — تاريخ فتح الترم التاني وغيره
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// آيات ومثل مصري يتغيروا كل دقيقة في داشبورد الطالب
+model Quote {
+  id     String  @id @default(cuid())
+  kind   String // QURAN | PROVERB
+  text   String
+  source String? // «سورة طه · ١١٤»
+  active Boolean @default(true)
+}
+
+// تاسكات الدكاترة — أسبوعية / شهرية مع رفع حلول وتقييم لكل طالب
+model Task {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  kind         String   @default("WEEKLY") // WEEKLY | MONTHLY
+  deadline     DateTime
+  requiresFile Boolean  @default(false)
+  status       String   @default("OPEN") // OPEN | CLOSED
+  courseId     String
+  createdById  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  author      User             @relation("TaskAuthor", fields: [createdById], references: [id], onDelete: Cascade)
+  submissions TaskSubmission[]
+
+  @@index([courseId])
+  @@index([deadline])
+}
+
+// تسليم الطالب لتاسك — ملف + درجة + تعليق الدكتور
+model TaskSubmission {
+  id          String   @id @default(cuid())
+  taskId      String
+  studentId   String
+  fileUrl     String?
+  submittedAt DateTime @default(now())
+  score       Float?
+  feedback    String?
+
+  task    Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  student User @relation("TaskSubmissionStudent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, studentId])
+  @@index([studentId])
+  @@index([fileUrl])
+}
+
+// درجات الطلاب — كويز / أعمال سنة / ميدترم والإجمالي محسوب
+model Grade {
+  id        String   @id @default(cuid())
+  studentId String
+  courseId  String
+  quiz      Float?
+  work      Float?
+  midterm   Float?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  student User   @relation("GradeStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
+  @@index([courseId])
+}
+
+// ملفات ومراجع يرفعها الدكتور وترتبط بمحاضرة أو مادة
+model Resource {
+  id           String   @id @default(cuid())
+  originalName String
+  storedName   String   @unique
+  mimeType     String
+  size         Int
+  courseId     String
+  lectureId    String?
+  kind         String   @default("PDF")
+  createdAt    DateTime @default(now())
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lecture Lecture? @relation(fields: [lectureId], references: [id], onDelete: SetNull)
+
+  @@index([courseId])
+}
+
+// إشعارات داخل التطبيق — (WP4): فتح محاضرة · إنذار غياب · تاسك جديد · قرب موعد
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  body      String?
+  kind      String    @default("INFO") // INFO | LECTURE | ALERT | TASK
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([createdAt])
+}
+
+// سجل تدقيق — كل عملية حساسة تتحفظ هنا (من فضل / إيه / إمتى / منين)
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  userRole  String?
+  action    String // MOVE_SLOT / GRADE_EDIT / LOGIN_OK ...
+  entity    String // ScheduleSlot / Grade / ...
+  detail    String? // تفاصيل JSON من → إلّا
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([userRole])
+}

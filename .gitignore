@@ -1,0 +1,29 @@
+node_modules/
+.next/
+out/
+build/
+.env
+.env.local
+.env.bak-*
+*.log
+certs/*.pem
+data/
+prisma/backups/
+# ملفات الطلاب والمقررات المرفوعة — لا تُرفع للمستودع أبدًا
+storage/
+public/uploads/avatars/*
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+.DS_Store
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# أدوات الجلسات المحلية — ليست جزءًا من المشروع
+.claude/
+.opencode/*
+!.opencode/wiki/
+# مخارج الاختبارات
+playwright-report/
+test-results/

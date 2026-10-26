@@ -1,0 +1,39 @@
+# 🐳 رقيب RAQiB — الإنتاج بحاوية PostgreSQL
+# الاستخدام: docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: raqib-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: raqib
+      POSTGRES_USER: raqib
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-strong}
+    volumes:
+      - raqib_pgdata:/var/lib/postgresql/data
+      # نسخ احتياطي تلقائي يومي 02:00 بعد فترة — cron على المضيف يفضّل نسخ pg_dump
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raqib"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: raqib-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://raqib:${POSTGRES_PASSWORD:-change-me-strong}@db:5432/raqib
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_ACCESS_CODE_HASH: ${ADMIN_ACCESS_CODE_HASH}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-Raqib <no-reply@raqib.app>}
+      NODE_ENV: production
+    ports:
+      - "5000:5000"
+
+volumes:
+  raqib_pgdata:

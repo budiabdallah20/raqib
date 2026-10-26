@@ -1,0 +1,28 @@
+{
+  "name": "رقيب — منصة الحضور الذكية",
+  "short_name": "رقيب",
+  "description": "منصة رقيب لإدارة الحضور والمحاضرات بتقنية QR لكلية العلوم — جامعة السويس.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#070509",
+  "theme_color": "#0b0910",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

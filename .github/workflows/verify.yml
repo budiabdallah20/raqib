@@ -1,0 +1,48 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: تثبيت
+        run: npm ci
+
+      - name: توليد Prisma Client
+        run: npx prisma generate
+
+      - name: فحص الأنواع
+        run: npx tsc --noEmit
+
+      - name: اختبارات الوحدات (Vitest)
+        run: npm run test
+
+      - name: البناء
+        run: npm run build
+        env:
+          DATABASE_URL: 'file:./dev.db'
+          JWT_SECRET: 'ci-secret-just-for-build-min-32-chars'
+
+      - name: E2E (Playwright — إن كان بإمكانه التهيئة)
+        run: |
+          npx playwright install chromium --with-deps
+          npm run db:push
+          npm run db:seed
+          npm run dev & sleep 12
+          npm run test:e2e
+        env:
+          DATABASE_URL: 'file:./dev.db'
+          JWT_SECRET: 'ci-secret-just-for-build-min-32-chars'
+          E2E_BASE_URL: 'http://localhost:3000'
+        continue-on-error: true
