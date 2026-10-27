@@ -180,7 +180,7 @@ export function PasswordStrength({ value }: { value: string }) {
       </div>
       <div className="flex items-center justify-between text-[10.5px]">
         <span className={meta.text}>قوة كلمة المرور: {meta.label}</span>
-        <span className="text-ink-400">8+ أحرف، رقم، وحرف كبير</span>
+        <span className="text-ink-400">10+ أحرف، رقم، وحرف كبير</span>
       </div>
     </div>
   );

@@ -1,29 +1,56 @@
+# RAQiB — Git ignore (منظّمة من الأعلى: أدوات، بيئات، قاعدة، بناء، نظام)
+
+# ---------- dependencies / builds ----------
 node_modules/
 .next/
 out/
-build/
+build/*.js
+dist/
+
+# ---------- environment (الأسرار ممنوعة، المثال متاح) ----------
 .env
 .env.local
+.env.*.local
 .env.bak-*
-*.log
-certs/*.pem
-data/
-prisma/backups/
-# ملفات الطلاب والمقررات المرفوعة — لا تُرفع للمستودع أبدًا
-storage/
-public/uploads/avatars/*
+# المثال الموثّق يبقى متتبع
+!.env.example
+
+# ---------- database (dev db + أي نسخ) ----------
 *.db
 *.db-journal
 *.db-shm
 *.db-wal
-.DS_Store
-next-env.d.ts
-tsconfig.tsbuildinfo
+*.db.bak*
+prisma/backups/
 
-# أدوات الجلسات المحلية — ليست جزءًا من المشروع
+# ---------- uploads / storage ----------
+storage/
+public/uploads/avatars/*
+!public/uploads/avatars/.gitkeep
+data/
+certs/*.pem
+
+# ---------- logs & caches ----------
+*.log
+npm-debug.log*
+.eslintcache
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# ---------- test payloads ----------
+playwright-report/
+test-results/
+.playwright-cli/
+
+# ---------- OS / editors ----------
+.DS_Store
+Thumbs.db
+*.swp
+
+# ---------- Vercel ----------
+.vercel
+
+# ---------- agent workspaces (الويكي فقط متتبع) ----------
 .claude/
 .opencode/*
 !.opencode/wiki/
-# مخارج الاختبارات
-playwright-report/
-test-results/

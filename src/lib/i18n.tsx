@@ -53,6 +53,7 @@ export type Dict = {
     navTitle: string; contactTitle: string; socialsTitle: string;
     status: string; stackNote: string;
     statusLive: string; kicker: string; ctaLine1: string; ctaLine2: string;
+    builtEyebrow: string; builtHeading: string; builtHeadingGold: string;
     linksPlatform: { label: string; href: string }[];
     linksAccount: { label: string; href: string }[];
     linksNav: { label: string; href: string }[];
@@ -162,6 +163,9 @@ const AR: Dict = {
     status: 'جميع الأنظمة تعمل',
     statusLive: 'شغّال الآن',
     kicker: 'اللمسة الأخيرة',
+    builtEyebrow: "THAT'S WHAT I BUILD ON",
+    builtHeading: 'تقنيات',
+    builtHeadingGold: 'تستاهل الثقة.',
     ctaLine1: 'لنصنع حضورًا',
     ctaLine2: 'يستحق رقيب.',
     stackNote: 'Next.js · TypeScript · Prisma',
@@ -310,6 +314,9 @@ const EN: Dict = {
     status: 'All systems operational',
     statusLive: 'Live right now',
     kicker: 'The last frame',
+    builtEyebrow: "THAT'S WHAT I BUILD ON",
+    builtHeading: 'Stack',
+    builtHeadingGold: 'built to matter.',
     ctaLine1: "LET'S BUILD",
     ctaLine2: 'ATTENDANCE THAT MATTERS.',
     stackNote: 'Next.js · TypeScript · Prisma',

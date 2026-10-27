@@ -406,6 +406,14 @@ input:-webkit-autofill:focus {
     text-transform: uppercase;
   }
 
+  /* Budi-style Latin display (Space Grotesk) + terminal labels (JetBrains Mono) */
+  .font-grotesk {
+    font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  }
+  .font-coded {
+    font-family: var(--font-coded), var(--font-inter), ui-monospace, monospace;
+  }
+
   .no-scrollbar {
     scrollbar-width: none;
   }
