@@ -7,6 +7,17 @@ lastReviewed: 2026-10-27
 
 # تضاد منصات التوز
 
+## قرار 2026-10-27: البيانات الحقيقية محلية — Production بلا قاعدة
+- قرار المالك: كل بيانات الطلاب/الدكاترة الحقيقية تعيش في SQLite المحلي (`prisma/dev.db`) — لا قاعدة خارجية على Supabase/Neon.
+- نشر Vercel يعمل كواجهة/معرض فقط: أي API حي (`/api/*`) يفشل وقت الاستعلام لعدم وجود `DATABASE_URL` على Vercel — سلوك معلوم ومعلن، ليس خللًا.
+- envs على Vercel production: `ADMIN_ACCESS_CODE_HASH` (bcrypt، أرقام فقط ×12) + `JWT_SECRET` (64 hex) + `NEXT_PUBLIC_APP_URL=https://raqib-blue.vercel.app`. حدثها من CLI: `echo VALUE | vercel env add NAME production`.
+- كود الأدمن: يتولد أرقام 12، يُحفظ الهاش فقط في `.env.local` (يطغى على قيمة `.env` القديمة ذات `\$...`) وكود نصي يظهر مرة واحدة للمالك في المحادثة؛ verifier بيلغي غير الأرقام المقارن bcrypt + rate-limit 5/15m/IP + AuditLog `ADMIN_LOGIN_FAILED`.
+
+## تصفير الديمو (2026-10-27) — scripts/db-purge-demo.mjs
+- نسخة احتياطية تلقائية في `prisma/backups/` قبل أي حذف.
+- حذف: حضور/درجات/تسليمات/مهام/مصادر/تسجيلات/محاضرات/سلوتس/مقررات/إشعارات/توكنات + مستخدمين ديمو (بلا جلسة وأنشِئوا قبل اليوم).
+- نتيجة أول تشغيل: 6 مستخدمين حيين (1 إدمن، 2 دكاترة، 3 طلاب) وباقي الجداول استعمالية = صفر.
+
 ## الحقائق
 - `prisma/schema.prisma`: `provider = "sqlite"` بقاعدة `file:` من `DATABASE_URL`.
 - `src/lib/db.ts`: طبقة Prisma client عالمية + أمرصمة SQLite (WAL, foreign_keys, busy_timeout).
