@@ -63,23 +63,36 @@ try {
       create: { key: 'secondTermStart', value: '2027-02-02' },
     });
 
-    // 4) إعادة معايرة كل درجات الديمو للمقياس الجديد:
-    //    القديم: كويز/أعمال ≤60 وميدترم ≤60 → الجديد: كويز 20 + أعمال 20 + ميدترم 30 + فاينل 30 = 100
-    const allGrades = await prisma.grade.findMany({
-      select: { id: true, quiz: true, work: true, midterm: true, final: true },
-    });
+    // 4) درجات واقعية لكل الطلبة الآخرين على المقياس الجديد — تمسح القديمة وتتولد عشوائياً
+    //    (الطالب الديمو student@raqib.edu له قيم مخصصة في خطوة 6)
     let rescaled = 0;
-    for (const g of allGrades) {
-      if (g.final !== null) continue; // أُعيدت معايرته من قبل
-      await prisma.grade.update({
-        where: { id: g.id },
-        data: {
-          quiz: g.quiz === null ? null : Math.round(g.quiz / 3),
-          work: g.work === null ? null : Math.round(g.work / 3),
-          midterm: g.midterm === null ? null : Math.round(g.midterm / 2),
-        },
+    const others = await prisma.user.findMany({
+      where: { role: 'STUDENT', email: { not: 'student@raqib.edu' } },
+      select: { id: true },
+    });
+    const officialCourseIds = OFFICIAL_CODES.map((c) => byCode.get(c)).filter(Boolean);
+    if (others.length && officialCourseIds.length) {
+      await prisma.grade.deleteMany({
+        where: { studentId: { in: others.map((o) => o.id) } },
       });
-      rescaled++;
+      const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+      const rows = [];
+      for (const s of others) {
+        for (const courseId of officialCourseIds) {
+          rows.push({
+            studentId: s.id,
+            courseId,
+            quiz: rand(10, 20),
+            work: rand(10, 20),
+            midterm: rand(12, 30),
+            final: null,
+          });
+        }
+      }
+      for (let i = 0; i < rows.length; i += 500) {
+        await prisma.grade.createMany({ data: rows.slice(i, i + 500) });
+      }
+      rescaled = rows.length;
     }
 
     // 5) طالب الديمو: المواد الرسمية فقط + الفرقة/الجروب/القسم
@@ -102,16 +115,16 @@ try {
         data: { department: 'رياضيات وعلوم الحاسب', group: 'B', level: '2' },
       });
 
-      // 6) درجات واقعية في مقياس 100 — فاينل لسه فاضي (محطت الترم)
-      // المنطقة الصفراء/الحمراء للعرض التوضيحي للمناطق الثلاثة
+      // 6) درجات واقعية على مقياس 100 — 3 مواد مكتملة (الفاينل اتسجل) + 4 قيد التقييم
+      // الغرض: عرض المناطق الثلاث (أخضر/ذهبي/أحمر) ومنحنى صاعد واقعي
       const demo = [
-        { code: 'MAT207', quiz: 18, work: 17, midterm: 26, final: null }, // 61 صفراء
-        { code: 'COM201', quiz: 16, work: 19, midterm: 24, final: null }, // 59 حمراء
-        { code: 'MAT201', quiz: 15, work: 12, midterm: 22, final: null }, // 49 حمراء
-        { code: 'MAT203', quiz: 19, work: 16, midterm: 28, final: null }, // 63 صفراء
-        { code: 'MAT213', quiz: 10, work: 9, midterm: 14, final: null }, // 33 حمراء
-        { code: 'MAT305', quiz: 13, work: 14, midterm: 19, final: null }, // 46 حمراء
-        { code: 'MAT211', quiz: 17, work: 18, midterm: 25, final: null }, // 60 صفراء
+        { code: 'MAT207', quiz: 19, work: 18, midterm: 27, final: 22 }, // 86 → A− (أخضر)
+        { code: 'COM201', quiz: 18, work: 19, midterm: 25, final: 21 }, // 83 → B+ (أخضر)
+        { code: 'MAT203', quiz: 20, work: 17, midterm: 26, final: 19 }, // 82 → B+ (أخضر)
+        { code: 'MAT201', quiz: 17, work: 15, midterm: 24, final: null }, // 56 قيد التقييم (ذهبي)
+        { code: 'MAT213', quiz: 18, work: 16, midterm: 23, final: null }, // 57 قيد التقييم (ذهبي)
+        { code: 'MAT305', quiz: 12, work: 13, midterm: 20, final: null }, // 45 قيد التقييم (أحمر)
+        { code: 'MAT211', quiz: 18, work: 18, midterm: 26, final: null }, // 62 قيد التقييم (ذهبي)
       ];
       for (const g of demo) {
         const courseId = byCode.get(g.code);

@@ -102,6 +102,9 @@ export async function GET() {
       const grade = course.grades[0] ?? null;
       const graded =
         grade && (grade.quiz !== null || grade.work !== null || grade.midterm !== null || grade.final !== null);
+      // التقدير ونقطة GPA يتحددوا فقط عند اكتمال الدرجة (تسجيل الفاينل = آخر مكوّن)
+      const complete =
+        !!grade && grade.quiz !== null && grade.work !== null && grade.midterm !== null && grade.final !== null;
       const total = grade ? totalOf(grade) : null;
       const creditHours = course.creditHours ?? 3;
       const standing = standingIn(course.id);
@@ -109,10 +112,14 @@ export async function GET() {
         code: course.code,
         name: course.name,
         creditHours,
+        components: grade
+          ? { quiz: grade.quiz, work: grade.work, midterm: grade.midterm, final: grade.final }
+          : null,
         total: graded ? total : null,
-        letter: graded && total !== null ? letterFor(total) : null,
-        gpaPoint: graded && total !== null ? gpaPointFor(total) : null,
+        letter: complete && total !== null ? letterFor(total) : null,
+        gpaPoint: complete && total !== null ? gpaPointFor(total) : null,
         graded,
+        complete,
         rank: standing.rank,
         rankOf: standing.of,
       };
