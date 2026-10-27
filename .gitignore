@@ -16,6 +16,8 @@ public/uploads/avatars/*
 *.db-journal
 *.db-shm
 *.db-wal
+*.db.backup-*
+prisma/*.db.*
 .DS_Store
 next-env.d.ts
 tsconfig.tsbuildinfo
