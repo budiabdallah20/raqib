@@ -1,5 +1,5 @@
 // scripts/seed-official-schedule.mjs — زرع الجدول الرسمي (PDF رسمي — مستوى 2 جروب B)
-// وتنظيف بيانات الديمو العشوائية وتحديث إعداد فتح الترم التاني
+// وإعادة معايرة درجات الديمو للمقياس الجديد (مجموع 100) وتنظيف بيانات الديمو العشوائية
 // الاستخدام: node scripts/seed-official-schedule.mjs
 import { PrismaClient } from '@prisma/client';
 
@@ -63,7 +63,26 @@ try {
       create: { key: 'secondTermStart', value: '2027-02-02' },
     });
 
-    // 4) طالب الديمو: المواد الرسمية فقط + الفرقة/الجروب/القسم
+    // 4) إعادة معايرة كل درجات الديمو للمقياس الجديد:
+    //    القديم: كويز/أعمال ≤60 وميدترم ≤60 → الجديد: كويز 20 + أعمال 20 + ميدترم 30 + فاينل 30 = 100
+    const allGrades = await prisma.grade.findMany({
+      select: { id: true, quiz: true, work: true, midterm: true, final: true },
+    });
+    let rescaled = 0;
+    for (const g of allGrades) {
+      if (g.final !== null) continue; // أُعيدت معايرته من قبل
+      await prisma.grade.update({
+        where: { id: g.id },
+        data: {
+          quiz: g.quiz === null ? null : Math.round(g.quiz / 3),
+          work: g.work === null ? null : Math.round(g.work / 3),
+          midterm: g.midterm === null ? null : Math.round(g.midterm / 2),
+        },
+      });
+      rescaled++;
+    }
+
+    // 5) طالب الديمو: المواد الرسمية فقط + الفرقة/الجروب/القسم
     const student = await prisma.user.findUnique({
       where: { email: 'student@raqib.edu' },
       select: { id: true },
@@ -83,8 +102,8 @@ try {
         data: { department: 'رياضيات وعلوم الحاسب', group: 'B', level: '2' },
       });
 
-      // 5) درجات واقعية في مقياس 100 (كويز 20 + أعمال 20 + ميدترم 30 + فاينل 30)
-      // فاينل فاضي لسه ما دخلتش — المنطقة الصفراء/الحمراء للعرض التوضيحي
+      // 6) درجات واقعية في مقياس 100 — فاينل لسه فاضي (محطت الترم)
+      // المنطقة الصفراء/الحمراء للعرض التوضيحي للمناطق الثلاثة
       const demo = [
         { code: 'MAT207', quiz: 18, work: 17, midterm: 26, final: null }, // 61 صفراء
         { code: 'COM201', quiz: 16, work: 19, midterm: 24, final: null }, // 59 حمراء
@@ -111,7 +130,7 @@ try {
         });
       }
 
-      // 6) لقطات معدل سابقة لمنحنى التطور (previousGpa يبقى فاضي كي تستعرض نافذة الإدخال)
+      // 7) لقطات معدل سابقة لمنحنى التطور (previousGpa يبقى فاضي كي تستعرض نافذة الإدخال)
       await prisma.gpaSnapshot.deleteMany({ where: { studentId: student.id } });
       await prisma.gpaSnapshot.createMany({
         data: [
@@ -123,7 +142,7 @@ try {
     }
 
     console.log(
-      `OFFICIAL SCHEDULE SEEDED: slots=${OFFICIAL_SLOTS.length} courses=${OFFICIAL_CODES.length} · secondTermStart=2027-02-02`,
+      `OFFICIAL SCHEDULE SEEDED: slots=${OFFICIAL_SLOTS.length} courses=${OFFICIAL_CODES.length} · rescaled=${rescaled} · secondTermStart=2027-02-02`,
     );
   }
 } catch (error) {

@@ -450,12 +450,12 @@ async function seedTasksAndGrades(courses: { id: string; professorId: string }[]
   }
   console.log(`📤 التسليمات: ${sc}`);
 
-  /* ── الدرجات (كويز/أعمال/ميدترم — 0..60 لكل مكوّن) ── */
+  /* ── الدرجات على المقياس الموحّد (كويز 20 + أعمال 20 + ميدترم 30 + فاينل 30 = 100) ── */
   const gradeRows = [];
   for (const s of students) for (const c of courses) {
     gradeRows.push({
       studentId: s.id, courseId: c.id,
-      quiz: intBetween(28, 60), work: intBetween(30, 60), midterm: intBetween(25, 60),
+      quiz: intBetween(12, 20), work: intBetween(12, 20), midterm: intBetween(15, 30), final: null,
     });
   }
   let g = 0;

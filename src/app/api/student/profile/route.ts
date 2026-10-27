@@ -5,7 +5,7 @@ import { handleApiError, jsonError, logAudit } from '@/lib/security';
 import { GRADE_TOTAL_MAX, gpaPointFor, letterFor, totalOf } from '@/lib/grades';
 
 // ───────────────────────────────────────────────────────────────
-// GET /api/student/profile — كارت الطالب + المعدلات + منحنى التطور
+// GET /api/student/profile — كارت الطالب + المعدلات + منحنى التطور + الترتيب
 // ───────────────────────────────────────────────────────────────
 export async function GET() {
   try {
@@ -28,6 +28,7 @@ export async function GET() {
           select: {
             course: {
               select: {
+                id: true,
                 code: true,
                 name: true,
                 creditHours: true,
@@ -50,12 +51,60 @@ export async function GET() {
 
     const { enrollments, gpaSnapshots, ...meFields } = me;
 
+    // ── ترتيب الطالب داخل كل مقرر (على إجمالي مقياس 100) ──
+    const courseIds = enrollments.map((item) => item.course.id);
+    const courseGradeRows = courseIds.length
+      ? await prisma.grade.findMany({
+          where: { courseId: { in: courseIds } },
+          select: { studentId: true, courseId: true, quiz: true, work: true, midterm: true, final: true },
+        })
+      : [];
+    const byCourse = new Map<string, Map<string, number>>(); // courseId → (studentId → إجمالي)
+    for (const row of courseGradeRows) {
+      let table = byCourse.get(row.courseId);
+      if (!table) {
+        table = new Map();
+        byCourse.set(row.courseId, table);
+      }
+      table.set(row.studentId, totalOf(row));
+    }
+    const standingIn = (courseId: string): { rank: number | null; of: number } => {
+      const table = byCourse.get(courseId);
+      if (!table) return { rank: null, of: 0 };
+      const myTotal = table.get(user.id);
+      if (myTotal === undefined) return { rank: null, of: table.size };
+      let higher = 0;
+      for (const total of table.values()) if (total > myTotal) higher += 1;
+      return { rank: higher + 1, of: table.size };
+    };
+
+    // ── الترتيب التراكمي على مستوى الفرقة: متوسط الإجمالي لكل طالب في الفرقة ──
+    const levelAverages: { id: string; avg: number }[] = [];
+    if (meFields.level) {
+      const sameLevel = await prisma.user.findMany({
+        where: { role: 'STUDENT', level: meFields.level, isActive: true },
+        select: {
+          id: true,
+          grades: { select: { quiz: true, work: true, midterm: true, final: true } },
+        },
+      });
+      for (const student of sameLevel) {
+        if (!student.grades.length) continue;
+        const avg = student.grades.reduce((sum, row) => sum + totalOf(row), 0) / student.grades.length;
+        levelAverages.push({ id: student.id, avg });
+      }
+      levelAverages.sort((a, b) => b.avg - a.avg);
+    }
+    const levelIndex = levelAverages.findIndex((row) => row.id === user.id);
+    const levelRank = levelIndex >= 0 ? { rank: levelIndex + 1, of: levelAverages.length } : null;
+
     const courses = enrollments.map(({ course }) => {
       const grade = course.grades[0] ?? null;
       const graded =
         grade && (grade.quiz !== null || grade.work !== null || grade.midterm !== null || grade.final !== null);
       const total = grade ? totalOf(grade) : null;
       const creditHours = course.creditHours ?? 3;
+      const standing = standingIn(course.id);
       return {
         code: course.code,
         name: course.name,
@@ -64,6 +113,8 @@ export async function GET() {
         letter: graded && total !== null ? letterFor(total) : null,
         gpaPoint: graded && total !== null ? gpaPointFor(total) : null,
         graded,
+        rank: standing.rank,
+        rankOf: standing.of,
       };
     });
 
@@ -72,16 +123,16 @@ export async function GET() {
     const creditTotal = courses.reduce((sum, course) => sum + course.creditHours, 0);
     const weighted = graded.reduce((sum, course) => sum + (course.gpaPoint ?? 0) * course.creditHours, 0);
 
-    const termGpa = gradedCredits
-      ? Math.round((weighted / gradedCredits) * 100) / 100
-      : null;
+    const termGpa = gradedCredits ? Math.round((weighted / gradedCredits) * 100) / 100 : null;
 
     // التراكمي = المتوسط الموزون للترم السابق (المُدخل يدوياً) والترم الحالي
     let cumulativeGpa = termGpa;
     if (meFields.previousGpa !== null) {
       cumulativeGpa =
         termGpa !== null && gradedCredits
-          ? Math.round(((meFields.previousGpa * creditTotal + termGpa * gradedCredits) / (creditTotal + gradedCredits)) * 100) / 100
+          ? Math.round(
+              ((meFields.previousGpa * creditTotal + termGpa * gradedCredits) / (creditTotal + gradedCredits)) * 100,
+            ) / 100
           : meFields.previousGpa;
     }
 
@@ -112,6 +163,7 @@ export async function GET() {
         creditTotal,
         maxTotal: GRADE_TOTAL_MAX,
       },
+      levelRank,
       courses,
       curve,
     });
