@@ -17,12 +17,12 @@ import {
   Mail,
   ShieldCheck,
   Phone,
-  ScanFace,
   Sparkles,
   Stethoscope,
   UserRound,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { enrollPasskey, passkeySupported } from '@/lib/passkey-client';
 import { cn } from '@/lib/utils';
 import type { AuthUser, Gender } from '@/types';
 import { AvatarUpload } from './AvatarUpload';
@@ -100,7 +100,7 @@ function validateAll(form: FormState) {
     errors.email = 'البريد الإلكتروني غير صحيح';
   }
   if (!PHONE_RE.test(form.phone.trim())) errors.phone = 'أدخل رقم هاتف صحيح';
-  if (form.password.length < 8) errors.password = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+  if (form.password.length < 10) errors.password = 'كلمة المرور يجب أن تكون 10 أحرف على الأقل';
   else if (!/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password)) {
     errors.password = 'استخدم حرفًا ورقمًا على الأقل';
   }
@@ -216,14 +216,7 @@ export function RegisterWizard({ onPolicy }: { onPolicy: (tab: PolicyTab) => voi
         setLoading(false);
         return;
       }
-      setCreatedUser(data.user); // لحظة الترحيب قبل الدخول للداشبورد
-      window.setTimeout(
-        () => {
-          router.replace(data.user.role === 'PROFESSOR' ? '/professor' : '/student');
-          router.refresh();
-        },
-        1400,
-      );
+      setCreatedUser(data.user); // لحظة الترحيب — يدور قراراته: بصمة الآن أو الدخول
     } catch (err) {
       setError((err as Error).message);
       setLoading(false);
@@ -231,6 +224,35 @@ export function RegisterWizard({ onPolicy }: { onPolicy: (tab: PolicyTab) => voi
   }
 
   const percent = Math.round(((step + 1) / 3) * 100);
+
+  // بصمة الجهاز اختيارية بعد إنشاء الطالب حسابه (الجلسة جاهزة هنا تلقائيًا)
+  const [pkReady, setPkReady] = React.useState(false);
+  const [pkBusy, setPkBusy] = React.useState(false);
+  const [pkDone, setPkDone] = React.useState(false);
+  const [pkErr, setPkErr] = React.useState('');
+  React.useEffect(() => setPkReady(passkeySupported()), []);
+
+  const enterDashboard = React.useCallback(() => {
+    if (!createdUser) return;
+    router.replace(createdUser.role === 'PROFESSOR' ? '/professor' : '/student');
+    router.refresh();
+  }, [createdUser, router]);
+
+  async function passkeyEnroll() {
+    setPkErr('');
+    setPkBusy(true);
+    try {
+      const result = await enrollPasskey();
+      if (result.ok) {
+        setPkDone(true);
+        window.setTimeout(enterDashboard, 900);
+      }
+    } catch (err) {
+      setPkErr((err as Error).message);
+    } finally {
+      setPkBusy(false);
+    }
+  }
 
   // حساب دكتور جديد: ينتظر موافقة الإدارة (لا جلسة ولا تحويل تلقائي)
   if (pendingUser) {
@@ -293,7 +315,8 @@ export function RegisterWizard({ onPolicy }: { onPolicy: (tab: PolicyTab) => voi
             <span className="text-gold-gradient">{firstName}</span> 👑
           </h2>
           <p className="mt-2 text-[12px] leading-6 text-ink-500">
-            حسابك جاهز ومحفوظ بأمان. غادي ندخّلك على لوحتك في لحظة…
+            حسابك جاهز ومحفوظ بأمان.
+            {pkReady && !pkDone ? ' ولو حابب — سجّل بصمة جهازك دلوقتي، أو دوقت!' : ''}
           </p>
           <div className="mx-auto mt-5 h-1 w-40 overflow-hidden rounded-full bg-brand-900/10">
             <motion.div
@@ -304,6 +327,63 @@ export function RegisterWizard({ onPolicy }: { onPolicy: (tab: PolicyTab) => voi
               transition={{ duration: 1.3, ease: 'easeInOut' }}
             />
           </div>
+
+          {pkReady ? (
+            <div className="mt-6 w-full px-1">
+              {pkDone ? (
+                <span className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/[0.08] px-4 py-2 text-[11.5px] font-extrabold text-brand-700">
+                  <Fingerprint className="h-4 w-4" />
+                  بصمتك اتسجلت 🎉 جاري التحويل...
+                </span>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={passkeyEnroll}
+                    disabled={pkBusy}
+                    className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#65a30d]/30 bg-[#a3e635]/12 px-4 text-[12.5px] font-extrabold text-[#365314] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#a3e635]/22 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {pkBusy ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        لمس جهازك دلوقتي...
+                      </>
+                    ) : (
+                      <>
+                        <Fingerprint className="h-4 w-4" />
+                        سجّل بصمتك
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={enterDashboard}
+                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0b1f19] px-4 text-[12.5px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#12312a]"
+                  >
+                    ادخل لوحتك
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+              {pkErr && !pkDone ? (
+                <p role="alert" className="mt-2.5 text-[11px] leading-5 text-ember-600">
+                  {pkErr}
+                </p>
+              ) : null}
+              <p className="mt-3 text-[10px] leading-5 text-ink-400">
+                بصمة الوجه أو الإصبع أو قفل الشاشة — بتدخّلك بدون كلمة مرور، والتحقق يحصل على جهازك فقط.
+              </p>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={enterDashboard}
+              className="mt-6 flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0b1f19] px-5 text-[12.5px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#12312a]"
+            >
+              ادخل لوحتك
+              <ArrowLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </motion.div>
     );
@@ -607,28 +687,20 @@ export function RegisterWizard({ onPolicy }: { onPolicy: (tab: PolicyTab) => voi
                   </Field>
                 </div>
 
-                <div className="space-y-2.5">
-                  <BiometricCard
-                    icon={ScanFace}
-                    title="بصمة الوجه"
-                    subtitle="تفعيل سريع للدخول لاحقًا"
-                    enabled={form.faceEnrolled}
-                    onToggle={() => update('faceEnrolled', !form.faceEnrolled)}
-                  />
-                  <BiometricCard
-                    icon={Fingerprint}
-                    title="بصمة الإصبع"
-                    subtitle="طبقة أمان إضافية اختيارية"
-                    enabled={form.fingerprintEnrolled}
-                    onToggle={() =>
-                      update('fingerprintEnrolled', !form.fingerprintEnrolled)
-                    }
-                  />
-                </div>
-
-                <div className="rounded-xl border border-brand-900/10 bg-white/55 px-3 py-2 text-[10px] leading-5 text-ink-400">
-                  بصمات الوجه والإصبع مجرد تفضيلات تُفعَّل لاحقًا من إعدادات
-                  الأمان. لا نجمع أي بيانات بيومترية في هذه المرحلة.
+                <div className="flex items-start gap-3 rounded-xl border border-[#65a30d]/25 bg-[#a3e635]/[0.08] px-3 py-2.5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#65a30d]/30 bg-[#bef264]/25 text-[#365314]">
+                    <Fingerprint className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[11.5px] font-semibold text-ink-800">
+                      بصمة الجهاز (Passkey)
+                    </span>
+                    <span className="block text-[9.5px] leading-5 text-ink-400">
+                      بصمة إصبعك أو وجهك أو قفل شاشة الموبايل — بتتفعّل بعد إنشاء
+                      الحساب مباشرة (اختياري) وبتدخّلك بدون كلمة مرور. لا نجمع أي
+                      بيانات بيومترية — التأكيد يحصل على جهازك كإشارة موقعة فقط.
+                    </span>
+                  </span>
                 </div>
 
                 <div>
@@ -822,64 +894,6 @@ function RoleCard({
           </li>
         ))}
       </ul>
-    </button>
-  );
-}
-
-function BiometricCard({
-  icon: Icon,
-  title,
-  subtitle,
-  enabled,
-  onToggle,
-}: {
-  icon: React.ElementType;
-  title: string;
-  subtitle: string;
-  enabled: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-pressed={enabled}
-      className={cn(
-        'flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-right transition',
-        enabled
-          ? 'border-brand-500/30 bg-brand-500/[0.05]'
-          : 'border-brand-900/10 bg-white/55 hover:border-brand-500/20',
-      )}
-    >
-      <span
-        className={cn(
-          'flex h-9 w-9 items-center justify-center rounded-xl border transition',
-          enabled
-            ? 'border-brand-500/30 bg-brand-500/12 text-brand-700'
-            : 'border-brand-900/10 bg-white/70 text-ink-400',
-        )}
-      >
-        <Icon className="h-4 w-4" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[11.5px] font-semibold text-ink-800">{title}</span>
-        <span className="block text-[9.5px] text-ink-400">{subtitle}</span>
-      </span>
-      <span
-        className={cn(
-          'relative h-5 w-9 shrink-0 rounded-full border transition',
-          enabled
-            ? 'border-brand-600/50 bg-brand-600/25'
-            : 'border-brand-900/15 bg-brand-900/[0.06]',
-        )}
-      >
-        <span
-          className={cn(
-            'absolute top-0.5 h-3.5 w-3.5 rounded-full transition-all duration-300',
-            enabled ? 'right-0.5 bg-gold-600' : 'right-[18px] bg-ink-300',
-          )}
-        />
-      </span>
     </button>
   );
 }

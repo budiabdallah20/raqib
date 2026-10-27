@@ -3,19 +3,28 @@
 /**
  * شاشة تحميل رقيب — «الوهج الذهبي» (دراك):
  * أسود مخملي، وهج ليموني×ذهبي، علامة المنصة تدور في مدار ذهبي،
- * شرارات سحرية، وشريط تقدّم ليموني×ذهبي ينسحب المشهد بأناقة.
+ * عدّاد نسبة، ساعة زمن منقضٍ، آيات متحركة، وتلميح تخطي — على طراز
+ * شاشة تحميل بورتفوليو BUDI. البرمجة تُنهي المشهد بأناقة نفسها.
  */
 
 import * as React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { LogoMark } from './Logo';
 
-const DURATION = 1900;
+const DURATION = 2600;
+const VERSE_CYCLE = 1100;
+
+const VERSES = [
+  'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
+  'وَقُل رَّبِّ زِدْنِي عِلْمًا',
+  'وَأَن تَصُومُوا خَيْرٌ لَّكُمْ',
+];
 
 export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const reduceMotion = useReducedMotion();
   const barRef = React.useRef<HTMLDivElement>(null);
   const numRef = React.useRef<HTMLSpanElement>(null);
+  const clockRef = React.useRef<HTMLSpanElement>(null);
   const finished = React.useRef(false);
 
   const finish = React.useCallback(() => {
@@ -40,10 +49,16 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
       const eased = 1 - Math.pow(1 - linear, 3);
       if (barRef.current) barRef.current.style.transform = `scaleX(${eased})`;
       if (numRef.current) numRef.current.textContent = String(Math.round(eased * 100));
+      const elapsed = Math.max(0, Math.floor((now - start) / 1000));
+      if (clockRef.current) {
+        const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+        const ss = String(elapsed % 60).padStart(2, '0');
+        clockRef.current.textContent = `00:${mm}:${ss}`;
+      }
       if (linear < 1) {
         raf = window.requestAnimationFrame(tick);
       } else {
-        window.setTimeout(finish, reduceMotion ? 100 : 260);
+        window.setTimeout(finish, reduceMotion ? 100 : 320);
       }
     };
 
@@ -93,10 +108,10 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-8 flex items-center gap-3 font-latin text-[9px] font-bold uppercase tracking-[0.36em] text-gold-200/50"
+          className="mb-8 flex items-center gap-3 font-coded text-[9px] font-bold uppercase tracking-[0.36em] text-gold-200/50"
         >
           <span className="h-px w-8 bg-gradient-to-r from-transparent to-gold-400/60" />
-          Academic Presence
+          Loading Experience
           <span className="h-px w-8 bg-gradient-to-l from-transparent to-gold-400/60" />
         </motion.div>
 
@@ -144,38 +159,96 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           <span aria-hidden className="magic-sparkle on" style={{ width: 3, height: 3, right: -10, bottom: 4, animationDelay: '2.4s' }} />
         </motion.h1>
 
+        {/* آيات متحركة — تتبدل بين موتّفات راقية */}
+        <div className="relative mt-5 flex h-6 items-center justify-center">
+          <AnimatePresence mode="wait" initial={false}>
+            {reduceMotion ? null : <VerseTicker key="verses" />}
+          </AnimatePresence>
+        </div>
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45, duration: 0.7 }}
-          className="mt-4 font-latin text-[10px] font-medium uppercase tracking-[0.38em] text-brand-100/45"
+          className="mt-3 font-coded text-[10px] font-medium uppercase tracking-[0.38em] text-brand-100/40"
         >
-          RAQIB · سجل الحضور الذكي
+          No risk, no story
         </motion.p>
       </div>
 
+      {/* شريط سفلي: العدّاد العملاق + الشريط + معلومات العلامة والتخطي */}
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="absolute inset-x-0 bottom-10 flex flex-col items-center gap-3 px-8"
+        className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-4 px-8"
       >
-        <div className="h-[3px] w-60 overflow-hidden rounded-full bg-white/[0.08] sm:w-72">
+        {/* نسبة التقدم — رقم عريض متدرج بتوهج */}
+        <div className="relative flex items-start" dir="ltr">
+          <span aria-hidden className="absolute -inset-x-10 -top-2 h-12 animate-pulse rounded-full bg-[radial-gradient(ellipse,rgba(163,230,53,.16),transparent_70%)]" />
+          <span
+            ref={numRef}
+            className="relative bg-[linear-gradient(180deg,#f6f9ef_8%,#d9f99d_58%,#a3e635_115%)] bg-clip-text font-grotesk text-[44px] font-bold leading-none tabular-nums text-transparent drop-shadow-[0_2px_18px_rgba(163,230,53,.30)] sm:text-[52px]"
+          >
+            0
+          </span>
+          <span className="relative mt-1.5 font-coded text-[13px] font-bold text-gold-300/85">%</span>
+        </div>
+
+        <div className="relative h-[5px] w-64 overflow-hidden rounded-full bg-white/[0.08] shadow-[inset_0_1px_2px_rgba(0,0,0,.55)] sm:w-80">
           <div
             ref={barRef}
             className="h-full w-full origin-left rounded-full bg-[linear-gradient(90deg,#365314_0%,#84cc16_36%,#a3e635_62%,#bef264_78%,#c8a24b_100%)] shadow-[0_0_20px_rgba(163,230,53,.5)] will-change-transform"
             style={{ transform: 'scaleX(0)' }}
           />
         </div>
-        <p className="flex items-center gap-2 font-latin text-[10px] font-semibold tracking-[0.26em] text-brand-100/45">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400/50" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-500" />
+
+        <div className="flex w-full max-w-md flex-row-reverse items-center justify-between gap-4">
+          {/* يمين (RTL): العلامة + الموقع */}
+          <span className="flex items-center gap-2 font-coded text-[9px] font-semibold uppercase tracking-[0.24em] text-brand-100/40">
+            <LogoMark tone="ink" className="h-4 w-4 rounded-[6px]" />
+            <span className="h-px w-4 bg-gold-400/40" />
+            <span dir="ltr">E G Y — S U Z</span>
           </span>
-          <span ref={numRef} className="tabular-nums text-brand-100/80">0</span>
-          <span dir="ltr">/ 100</span>
-        </p>
+
+          {/* يسار: زمن + تخطي */}
+          <span className="flex items-center gap-3 font-coded text-[9px] font-semibold tracking-[0.2em] text-brand-100/45" dir="ltr">
+            <span ref={clockRef} className="text-gold-200/60">00:00:00</span>
+            <span className="h-3 w-px bg-white/10" />
+            <span className="text-white/25">Click to skip</span>
+          </span>
+        </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+/** شريط الآيات: يعيد ترتيب نفسه كل دورة مع انتقال ناعم */
+function VerseTicker() {
+  const [index, setIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    const id = window.setInterval(
+      () => setIndex((current) => (current + 1) % VERSES.length),
+      VERSE_CYCLE,
+    );
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.p
+        key={VERSES[index]}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -6 }}
+        transition={{ duration: 0.5, ease: 'easeInOut' }}
+        className="absolute whitespace-nowrap text-center text-[13px] font-semibold text-brand-100/55"
+        style={{ textShadow: '0 0 18px rgba(163,230,53,.16)' }}
+        dir="rtl"
+      >
+        {VERSES[index]}
+      </motion.p>
+    </AnimatePresence>
   );
 }

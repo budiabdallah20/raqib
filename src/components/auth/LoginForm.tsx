@@ -7,6 +7,7 @@ import {
   AlertCircle,
   ArrowLeft,
   Check,
+  Fingerprint,
   Loader2,
   LockKeyhole,
   ShieldCheck,
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ROLE_HOME } from '@/lib/constants';
+import { loginWithPasskey, passkeySupported } from '@/lib/passkey-client';
 import { cn } from '@/lib/utils';
 import type { AuthUser } from '@/types';
 import { Field, PasswordInput, ValidatedInput } from './fields';
@@ -40,6 +42,13 @@ export function LoginForm({
   });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
+  const [pkReady, setPkReady] = React.useState(false);
+  const [pkLoading, setPkLoading] = React.useState(false);
+  const [pkError, setPkError] = React.useState('');
+
+  React.useEffect(() => {
+    setPkReady(passkeySupported());
+  }, []);
 
   const idError =
     touched.id && identifier.trim().length < 3
@@ -73,6 +82,20 @@ export function LoginForm({
     } catch (err) {
       setError((err as Error).message);
       setLoading(false);
+    }
+  }
+
+  async function passkeyLogin() {
+    setPkError('');
+    setPkLoading(true);
+    try {
+      const result = await loginWithPasskey(identifier.trim() || undefined);
+      router.replace(result.user ? ROLE_HOME[result.user.role] || '/' : '/');
+      router.refresh();
+    } catch (err) {
+      setPkError((err as Error).message);
+    } finally {
+      setPkLoading(false);
     }
   }
 
@@ -195,6 +218,43 @@ export function LoginForm({
         </span>
         <span className="h-px flex-1 bg-brand-900/10" />
       </div>
+
+      {pkReady ? (
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={passkeyLogin}
+            disabled={pkLoading}
+            className="group flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-[#65a30d]/30 bg-[#a3e635]/10 text-sm font-extrabold text-[#3f6212] shadow-[inset_0_1px_0_rgba(255,255,255,.25)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#a3e635]/20 hover:shadow-[0_14px_34px_-16px_rgba(101,163,13,.55)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {pkLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                جارٍ طلب اللمسة...
+              </>
+            ) : (
+              <>
+                <Fingerprint className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                الدخول ببصمة الجهاز (Passkey)
+              </>
+            )}
+          </button>
+          {pkError ? (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-2 flex items-start gap-2 rounded-xl border border-ember-500/25 bg-ember-500/[0.06] px-3 py-2.5 text-[11.5px] leading-5 text-ember-600"
+              role="alert"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              {pkError}
+            </motion.div>
+          ) : null}
+          <p className="mt-1.5 text-center text-[10.5px] text-ink-400">
+            بشارة الإصبع أو الوجه أو قفل الشاشة — أخف وأأمن من كلمة المرور.
+          </p>
+        </div>
+      ) : null}
 
       <p className="mt-4 text-center text-[12px] text-ink-500">
         أول مرة على رقيب؟{' '}

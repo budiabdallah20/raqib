@@ -42,6 +42,7 @@ model User {
   taskSubmissions     TaskSubmission[]     @relation("TaskSubmissionStudent")
   notifications       Notification[]
   sessions            Session[]
+  passkeys            PasskeyCredential[]
 
   @@index([role, isActive])
   @@index([lockedUntil])
@@ -79,6 +80,23 @@ model PasswordResetToken {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+// مفاتيح المرور (Passkey / WebAuthn) — بصمة الجهاز أو قفل الشاشة، اختيارية للحساب
+model PasskeyCredential {
+  id          String    @id // credential ID بصيغة base64url من المصادق
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  publicKey   Bytes // المفتاح العام — لا يُخزن أي سر
+  counter     Int       @default(0) // عداد التوقيع لكشف الاستنساخ
+  transports  String? // قائمة النقل مفصولة بفواصل: internal,hybrid,...
+  deviceType  String? // singleDevice | multiDevice
+  backedUp    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+
+  @@index([userId])
+  @@index([lastUsedAt])
 }
 
 model Course {

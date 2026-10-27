@@ -4,7 +4,8 @@
   "private": true,
   "description": "منصة رقيب — نظام إدارة أكاديمية لكلية العلوم جامعة السويس",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
+    "dev:webpack": "next dev",
     "dev:https": "node server.mjs --dev",
     "build": "next build",
     "start": "node server.mjs",
@@ -26,6 +27,8 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@simplewebauthn/browser": "^14.0.0",
+    "@simplewebauthn/server": "^14.0.3",
     "@studio-freight/lenis": "^1.0.42",
     "bcryptjs": "^2.4.3",
     "canvas-confetti": "^1.9.3",
@@ -69,6 +72,15 @@
     "tailwindcss": "^3.4.19",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
+    "vercel": "^65.4.0",
     "vitest": "^5.0.5"
+  },
+  "allowScripts": {
+    "@prisma/client@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.27.0": true,
+    "esbuild@0.27.7": true,
+    "prisma@5.22.0": true
   }
 }

@@ -41,6 +41,18 @@ import { TECH_LOGOS, TechLogoMark } from '@/components/shared/TechLogos';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
+/** ألوان نيون لكل كورة تقنية في سكشن «THAT'S WHAT I BUILD ON» (currentColor). */
+const TILE_COLORS: Record<string, string> = {
+  React: '#61DAFB',
+  'Next.js': '#f6f9ef',
+  TypeScript: '#3178C6',
+  Tailwind: '#38BDF8',
+  'Node.js': '#8CC84B',
+  Prisma: '#8b6cf0',
+  SQLite: '#7dd3fc',
+  Framer: '#d9f99d',
+};
+
 const NAV_ANCHORS = [
   { href: '#features', key: 'features' },
   { href: '#how', key: 'how' },
@@ -190,7 +202,7 @@ function QrArt({ className = '' }: { className?: string }) {
 /* Small chrome                                                        */
 /* ------------------------------------------------------------------ */
 
-function ClockChip() {
+function ClockChip({ light = false }: { light?: boolean }) {
   const [now, setNow] = React.useState<Date | null>(null);
   React.useEffect(() => {
     setNow(new Date());
@@ -199,20 +211,32 @@ function ClockChip() {
   }, []);
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#c8a24b]/30 bg-[#c8a24b]/[0.09] px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] text-gold-200 shadow-[inset_0_1px_0_rgba(255,255,255,.06)] backdrop-blur-md">
-      <Clock3 className="h-3 w-3 text-[#e6cb78]" />
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] shadow-[inset_0_1px_0_rgba(255,255,255,.06)] backdrop-blur-md ${
+        light
+          ? 'border-[#c8a24b]/35 bg-[#c8a24b]/[0.14] text-[#8a6424] shadow-[inset_0_1px_0_rgba(255,255,255,.5)]'
+          : 'border-[#c8a24b]/30 bg-[#c8a24b]/[0.09] text-gold-200'
+      }`}
+    >
+      <Clock3 className={`h-3 w-3 ${light ? 'text-[#8a6424]' : 'text-[#e6cb78]'}`} />
       <span dir="ltr">{now ? now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
-      <span className="h-1 w-1 rounded-full bg-[#e6cb78]/80" />
+      <span className={`h-1 w-1 rounded-full ${light ? 'bg-[#8a6424]/80' : 'bg-[#e6cb78]/80'}`} />
     </span>
   );
 }
 
-function DateChip() {
+function DateChip({ light = false }: { light?: boolean }) {
   const [now, setNow] = React.useState<Date | null>(null);
   React.useEffect(() => setNow(new Date()), []);
   return (
-    <span className="hidden items-center gap-1.5 rounded-full border border-[#a3e635]/25 bg-[#a3e635]/[0.07] px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] text-[#d9f99d] backdrop-blur-md 2xl:inline-flex">
-      <Calendar className="h-3 w-3 text-[#bef264]" />
+    <span
+      className={`hidden items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] backdrop-blur-md 2xl:inline-flex ${
+        light
+          ? 'border-[#65a30d]/35 bg-[#bef264]/[0.2] text-[#3f6212] shadow-[inset_0_1px_0_rgba(255,255,255,.5)]'
+          : 'border-[#a3e635]/25 bg-[#a3e635]/[0.07] text-[#d9f99d]'
+      }`}
+    >
+      <Calendar className={`h-3 w-3 ${light ? 'text-[#4d7c0f]' : 'text-[#bef264]'}`} />
       <span dir="ltr">{now ? now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—'}</span>
     </span>
   );
@@ -321,7 +345,7 @@ export function LandingPage() {
       <header
         className={`sticky top-0 z-50 transition-all duration-500 ${
           scrolled
-            ? 'border-b border-white/10 bg-[#080b06]/78 shadow-[0_18px_45px_-32px_rgba(0,0,0,.9)] backdrop-blur-2xl'
+            ? 'border-b border-[#a3e635]/20 bg-[#f2f7ee]/88 shadow-[0_18px_45px_-30px_rgba(63,98,18,.28)] backdrop-blur-2xl'
             : 'border-b border-transparent bg-transparent'
         }`}
       >
@@ -330,28 +354,30 @@ export function LandingPage() {
             <Logo markClassName="h-10 w-10 transition-transform duration-500 group-hover:rotate-[-4deg]" />
           </Link>
 
-          <nav className="hidden items-center gap-0.5 rounded-full border border-[#c8a24b]/25 bg-[#0b0f07]/85 p-1 shadow-[0_10px_30px_-18px_rgba(0,0,0,.85),inset_0_1px_0_rgba(255,255,255,.05)] backdrop-blur-xl lg:flex">
+          <nav className="hidden items-center gap-0.5 rounded-full border border-[#a3e635]/25 bg-[#f8fcf4]/80 p-1.5 shadow-[0_10px_30px_-18px_rgba(63,98,18,.30),inset_0_1px_0_rgba(255,255,255,.65)] backdrop-blur-xl lg:flex">
             {NAV_ANCHORS.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="group relative rounded-full px-4 py-2 text-[13px] font-semibold text-[#d9f99d]/65 transition-all duration-300 hover:bg-[#a3e635]/10 hover:text-[#f6f9ef]"
+                className="group relative rounded-full px-4 py-2 text-[13px] font-semibold text-[#2f4023]/65 transition-all duration-300 hover:bg-[#a3e635]/15 hover:text-[#1b2a12]"
               >
                 {t.nav[item.key]}
-                <span className="absolute inset-x-4 -bottom-[1px] h-px origin-center scale-x-0 bg-gradient-to-r from-transparent via-[#a3e635]/70 to-transparent transition-transform duration-300 group-hover:scale-x-100" />
+                <span className="absolute inset-x-4 -bottom-[1px] h-px origin-center scale-x-0 bg-gradient-to-r from-transparent via-[#65a30d]/70 to-transparent transition-transform duration-300 group-hover:scale-x-100" />
               </a>
             ))}
           </nav>
 
           <div className="flex items-center gap-2.5">
             <div className="hidden items-center gap-1.5 md:flex">
-              <ClockChip />
-              <DateChip />
+              <ClockChip light={scrolled} />
+              <DateChip light={scrolled} />
             </div>
             <LanguageToggle />
             <Link
               href="/login"
-              className="hidden rounded-full px-3 py-2 text-[12px] font-semibold text-ink-600 transition-colors hover:text-ink-950 sm:inline-flex"
+              className={`hidden rounded-full px-3 py-2 text-[12px] font-semibold transition-colors sm:inline-flex ${
+                scrolled ? 'text-[#3a4d33] hover:text-[#1b2a12]' : 'text-[#d9f99d]/70 hover:text-[#f6f9ef]'
+              }`}
             >
               {t.nav.login}
             </Link>
@@ -368,7 +394,11 @@ export function LandingPage() {
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={t.nav.menu}
               aria-expanded={menuOpen}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#a3e635]/30 bg-[#a3e635]/10 text-[#bef264] backdrop-blur-md transition-all duration-300 hover:bg-[#a3e635]/20 lg:hidden"
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-all duration-300 ${
+                scrolled
+                  ? 'border-[#65a30d]/40 bg-[#bef264]/25 text-[#365314] hover:bg-[#bef264]/40'
+                  : 'border-[#a3e635]/30 bg-[#a3e635]/10 text-[#bef264] hover:bg-[#a3e635]/20'
+              }`}
             >
               {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
@@ -671,22 +701,39 @@ export function LandingPage() {
         </section>
 
         {/* -------------------------------------------------------------- */}
-        {/* tech marquee                                                   */}
+        {/* tech tiles — "THAT'S WHAT I BUILD ON"                          */}
         {/* -------------------------------------------------------------- */}
-        <section aria-label="Technology stack" className="relative border-y border-ink-950/[0.06] bg-white/30 py-5 backdrop-blur-sm">
-          <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 sm:px-8">
-            <span className="hidden shrink-0 font-latin text-[9px] font-bold uppercase tracking-[0.26em] text-ink-400 md:block">Built with</span>
-            <div className="relative flex-1 overflow-hidden mask-fade-x">
-              <div className="flex w-max animate-marquee items-center gap-9 hover:[animation-play-state:paused]">
-                {[...TECH_LOGOS, ...TECH_LOGOS].map((tech, i) => (
-                  <span key={`${tech.name}-${i}`} className="flex shrink-0 items-center gap-2 text-ink-400/80 transition-colors hover:text-brand-700">
-                    <TechLogoMark index={i % TECH_LOGOS.length} className="h-4 w-4" />
-                    <span className="font-latin text-[10px] font-semibold tracking-[0.12em]">{tech.name}</span>
-                  </span>
-                ))}
-              </div>
+        <section aria-label={t.footer.builtEyebrow} className="relative mx-auto w-full max-w-7xl px-5 py-16 sm:px-8 sm:py-24">
+          <div className="relative">
+            <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 h-[320px] w-[560px] -translate-x-1/2 rounded-full opacity-70 blur-3xl" style={{ background: 'radial-gradient(ellipse, rgba(163,230,53,0.10), transparent 70%)' }} />
+
+            <p className="kicker-mono relative text-[9px] font-bold uppercase text-gold-700">{t.footer.builtEyebrow}</p>
+            <h2 className="relative mt-4 font-display text-[clamp(2.4rem,6vw,4.6rem)] font-black leading-[1.04] tracking-[-0.035em] text-ink-950">
+              {t.footer.builtHeading}
+              <span className="block bg-[linear-gradient(100deg,#c8a24b,#e6cb78_42%,#a3e635)] bg-clip-text text-transparent">
+                {t.footer.builtHeadingGold}
+              </span>
+            </h2>
+
+            <div className="relative mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {TECH_LOGOS.map((tech, i) => (
+                <div
+                  key={tech.name}
+                  className="stagger-item group relative overflow-hidden rounded-2xl border border-white/70 bg-white/40 p-5 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_-26px_rgba(19,56,44,.5)]"
+                  style={{ '--d': `${i * 70}ms` } as React.CSSProperties}
+                >
+                  {/* highlight منظري */}
+                  <span aria-hidden className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+                  <span aria-hidden className="absolute -right-2 -top-2 h-[150%] w-px origin-top rotate-[26deg] bg-gradient-to-b from-white/40 via-white/10 to-transparent" />
+                  <span aria-hidden className="absolute -bottom-10 -left-6 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(163,230,53,0.14),transparent_70%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  <div className="relative flex items-start justify-between" style={{ color: TILE_COLORS[tech.name] ?? undefined }}>
+                    <TechLogoMark index={i} className="h-9 w-9 transition-transform duration-300 group-hover:scale-110" />
+                    <span className="font-coded text-[9px] tabular-nums text-ink-300">0{i + 1}</span>
+                  </div>
+                  <p className="font-coded relative mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-ink-700">{tech.name}</p>
+                </div>
+              ))}
             </div>
-            <span className="hidden shrink-0 font-latin text-[9px] font-medium tracking-[0.16em] text-ink-300 sm:block">{t.footer.stackNote}</span>
           </div>
         </section>
 
@@ -1072,7 +1119,7 @@ export function LandingPage() {
             </span>
           </div>
 
-          <div className="grid gap-12 border-t border-white/[0.06] pt-12 lg:grid-cols-[1.35fr_0.65fr_0.8fr_0.9fr] lg:gap-10">
+          <div className="grid gap-12 border-t border-white/[0.06] pt-12 lg:grid-cols-[1.25fr_0.6fr_0.85fr] lg:gap-10">
             <div className="group/brand relative">
               <span aria-hidden className="pointer-events-none absolute -inset-5 rounded-3xl opacity-0 blur-2xl transition-opacity duration-700 group-hover/brand:opacity-100" style={{ background: 'radial-gradient(ellipse 70% 60% at 20% 20%, rgba(163,230,53,0.12), transparent 65%), radial-gradient(ellipse 50% 50% at 80% 90%, rgba(200,162,75,0.14), transparent 65%)' }} />
               <Logo tone="light" markClassName="h-11 w-11" wordmarkClassName="[&_span:first-child]:text-[#f6f9ef] [&_span:last-child]:text-white/35" />
@@ -1136,131 +1183,162 @@ export function LandingPage() {
               </ul>
             </nav>
 
-            <div>
-              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.contactTitle}</h3>
-              <ul className="mt-5 space-y-3">
-                {t.footer.devLinks.map((link) => {
-                  const icons = {
-                    WhatsApp: MessageCircle,
-                    Email: Mail,
-                    Phone: Phone,
-                    Portfolio: ArrowUpRight,
-                  } as const;
-                  const Icon = icons[link.label as keyof typeof icons] ?? ArrowUpRight;
-                  return (
-                    <li key={link.href}>
-                      <a
-                        href={link.href}
-                        target={link.href.startsWith('http') ? '_blank' : undefined}
-                        rel={link.href.startsWith('http') ? 'noreferrer' : undefined}
-                        className="group inline-flex items-center gap-2.5 text-[11px] font-medium text-[#e8f3d2]/75 transition-colors hover:text-[#f6f9ef]"
-                      >
-                        <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/[0.045] text-gold-200/60 transition-colors group-hover:border-gold-300/25 group-hover:text-gold-200">
-                          <Icon className="h-3 w-3" />
-                        </span>
-                        {link.label}
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
-              {/* صف أيقونات السوشيال — لوجوهات رسمية */}
-              <p className="mt-6 font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.socialsTitle}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                {[
-                  { name: 'WhatsApp', href: 'https://wa.me/201065228072', color: '#25D366', file: 'whatsapp.svg' },
-                  { name: 'GitHub', href: 'https://github.com/budiabdallah20', color: '#f2f8e8', file: 'github.svg' },
-                  { name: 'LinkedIn', href: 'https://linkedin.com/in/budi-abdallah-ba61323a7', color: '#0A66C2', file: 'linkedin.svg' },
-                  { name: 'TikTok', href: 'https://tiktok.com/@mohamedabdallah_10', color: '#f2f8e8', file: 'tiktok.svg' },
-                  { name: 'Facebook', href: 'https://facebook.com/mohamed.abdallah.45254', color: '#0866FF', file: 'facebook.svg' },
-                  { name: 'Instagram', href: 'https://instagram.com/mohamedabdallahh_18', color: '#E4405F', file: 'instagram.svg' },
-                  { name: 'Email', href: 'mailto:budiabdallah922@gmail.com', color: '#c8a24b', file: null },
-                  { name: 'Phone', href: 'tel:+201065228072', color: '#a3e635', file: null },
-                ].map((social) => (
-                  <a
-                    key={social.name}
-                    href={social.href}
-                    target={social.href.startsWith('http') ? '_blank' : undefined}
-                    rel={social.href.startsWith('http') ? 'noreferrer' : undefined}
-                    aria-label={social.name}
-                    title={social.name}
-                    className="group flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_28px_-10px_rgba(0,0,0,.7)]"
-                    style={{ color: social.color }}
-                  >
-                    {social.file ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img src={`/brand-icons/${social.file}`} alt="" className="h-4 w-4 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
-                    ) : social.name === 'Email' ? (
-                      <Mail className="h-3.5 w-3.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
-                    ) : (
-                      <Phone className="h-3.5 w-3.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
-                    )}
-                  </a>
-                ))}
-              </div>
-              <div className="mt-6 flex items-center gap-2 text-[10px] text-brand-100/35">
-                <MapPin className="h-3 w-3 text-gold-300/50" />
-                {t.footer.devLoc}
-              </div>
-            </div>
           </div>
 
-          {/* developer card */}
-          <div className="relative mt-14 overflow-hidden rounded-[28px] border border-white/[0.09] bg-white/[0.035] p-4 backdrop-blur-md sm:p-5">
-            <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(163,230,53,.14),transparent_45%),radial-gradient(circle_at_100%_100%,rgba(200,162,75,.14),transparent_45%)]" />
-            <div className="relative grid gap-5 sm:grid-cols-[150px_1fr] sm:items-center lg:grid-cols-[170px_1fr_auto]">
-              <div className="group relative mx-auto w-full max-w-[190px] sm:mx-0">
-                <div aria-hidden className="absolute -inset-1.5 rounded-[25px] bg-[conic-gradient(from_140deg,rgba(200,162,75,.6),rgba(190,242,100,.5),rgba(200,162,75,.6))] opacity-70 blur-[1px] transition-opacity duration-500 group-hover:opacity-100" />
-                <div aria-hidden className="absolute -inset-1 rounded-[23px] border border-gold-300/30 [transform:rotate(-2deg)] transition-transform duration-500 group-hover:rotate-0" />
-                <span aria-hidden className="magic-sparkle on" style={{ width: 4, height: 4, top: -8, right: 4, animationDelay: '0.4s' }} />
+          {/* developer card — الكارت الاحترافي الكامل */}
+          <div className="relative mt-14 overflow-hidden rounded-[30px] border border-white/[0.09] bg-[#10160b]/70 p-5 backdrop-blur-md sm:p-8">
+            <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,rgba(163,230,53,.12),transparent_42%),radial-gradient(circle_at_100%_100%,rgba(200,162,75,.13),transparent_42%)]" />
+            <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-300/50 to-transparent" />
+
+            <div className="relative grid gap-8 lg:grid-cols-[215px_1fr]">
+              {/* الصورة — إطار ذهبي + أقواس منظور */}
+              <div className="group relative mx-auto w-full max-w-[225px] lg:mx-0">
+                <div aria-hidden className="absolute -inset-1.5 rounded-[26px] bg-[conic-gradient(from_140deg,rgba(200,162,75,.55),rgba(190,242,100,.45),rgba(200,162,75,.55))] opacity-70 blur-[1px] transition-opacity duration-500 group-hover:opacity-100" />
+                <div aria-hidden className="absolute -inset-1 rounded-[24px] border border-gold-300/30 [transform:rotate(-2deg)] transition-transform duration-500 group-hover:rotate-0" />
+                <span aria-hidden className="magic-sparkle on" style={{ width: 4, height: 4, top: -8, right: 10, animationDelay: '0.4s' }} />
                 <span aria-hidden className="magic-sparkle on" style={{ width: 3, height: 3, bottom: -6, left: 8, animationDelay: '1.8s' }} />
-                <div className="relative overflow-hidden rounded-[22px] border border-white/20 bg-[#0a0c07] p-1.5">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[17px] bg-[#141a08]">
+                <div className="relative rounded-[22px] border border-white/20 bg-[#0a0c07] p-1.5">
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-[17px]">
                     <Image
-                      src="/1.jpg"
+                      src="/brand/fotterfPicture.jpg"
                       alt={t.footer.devName}
-                      width={2213}
-                      height={2951}
-                      sizes="190px"
-                      className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
+                      fill
+                      priority
+                      sizes="225px"
+                      className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
                     />
-                    <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#0a0c07]/80 via-transparent to-transparent" />
-                    <div className="absolute inset-x-2 bottom-2 flex items-center gap-1.5 rounded-lg border border-gold-300/25 bg-[#0a0c07]/60 px-2 py-1.5 backdrop-blur-md">
+                    <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#0a0c07]/85 via-transparent to-transparent" />
+                    <span aria-hidden className="absolute left-2.5 top-2.5 h-5 w-5 rounded-tl-md border-l-2 border-t-2 border-gold-300/80" />
+                    <span aria-hidden className="absolute right-2.5 top-2.5 h-5 w-5 rounded-tr-md border-r-2 border-t-2 border-gold-300/80" />
+                    <span aria-hidden className="absolute bottom-10 left-2.5 h-5 w-5 rounded-bl-md border-b-2 border-l-2 border-gold-300/80" />
+                    <span aria-hidden className="absolute bottom-10 right-2.5 h-5 w-5 rounded-br-md border-b-2 border-r-2 border-gold-300/80" />
+                    <div className="absolute inset-x-2 bottom-2 flex items-center gap-1.5 rounded-lg border border-gold-300/25 bg-[#0a0c07]/70 px-2 py-1.5 backdrop-blur-md">
                       <span className="h-1 w-1 rounded-full bg-brand-300 shadow-[0_0_8px_rgba(163,230,53,.8)]" />
-                      <span className="font-latin text-[7px] font-bold uppercase tracking-[0.16em] text-brand-100/80">Raqeeb creator</span>
+                      <span className="font-latin text-[7px] font-bold uppercase tracking-[0.16em] text-brand-100/85">Raqeeb creator</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="text-center sm:text-start">
+              {/* المعلومات */}
+              <div>
                 <p className="font-latin text-[8px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.devTitle}</p>
-                <h3 className="mt-2 font-display text-[1.65rem] font-bold tracking-[-0.035em] text-[#f6f9ef]">{t.footer.devName}</h3>
-                <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                  <span className="rounded-full border border-brand-300/20 bg-brand-300/[0.08] px-2.5 py-1 font-latin text-[8px] font-bold uppercase tracking-[0.16em] text-brand-200/80">Full-Stack Developer</span>
+                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <h3 className="font-grotesk text-[1.85rem] font-bold leading-tight tracking-[-0.03em] text-[#f6f9ef]">{t.footer.devName}</h3>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-300/20 bg-brand-300/[0.08] px-2.5 py-1 font-latin text-[8px] font-bold uppercase tracking-[0.16em] text-brand-200/85">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping-soft absolute inline-flex h-full w-full rounded-full bg-brand-300" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-300" />
+                    </span>
+                    Open to work
+                  </span>
+                </div>
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-brand-300/20 bg-brand-300/[0.08] px-2.5 py-1 font-latin text-[8px] font-bold uppercase tracking-[0.16em] text-brand-200/80">{t.footer.devRole}</span>
                   <span className="rounded-full border border-gold-300/20 bg-gold-300/[0.07] px-2.5 py-1 font-latin text-[8px] font-bold uppercase tracking-[0.16em] text-gold-200/80">Raqeeb Creator</span>
                 </div>
-                <p className="mx-auto mt-3 max-w-2xl text-[11px] leading-[1.9] text-brand-100/42 sm:mx-0">{t.footer.devBio}</p>
-              </div>
+                <p className="mt-3 max-w-2xl text-[11px] leading-[1.9] text-brand-100/45">{t.footer.devBio}</p>
 
-              <div className="flex flex-col items-center gap-2 sm:items-end lg:min-w-[140px]">
-                <span className="inline-flex items-center gap-1.5 font-latin text-[9px] font-semibold text-brand-100/35">
-                  <MapPin className="h-3 w-3 text-gold-300/55" />
-                  {t.footer.devLoc}
-                </span>
-                <a
-                  href="https://budi-portfolio-dev.vercel.app/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group inline-flex h-9 items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-4 font-latin text-[8px] font-bold uppercase tracking-[0.18em] text-brand-100/60 transition-colors hover:border-gold-300/30 hover:text-gold-200"
-                >
-                  <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-md">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/brand-icons/budi.svg" alt="" className="h-5 w-5" />
+                {/* لغات البناء */}
+                <p className="mt-6 font-latin text-[8px] font-bold uppercase tracking-[0.28em] text-gold-300/55">Languages built on</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {TECH_LOGOS.map((tech, i) => (
+                    <span
+                      key={tech.name}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 font-coded text-[9px] font-bold uppercase tracking-[0.12em] text-[#d9f99d]/70 transition-colors hover:border-gold-300/30 hover:text-[#f6f9ef]"
+                    >
+                      <span style={{ color: TILE_COLORS[tech.name] ?? undefined }}>
+                        <TechLogoMark index={i} className="h-3 w-3" />
+                      </span>
+                      {tech.name}
+                    </span>
+                  ))}
+                </div>
+
+                {/* التواصل + السوشيال — جوه الكارت */}
+                <div className="mt-7 grid gap-6 border-t border-white/[0.07] pt-5 sm:grid-cols-[1fr_auto]">
+                  <div>
+                    <p className="font-latin text-[8px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.contactTitle}</p>
+                    <ul className="mt-3 space-y-2.5">
+                      {t.footer.devLinks.filter((link) => link.label !== 'Portfolio').map((link) => {
+                        const display: Record<string, string> = {
+                          WhatsApp: '+20 106 522 8072',
+                          Email: 'budiabdallah922@gmail.com',
+                          Phone: '+20 106 522 8072',
+                        };
+                        const Icon = link.label === 'WhatsApp' ? MessageCircle : link.label === 'Email' ? Mail : Phone;
+                        return (
+                          <li key={link.href}>
+                            <a href={link.href} className="group inline-flex items-center gap-2.5 text-[12px] font-medium text-[#e8f3d2]/80 transition-colors hover:text-[#f6f9ef]">
+                              <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/[0.045] text-gold-200/60 transition-colors group-hover:border-gold-300/25 group-hover:text-gold-200">
+                                <Icon className="h-3 w-3" />
+                              </span>
+                              <span dir="ltr" className="font-coded text-[10px] tracking-[0.06em] text-[#e8f3d2]/80 group-hover:text-[#f6f9ef]">
+                                {display[link.label] ?? link.label}
+                              </span>
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-latin text-[8px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.socialsTitle}</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {[
+                        { name: 'WhatsApp', href: 'https://wa.me/201065228072', color: '#25D366', file: 'whatsapp.svg' },
+                        { name: 'GitHub', href: 'https://github.com/budiabdallah20', color: '#f2f8e8', file: 'github.svg' },
+                        { name: 'LinkedIn', href: 'https://linkedin.com/in/budi-abdallah-ba61323a7', color: '#0A66C2', file: 'linkedin.svg' },
+                        { name: 'TikTok', href: 'https://tiktok.com/@mohamedabdallah_10', color: '#f2f8e8', file: 'tiktok.svg' },
+                        { name: 'Facebook', href: 'https://facebook.com/mohamed.abdallah.45254', color: '#0866FF', file: 'facebook.svg' },
+                        { name: 'Instagram', href: 'https://instagram.com/mohamedabdallahh_18', color: '#E4405F', file: 'instagram.svg' },
+                        { name: 'Email', href: 'mailto:budiabdallah922@gmail.com', color: '#c8a24b', file: null },
+                        { name: 'Phone', href: 'tel:+201065228072', color: '#a3e635', file: null },
+                      ].map((social) => (
+                        <a
+                          key={social.name}
+                          href={social.href}
+                          target={social.href.startsWith('http') ? '_blank' : undefined}
+                          rel={social.href.startsWith('http') ? 'noreferrer' : undefined}
+                          aria-label={social.name}
+                          title={social.name}
+                          className="group flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_28px_-10px_rgba(0,0,0,.7)]"
+                          style={{ color: social.color }}
+                        >
+                          {social.file ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img src={`/brand-icons/${social.file}`} alt="" className="h-4 w-4 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+                          ) : social.name === 'Email' ? (
+                            <Mail className="h-3.5 w-3.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+                          ) : (
+                            <Phone className="h-3.5 w-3.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+                          )}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* المسار */}
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <span className="inline-flex items-center gap-1.5 font-latin text-[9px] font-semibold text-brand-100/40">
+                    <MapPin className="h-3 w-3 text-gold-300/55" />
+                    {t.footer.devLoc}
                   </span>
-                  Portfolio
-                  <ArrowUpRight className="h-3 w-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                </a>
+                  <a
+                    href="https://budi-portfolio-dev.vercel.app/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group inline-flex h-9 items-center gap-2 rounded-full border border-gold-300/25 bg-gold-300/[0.07] px-4 font-latin text-[8px] font-bold uppercase tracking-[0.18em] text-gold-200/80 transition-colors hover:border-gold-300/50 hover:bg-gold-300/[0.14]"
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-md ring-1 ring-gold-300/40">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/brand-icons/budi.svg" alt="" className="h-5 w-5" />
+                    </span>
+                    BUDI Portfolio
+                    <ArrowUpRight className="h-3 w-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </a>
+                </div>
               </div>
             </div>
           </div>

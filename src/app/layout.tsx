@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Cairo } from 'next/font/google';
+import { Inter, Cairo, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import { LoadingProvider } from '@/components/shared/LoadingProvider';
 import { LanguageProvider } from '@/lib/i18n';
 import './globals.css';
@@ -7,6 +7,18 @@ import './globals.css';
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
+});
+
+const grotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-grotesk',
+  display: 'swap',
+});
+
+const coded = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-coded',
   display: 'swap',
 });
 
@@ -196,7 +208,8 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${inter.variable} ${cairo.variable}`}
+      data-scroll-behavior="smooth"
+      className={`${inter.variable} ${cairo.variable} ${grotesk.variable} ${coded.variable}`}
     >
       <head>
         <script
