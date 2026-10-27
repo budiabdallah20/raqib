@@ -16,6 +16,7 @@ export async function GET() {
         quiz: true,
         work: true,
         midterm: true,
+        final: true,
         updatedAt: true,
         course: { select: { code: true, name: true } },
       },
@@ -29,7 +30,8 @@ export async function GET() {
         quiz: grade.quiz,
         work: grade.work,
         midterm: grade.midterm,
-        total: (grade.quiz ?? 0) + (grade.work ?? 0) + (grade.midterm ?? 0),
+        final: grade.final,
+        total: (grade.quiz ?? 0) + (grade.work ?? 0) + (grade.midterm ?? 0) + (grade.final ?? 0),
       })),
     });
   } catch (error) {

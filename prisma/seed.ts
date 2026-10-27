@@ -137,31 +137,33 @@ async function main() {
   // جدول.Group B الأسبوعي — مستنسخ حرفيًا من الـ PDF الرسمي
   // day: 2=اثنين 3=ثلاثاء 4=أربعاء 5=خميس | period: 1..4
   // ─────────────────────────────────────────────────────────
-  const slots: { day: number; period: number; code: string; kind: string; room: string; vip?: boolean }[] = [
-    { day: 2, period: 2, code: 'MAT207', kind: 'LECTURE', room: 'قاعة 1' },
-    { day: 2, period: 3, code: 'COM201', kind: 'LECTURE', room: 'VIP Hall 2', vip: true },
-    { day: 3, period: 1, code: 'MAT201', kind: 'LECTURE', room: 'قاعة 1' },
-    { day: 3, period: 2, code: 'MAT203', kind: 'LECTURE', room: 'قاعة 1' },
-    { day: 3, period: 3, code: 'MAT201', kind: 'SECTION', room: 'قاعة 1' },
-    { day: 3, period: 4, code: 'MAT213', kind: 'LECTURE', room: 'قاعة 1' },
-    { day: 4, period: 2, code: 'MAT305', kind: 'SECTION', room: 'قاعة 2' },
-    { day: 4, period: 3, code: 'MAT305', kind: 'LECTURE', room: 'VIP Hall 2', vip: true },
-    { day: 5, period: 1, code: 'MAT207', kind: 'SECTION', room: 'قاعة 2' },
-    { day: 5, period: 3, code: 'MAT211', kind: 'LECTURE', room: 'قاعة 1' },
-    { day: 5, period: 4, code: 'COM201', kind: 'LAB',     room: 'معمل الحاسب' },
+  const slots: { day: number; period: number; code: string; kind: string; room: string; vip?: boolean; teacher: string }[] = [
+    { day: 2, period: 2, code: 'MAT207', kind: 'LECTURE', room: 'قاعة 1', teacher: 'د. نوجي محمد' },
+    { day: 2, period: 3, code: 'COM201', kind: 'LECTURE', room: 'VIP Hall 2', vip: true, teacher: 'د. سماح أحمد' },
+    { day: 3, period: 1, code: 'MAT201', kind: 'LECTURE', room: 'قاعة 1', teacher: 'د. بهة الله فتحي' },
+    { day: 3, period: 2, code: 'MAT203', kind: 'LECTURE', room: 'قاعة 1', teacher: 'د. سمر محمد' },
+    { day: 3, period: 3, code: 'MAT201', kind: 'SECTION', room: 'قاعة 1', teacher: 'م.م جميلة السيد' },
+    { day: 3, period: 4, code: 'MAT213', kind: 'LECTURE', room: 'قاعة 1', teacher: 'د. إيهاب راشد' },
+    { day: 4, period: 2, code: 'MAT305', kind: 'SECTION', room: 'قاعة 2', teacher: 'م. أحمد رزق' },
+    { day: 4, period: 3, code: 'MAT305', kind: 'LECTURE', room: 'VIP Hall 2', vip: true, teacher: 'أ.م.د طارق إمام' },
+    { day: 5, period: 1, code: 'MAT207', kind: 'SECTION', room: 'قاعة 2', teacher: 'م.م أسماء عبد العال' },
+    { day: 5, period: 3, code: 'MAT211', kind: 'LECTURE', room: 'قاعة 1', teacher: 'أ.م.د محمد رمضان' },
+    { day: 5, period: 4, code: 'COM201', kind: 'LAB',     room: 'معمل الحاسب', teacher: 'م.م ياسمين' },
   ];
   for (const s of slots) {
     await prisma.scheduleSlot.upsert({
-      where: { group_day_period: { group: 'B', day: s.day, period: s.period } },
-      update: { courseId: courses[s.code], kind: s.kind, room: s.room, isVip: !!s.vip },
+      where: { group_day_period_term: { group: 'B', day: s.day, period: s.period, term: 'T1' } },
+      update: { courseId: courses[s.code], kind: s.kind, room: s.room, isVip: !!s.vip, teacherName: s.teacher },
       create: {
         group: 'B',
         day: s.day,
         period: s.period,
+        term: 'T1',
         courseId: courses[s.code],
         kind: s.kind,
         room: s.room,
         isVip: !!s.vip,
+        teacherName: s.teacher,
       },
     });
   }
@@ -188,7 +190,7 @@ async function main() {
 
   // إعدادات افتراضية
   const settings: [string, string][] = [
-    ['secondTermStart', '2026-02-02'],
+    ['secondTermStart', '2027-02-02'],
     ['firstTermEnd', '2026-01-22'],
   ];
   for (const [key, value] of settings) {

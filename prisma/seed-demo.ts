@@ -280,8 +280,9 @@ async function seedEnrollments() {
 /* ══════════════════════════ المرحلة 4: الجدول الأسبوعي ══════════════════════════ */
 
 async function seedSlots(courses: { id: string }[]) {
-  const groups = ['A', 'B', 'C'];
-  // سلوت محايد ورسمي لكل يوم — يضمن عدم تعارض group_day_period
+  // الجروب B = الجدول الرسمي من الـ PDF (seed.ts) — الديمو العشوائي لـ A وC فقط
+  const groups = ['A', 'C'];
+  // سلوت محايد ورسمي لكل يوم — يضمن عدم تعارض group_day_period_term
   const slotPlan = [
     { day: 2, period: 2 }, { day: 2, period: 3 },
     { day: 3, period: 1 }, { day: 3, period: 2 },
@@ -297,14 +298,14 @@ async function seedSlots(courses: { id: string }[]) {
       const kind = idx % 4 === 3 ? 'SECTION' : 'LECTURE';
       const room = idx % 4 === 3 ? 'قاعة 2' : pick(SECTIONS);
       await prisma.scheduleSlot.upsert({
-        where: { group_day_period: { group, day: s.day, period: s.period } },
+        where: { group_day_period_term: { group, day: s.day, period: s.period, term: 'T1' } },
         update: { courseId, kind, room },
-        create: { group, day: s.day, period: s.period, courseId, kind, room, isVip: idx % 9 === 8 },
+        create: { group, day: s.day, period: s.period, term: 'T1', courseId, kind, room, isVip: idx % 9 === 8 },
       });
       idx++;
     }
   }
-  console.log('🗓️ الجدول الأسبوعي (A/B/C): ✓');
+  console.log('🗓️ الجدول الأسبوعي (A/C — B رسمي): ✓');
 }
 
 /* ══════════════════════════ المرحلة 5: المحاضرات والحضور ══════════════════════════ */
