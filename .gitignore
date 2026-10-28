@@ -21,7 +21,9 @@ dist/
 *.db-shm
 *.db-wal
 *.db.bak*
+*.db.backup-*
 prisma/backups/
+prisma/*.db.*
 
 # ---------- uploads / storage ----------
 storage/

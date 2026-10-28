@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { handleApiError, jsonError, logAudit, sanitizeString } from '@/lib/security';
-import { SCHED_GROUPS } from '@/lib/constants';
 
 const slotInclude = {
   course: {
@@ -24,26 +23,32 @@ const groupSchema = z
   .regex(/^[A-Za-z0-9]$/, 'الجروب غير صحيح')
   .transform((v) => v.toUpperCase());
 
-// ───────────────────────────────────────────────────────
-// GET /api/schedule?group=B
-// ───────────────────────────────────────────────────────
+/** الترم الدراسي — T1 (فصل خريف) و T2 (فصل ربيع) بيدخل حيز التنفيذ بتاريخه المحدد */
+const termSchema = z.enum(['T1', 'T2']).default('T1');
+
+// ───────────────────────────────────────────────────────────────
+// GET /api/schedule?group=B&term=T1
+// ───────────────────────────────────────────────────────────────
 export async function GET(request: Request) {
   try {
     const user = await requireUser();
     const url = new URL(request.url);
     const raw = url.searchParams.get('group') || '';
+    const term = termSchema.safeParse(url.searchParams.get('term') || 'T1');
+    if (!term.success) return jsonError('الترم غير صحيح');
+    const activeTerm = term.data;
 
     let group: string;
+    let myGroup: string | null = null;
     if (user.role === 'STUDENT') {
-      // عزل البيانات: الطالب يشوف جروبه هو فقط
       const me = await prisma.user.findUnique({
         where: { id: user.id },
         select: { group: true },
       });
-      group = (me?.group || 'A').toUpperCase();
-      if (raw && raw.toUpperCase() !== group) {
-        return jsonError('لا يمكنك مشاهدة جدول جروب آخر', 403);
-      }
+      myGroup = (me?.group || 'A').toUpperCase();
+      // الطالب يستعرض جروبه أو الجروب الآخر للمعاينة فقط (قراءة بلا تعديل)
+      const parsed = groupSchema.safeParse(raw);
+      group = parsed.success ? parsed.data : myGroup;
     } else {
       const parsed = groupSchema.safeParse(raw || (user.role === 'ADMIN' ? 'B' : ''));
       if (user.role === 'ADMIN') {
@@ -54,7 +59,7 @@ export async function GET(request: Request) {
     }
 
     const slots = await prisma.scheduleSlot.findMany({
-      where: { group },
+      where: { group, term: activeTerm },
       include: slotInclude,
       orderBy: [{ day: 'asc' }, { period: 'asc' }],
     });
@@ -73,16 +78,16 @@ export async function GET(request: Request) {
           })
         : [];
 
-    return Response.json({ group, slots, palette });
+    return Response.json({ group, term: activeTerm, myGroup, slots, palette });
   } catch (error) {
     return handleApiError(error, 'تعذر إتمام الطلب');
   }
 }
 
-// ───────────────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────────
 // POST /api/schedule — تعديل الجريد (الأدمن فقط)
-// op: move | swap | create | update | delete
-// ───────────────────────────────────────────────────────
+// op: move | swap | create | update | delete | copyFrom
+// ───────────────────────────────────────────────────────────────
 const cellSchema = z.object({
   group: groupSchema,
   day: z.number().int().min(2).max(5, 'اليوم غير موجود في الجريد'),
@@ -99,17 +104,20 @@ const createSchema = cellSchema.extend({
   kind: z.enum(['LECTURE', 'SECTION', 'LAB']).default('LECTURE'),
   room: z.string().trim().max(60).optional().or(z.literal('')),
   isVip: z.boolean().optional().default(false),
+  teacherName: z.string().trim().max(80).optional().or(z.literal('')),
 });
 const updateSchema = cellSchema.extend({
   courseId: z.string().min(1).optional(),
   kind: z.enum(['LECTURE', 'SECTION', 'LAB']).optional(),
   room: z.string().trim().max(60).optional(),
   isVip: z.boolean().optional(),
+  teacherName: z.string().trim().max(80).optional(),
 });
 
 const postSchema = z.object({
   op: z.enum(['move', 'swap', 'create', 'update', 'delete', 'copyFrom']),
   group: groupSchema,
+  term: termSchema,
 });
 
 export async function POST(request: Request) {
@@ -120,7 +128,7 @@ export async function POST(request: Request) {
 
     const base = postSchema.safeParse(body);
     if (!base.success) return jsonError(base.error.issues[0]?.message || 'بيانات غير صالحة');
-    const { op, group } = base.data;
+    const { op, group, term } = base.data;
 
     let result: unknown;
     let auditDetail: unknown;
@@ -133,23 +141,25 @@ export async function POST(request: Request) {
       if (source.data === group) return jsonError('اختر جروبًا مختلفًا للنسخ منه');
 
       await prisma.$transaction([
-        prisma.scheduleSlot.deleteMany({ where: { group } }),
+        prisma.scheduleSlot.deleteMany({ where: { group, term } }),
         prisma.scheduleSlot.createMany({
-          data: (await prisma.scheduleSlot.findMany({ where: { group: source.data } })).map(
-            (slot) => ({
-              group,
-              day: slot.day,
-              period: slot.period,
-              courseId: slot.courseId,
-              kind: slot.kind,
-              room: slot.room,
-              isVip: slot.isVip,
-            }),
-          ),
+          data: (
+            await prisma.scheduleSlot.findMany({ where: { group: source.data, term } })
+          ).map((slot) => ({
+            group,
+            day: slot.day,
+            period: slot.period,
+            term,
+            courseId: slot.courseId,
+            kind: slot.kind,
+            room: slot.room,
+            isVip: slot.isVip,
+            teacherName: slot.teacherName,
+          })),
         }),
       ]);
       result = { ok: true };
-      auditDetail = { copiedFrom: source.data, into: group };
+      auditDetail = { copiedFrom: source.data, into: group, term };
     } else if (op === 'move') {
       const parsed = moveSchema.safeParse(body);
       if (!parsed.success) return jsonError(parsed.error.issues[0]?.message || 'بيانات غير صالحة');
@@ -159,12 +169,12 @@ export async function POST(request: Request) {
       }
 
       const slot = await prisma.scheduleSlot.findUnique({
-        where: { group_day_period: { group, day: fromDay, period: fromPeriod } },
+        where: { group_day_period_term: { group, day: fromDay, period: fromPeriod, term } },
       });
       if (!slot) return jsonError('الكارت الأصلي غير موجود', 404);
 
       const target = await prisma.scheduleSlot.findUnique({
-        where: { group_day_period: { group, day, period } },
+        where: { group_day_period_term: { group, day, period, term } },
       });
       if (target) return jsonError('التبديل بين كارتين يستخدم عملية swap', 409);
 
@@ -174,7 +184,7 @@ export async function POST(request: Request) {
         include: slotInclude,
       });
       result = moved;
-      auditDetail = { group, from: `d${fromDay}p${fromPeriod}`, to: `d${day}p${period}` };
+      auditDetail = { group, term, from: `d${fromDay}p${fromPeriod}`, to: `d${day}p${period}` };
     } else if (op === 'swap') {
       const parsed = swapSchema.safeParse(body);
       if (!parsed.success) return jsonError(parsed.error.issues[0]?.message || 'بيانات غير صالحة');
@@ -185,31 +195,31 @@ export async function POST(request: Request) {
 
       // swap آمن: حذف الاتنين + إعادة إنشاء مع بيانات بعض
       const [sa, sb] = await prisma.$transaction([
-        prisma.scheduleSlot.findUnique({ where: { group_day_period: { group: a.group, day: a.day, period: a.period } } }),
-        prisma.scheduleSlot.findUnique({ where: { group_day_period: { group: b.group, day: b.day, period: b.period } } }),
+        prisma.scheduleSlot.findUnique({ where: { group_day_period_term: { group: a.group, day: a.day, period: a.period, term } } }),
+        prisma.scheduleSlot.findUnique({ where: { group_day_period_term: { group: b.group, day: b.day, period: b.period, term } } }),
       ]);
       if (!sa || !sb) return jsonError('أحد الكارتين غير موجود', 404);
       if (sa.group !== sb.group) return jsonError('لا يمكن التبديل بين جروبين', 400);
 
-      const payloadA = { courseId: sa.courseId, kind: sa.kind, room: sa.room, isVip: sa.isVip };
-      const payloadB = { courseId: sb.courseId, kind: sb.kind, room: sb.room, isVip: sb.isVip };
+      const payloadA = { courseId: sa.courseId, kind: sa.kind, room: sa.room, isVip: sa.isVip, teacherName: sa.teacherName };
+      const payloadB = { courseId: sb.courseId, kind: sb.kind, room: sb.room, isVip: sb.isVip, teacherName: sb.teacherName };
 
       await prisma.$transaction([
         prisma.scheduleSlot.delete({ where: { id: sa.id } }),
         prisma.scheduleSlot.delete({ where: { id: sb.id } }),
-        prisma.scheduleSlot.create({ data: { group, day: b.day, period: b.period, ...payloadA } }),
-        prisma.scheduleSlot.create({ data: { group, day: a.day, period: a.period, ...payloadB } }),
+        prisma.scheduleSlot.create({ data: { group, day: b.day, period: b.period, term, ...payloadA } }),
+        prisma.scheduleSlot.create({ data: { group, day: a.day, period: a.period, term, ...payloadB } }),
       ]);
 
-      auditDetail = { group, swap: [`d${a.day}p${a.period}`, `d${b.day}p${b.period}`] };
+      auditDetail = { group, term, swap: [`d${a.day}p${a.period}`, `d${b.day}p${b.period}`] };
       result = { ok: true };
     } else if (op === 'create') {
       const parsed = createSchema.safeParse(body);
       if (!parsed.success) return jsonError(parsed.error.issues[0]?.message || 'بيانات غير صالحة');
-      const { day, period, courseId, kind, room, isVip } = parsed.data;
+      const { day, period, courseId, kind, room, isVip, teacherName } = parsed.data;
 
       const exists = await prisma.scheduleSlot.findUnique({
-        where: { group_day_period: { group, day, period } },
+        where: { group_day_period_term: { group, day, period, term } },
       });
       if (exists) return jsonError('الخانة مشغولة بالفعل', 409);
 
@@ -221,22 +231,24 @@ export async function POST(request: Request) {
           group,
           day,
           period,
+          term,
           courseId,
           kind,
           room: room ? sanitizeString(room, 60) : null,
           isVip: !!isVip,
+          teacherName: teacherName ? sanitizeString(teacherName, 80) : null,
         },
         include: slotInclude,
       });
       result = created;
-      auditDetail = { group, at: `d${day}p${period}`, courseId };
+      auditDetail = { group, term, at: `d${day}p${period}`, courseId };
     } else if (op === 'update') {
       const parsed = updateSchema.safeParse(body);
       if (!parsed.success) return jsonError(parsed.error.issues[0]?.message || 'بيانات غير صالحة');
       const { day, period, ...patch } = parsed.data;
 
       const slot = await prisma.scheduleSlot.findUnique({
-        where: { group_day_period: { group, day, period } },
+        where: { group_day_period_term: { group, day, period, term } },
       });
       if (!slot) return jsonError('الكارت غير موجود', 404);
 
@@ -252,24 +264,27 @@ export async function POST(request: Request) {
           ...(patch.kind ? { kind: patch.kind } : {}),
           ...(patch.room !== undefined ? { room: patch.room ? sanitizeString(patch.room, 60) : null } : {}),
           ...(patch.isVip !== undefined ? { isVip: patch.isVip } : {}),
+          ...(patch.teacherName !== undefined
+            ? { teacherName: patch.teacherName ? sanitizeString(patch.teacherName, 80) : null }
+            : {}),
         },
         include: slotInclude,
       });
       result = updated;
-      auditDetail = { group, at: `d${day}p${period}`, patch };
+      auditDetail = { group, term, at: `d${day}p${period}`, patch };
     } else {
       const parsed = cellSchema.safeParse(body);
       if (!parsed.success) return jsonError(parsed.error.issues[0]?.message || 'بيانات غير صالحة');
       const { day, period } = parsed.data;
 
       const slot = await prisma.scheduleSlot.findUnique({
-        where: { group_day_period: { group, day, period } },
+        where: { group_day_period_term: { group, day, period, term } },
       });
       if (!slot) return jsonError('الكارت غير موجود', 404);
 
       await prisma.scheduleSlot.delete({ where: { id: slot.id } });
       result = { ok: true };
-      auditDetail = { group, deleted: `d${day}p${period}` };
+      auditDetail = { group, term, deleted: `d${day}p${period}` };
     }
 
     await logAudit({
