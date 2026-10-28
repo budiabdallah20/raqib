@@ -29,7 +29,7 @@ export function RadialProgress({
 
   const toneColor =
     tone === 'lime'
-      ? 'stroke-lime-500'
+      ? 'stroke-brand-500'
       : tone === 'ember'
         ? 'stroke-ember-500'
         : tone === 'brand'

@@ -153,7 +153,7 @@ function birthdayCountdown(birthDate: string | null): number | null {
 
 // لون نقطة الدرجة: ≥75 أخضر، ≥60 ذهبي، أقل أحمر (متوافق مع zoneFor)
 function gradeDotClass(total: number) {
-  if (total >= 75) return 'bg-lime-400';
+  if (total >= 75) return 'bg-brand-400';
   if (total >= 60) return 'bg-gold-400';
   return 'bg-ember-500';
 }
@@ -243,9 +243,9 @@ function CurveChart({ points }: { points: ProfileData['curve'] }) {
         {/* خطوط المقياس 2.0 و 3.0 */}
         <line x1={pad} y1={h - pad - (2 / 4) * (h - 2 * pad)} x2={w - pad} y2={h - pad - (2 / 4) * (h - 2 * pad)} className="stroke-brand-900/[0.07]" strokeWidth={0.5} strokeDasharray="2 2" />
         <line x1={pad} y1={h - pad - (3 / 4) * (h - 2 * pad)} x2={w - pad} y2={h - pad - (3 / 4) * (h - 2 * pad)} className="stroke-brand-900/[0.07]" strokeWidth={0.5} strokeDasharray="2 2" />
-        <path d={line} fill="none" className={rising ? 'stroke-lime-500' : 'stroke-ember-500'} strokeWidth={1.6} strokeLinecap="round" />
+        <path d={line} fill="none" className={rising ? 'stroke-brand-500' : 'stroke-ember-500'} strokeWidth={1.6} strokeLinecap="round" />
         {valid.map((point, index) => (
-          <circle key={point.term} cx={xs[index]} cy={ys[index]} r={1.6} className={index === valid.length - 1 ? 'fill-gold-500' : rising ? 'fill-lime-500' : 'fill-ember-500'} />
+          <circle key={point.term} cx={xs[index]} cy={ys[index]} r={1.6} className={index === valid.length - 1 ? 'fill-gold-500' : rising ? 'fill-brand-500' : 'fill-ember-500'} />
         ))}
       </svg>
       <div className="mt-1 flex justify-between text-[10px] text-ink-400">
@@ -364,7 +364,7 @@ function StudentDashboard() {
         </p>
       ) : null}
       {message ? (
-        <p className="mb-4 rounded-xl border border-lime-500/25 bg-lime-500/[0.08] px-4 py-3 text-sm text-brand-700">
+        <p className="mb-4 rounded-xl border border-brand-500/25 bg-brand-500/[0.08] px-4 py-3 text-sm text-brand-700">
           {message}
         </p>
       ) : null}
@@ -621,7 +621,7 @@ function StudentDashboard() {
                                 ? 'bg-ember-500/[0.08] text-ember-600'
                                 : zone === 'YELLOW'
                                   ? 'bg-gold-400/[0.10] text-gold-800'
-                                  : 'bg-lime-500/[0.08] text-lime-700'
+                                  : 'bg-brand-500/[0.08] text-brand-700'
                             }`}
                           >
                             {zoneHint(zone)}
@@ -646,7 +646,7 @@ function StudentDashboard() {
               <CardHeader className="flex items-center justify-between">
                 <CardTitle>منحنى تطور معدلك</CardTitle>
                 <span className="inline-flex items-center gap-1.5 text-xs text-ink-400">
-                  <TrendingUp className="h-4 w-4 text-lime-600" />
+                  <TrendingUp className="h-4 w-4 text-brand-600" />
                   مقارنة بالترمات السابقة
                 </span>
               </CardHeader>
@@ -791,7 +791,7 @@ function StudentDashboard() {
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-center">
                   <div className="rounded-xl border border-brand-900/10 bg-white/65 px-3 py-2">
-                    <p className="font-display text-lg font-bold text-lime-700">{data.attendance.present}</p>
+                    <p className="font-display text-lg font-bold text-brand-700">{data.attendance.present}</p>
                     <p className="text-[10px] text-ink-400">حاضر</p>
                   </div>
                   <div className="rounded-xl border border-brand-900/10 bg-white/65 px-3 py-2">
@@ -817,7 +817,7 @@ function StudentDashboard() {
                           ? 'bg-ember-500/[0.08] text-ember-600'
                           : remaining <= 2
                             ? 'bg-gold-400/[0.10] text-gold-800'
-                            : 'bg-lime-500/[0.08] text-lime-700'
+                            : 'bg-brand-500/[0.08] text-brand-700'
                       }`}
                     >
                       {remaining <= 0

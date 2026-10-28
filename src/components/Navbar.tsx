@@ -139,9 +139,34 @@ const NAV_LINKS: Record<string, { href: string; label: string; icon?: React.Reac
   ],
 };
 
+/* ألوان هوية الأقسام — هادئة ومنسجمة: أزرق مخضر للطالب، ذهبي للدكتور، نيلة هادئة للأدمن */
+const SECTION_ACCENTS = {
+  STUDENT: {
+    pill: 'bg-brand-500/12 text-brand-700',
+    ring: 'ring-brand-500/25',
+    chip: 'text-brand-700/70',
+    bell: 'border-brand-500/30 bg-brand-500/[0.10] text-brand-700',
+  },
+  PROFESSOR: {
+    pill: 'bg-gold-500/14 text-gold-700',
+    ring: 'ring-gold-500/30',
+    chip: 'text-gold-700/80',
+    bell: 'border-gold-500/30 bg-gold-500/[0.10] text-gold-700',
+  },
+  ADMIN: {
+    pill: 'bg-sapphire-500/12 text-sapphire-700',
+    ring: 'ring-sapphire-500/25',
+    chip: 'text-sapphire-700/80',
+    bell: 'border-sapphire-500/30 bg-sapphire-500/[0.10] text-sapphire-700',
+  },
+} as const;
+
 export function Navbar({ user }: { user: AuthUser | null }) {
   const router = useRouter();
   const pathname = usePathname();
+  const accent = user
+    ? SECTION_ACCENTS[user.role as keyof typeof SECTION_ACCENTS] ?? SECTION_ACCENTS.STUDENT
+    : SECTION_ACCENTS.STUDENT;
 
   async function logout() {
     try {
@@ -161,9 +186,9 @@ export function Navbar({ user }: { user: AuthUser | null }) {
           <Link href={user ? navHome(user.role) : '/'}>
             <Logo markClassName="h-8 w-8" />
           </Link>
-          <span className="hidden rounded-full border border-brand-500/15 bg-brand-500/[0.06] px-2 py-0.5 text-[9px] text-brand-700/70 sm:block">
-            منصة الحضور
-          </span>
+            <span className="hidden items-center gap-1.5 rounded-full border border-gold-500/20 bg-gold-500/[0.07] px-2 py-0.5 text-[9px] text-gold-700/75 sm:block">
+              منصة الحضور
+            </span>
           {links.length > 0 && (
             <nav className="hidden items-center gap-1 md:flex">
               {links.map((link) => {
@@ -174,7 +199,7 @@ export function Navbar({ user }: { user: AuthUser | null }) {
                     href={link.href}
                     className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
                       active
-                        ? 'bg-brand-500/10 text-brand-700'
+                        ? `ring-1 ${accent.pill}`
                         : 'text-ink-500 hover:text-ink-950'
                     }`}
                   >
@@ -190,7 +215,7 @@ export function Navbar({ user }: { user: AuthUser | null }) {
             <NotificationsBell />
             <div className="hidden text-left sm:block">
               <p className="text-sm font-semibold text-ink-800">{user.name}</p>
-              <p className="text-[10px] text-brand-700/60">{ROLE_LABEL[user.role]}</p>
+              <p className={`text-[10px] font-semibold ${accent.chip}`}>{ROLE_LABEL[user.role]}</p>
             </div>
             <Button variant="outline" size="sm" onClick={logout}>
               <LogOut className="h-4 w-4" />
@@ -208,7 +233,7 @@ export function Navbar({ user }: { user: AuthUser | null }) {
                 key={link.href}
                 href={link.href}
                 className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs transition-colors ${
-                  active ? 'bg-brand-500/10 text-brand-700' : 'text-ink-500'
+                  active ? `ring-1 ${accent.pill}` : 'text-ink-500'
                 }`}
               >
                 {link.label}

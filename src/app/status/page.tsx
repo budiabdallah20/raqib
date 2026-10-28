@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/db';
 import { APP_NAME, FACULTY } from '@/lib/constants';
@@ -43,7 +44,7 @@ export default async function StatusPage() {
   return (
     <main className="site-dark mx-auto min-h-screen max-w-2xl bg-[#060805] px-4 py-16" dir="rtl">
       <header className="mb-10 flex items-center justify-between">
-        <a href="/" className="text-sm font-semibold text-brand-700 hover:underline">← رقيب</a>
+        <Link href="/" className="text-sm font-semibold text-brand-700 hover:underline">← رقيب</Link>
         <span className={`rounded-full px-3 py-1 text-xs font-bold ${allOk ? 'bg-brand-500/10 text-brand-700' : 'bg-amber-500/15 text-amber-800'}`}>
           {allOk ? 'كل الخدمات تعمل' : 'تحت المراجعة'}
         </span>

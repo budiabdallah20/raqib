@@ -173,7 +173,7 @@ export default function ProfessorsPage() {
                   </td>
                   <td className="py-3">
                     {row.isActive ? (
-                      <span className="rounded-full bg-lime-500/10 px-2.5 py-1 text-xs font-semibold text-brand-600">
+                      <span className="rounded-full bg-brand-500/10 px-2.5 py-1 text-xs font-semibold text-brand-600">
                         نشط
                       </span>
                     ) : row.approvedAt ? (

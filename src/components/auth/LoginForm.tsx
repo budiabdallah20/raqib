@@ -232,7 +232,7 @@ export function LoginForm({
             type="button"
             onClick={passkeyLogin}
             disabled={pkLoading}
-            className="group flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-[#65a30d]/30 bg-[#a3e635]/10 text-sm font-extrabold text-[#3f6212] shadow-[inset_0_1px_0_rgba(255,255,255,.25)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#a3e635]/20 hover:shadow-[0_14px_34px_-16px_rgba(101,163,13,.55)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+            className="group flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-[#22736c]/30 bg-[#4db8ae]/10 text-sm font-extrabold text-[#194e4a] shadow-[inset_0_1px_0_rgba(255,255,255,.25)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#4db8ae]/20 hover:shadow-[0_14px_34px_-16px_rgba(34,115,108,.55)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pkLoading ? (
               <>

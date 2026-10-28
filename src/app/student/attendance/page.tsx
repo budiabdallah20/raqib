@@ -31,7 +31,7 @@ type RecordItem = {
 };
 
 const STATUS_BAR: Record<string, string> = {
-  SAFE: 'from-lime-400 to-lime-600',
+  SAFE: 'from-brand-400 to-brand-600',
   WARNING: 'from-amber-400 to-amber-600',
   DENIED: 'from-rose-400 to-rose-600',
 };
@@ -99,7 +99,7 @@ export default function StudentAttendancePage() {
           <p className="text-xs text-ink-400">معدل حضوري العام</p>
           <p className="font-display text-3xl font-extrabold text-gold-700">{overall}%</p>
         </div>
-        <div className="rounded-2xl border border-lime-500/15 bg-lime-500/[0.05] p-5">
+        <div className="rounded-2xl border border-brand-500/15 bg-brand-500/[0.05] p-5">
           <p className="text-xs text-ink-400">مقررات آمنة</p>
           <p className="font-display text-3xl font-extrabold text-brand-700">{courses.length - warning - denied}</p>
         </div>
@@ -187,7 +187,7 @@ export default function StudentAttendancePage() {
                   <td className="px-4 py-2.5 font-semibold">{r.lecture.title}</td>
                   <td className="px-4 py-2.5 text-ink-500">{r.lecture.course.code}</td>
                   <td className="px-4 py-2.5">
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${r.status === 'PRESENT' ? 'bg-lime-500/15 text-brand-700' : 'bg-amber-500/15 text-amber-300'}`}>
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${r.status === 'PRESENT' ? 'bg-brand-500/15 text-brand-700' : 'bg-amber-500/15 text-amber-300'}`}>
                       {r.status === 'PRESENT' ? 'حاضر' : 'متأخر'}
                     </span>
                   </td>

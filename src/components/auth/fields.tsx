@@ -157,7 +157,7 @@ const STRENGTH = [
   { label: 'ضعيفة', color: 'bg-ember-500', text: 'text-ember-400' },
   { label: 'متوسطة', color: 'bg-gold-400', text: 'text-gold-600' },
   { label: 'قوية', color: 'bg-brand-400', text: 'text-brand-600' },
-  { label: 'أسطورية', color: 'bg-[linear-gradient(90deg,#a3e635,#c8a24b)]', text: 'text-gold-600' },
+  { label: 'أسطورية', color: 'bg-[linear-gradient(90deg,#4db8ae,#c8a24b)]', text: 'text-gold-600' },
 ];
 
 export function PasswordStrength({ value }: { value: string }) {

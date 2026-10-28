@@ -16,7 +16,7 @@ export const PASSKEY_RP_NAME = 'RAQiB · رقيب';
 
 export const PK_REG_CHALLENGE_COOKIE = 'pk_reg_chal';
 export const PK_AUTH_CHALLENGE_COOKIE = 'pk_auth_chal';
-const CHALLENGE_MAX_AGE = 120; // ثانيتان كافيتان لإتمام اللمسة
+const CHALLENGE_MAX_AGE = 180; // ثلاث دقائق تسمح ببطء نافذة البصمة على الموبايل
 
 /** origins المقبولة للتحقق: ترويسة Origin الحالية + أي origin معرف بالبيئة */
 export function passkeyExpectedOrigins(request: Request): string[] {

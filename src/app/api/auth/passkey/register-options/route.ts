@@ -35,7 +35,9 @@ export async function POST(request: Request) {
         transports: (pk.transports ? pk.transports.split(',') : []).filter(Boolean) as AuthenticatorTransport[],
       })),
       authenticatorSelection: {
-        residentKey: 'preferred',
+        // مفتاح مقيم (resident/discoverable) إلزامي: البصمة تُخزن داخل موبيايل
+        // المستخدم ويمكن الدخول بيها لاحقًا بلا بريد ولا رقم جامعي.
+        residentKey: 'required',
         userVerification: 'required', // البصمة/القفل إلزامية عند الاستخدام
       },
     });

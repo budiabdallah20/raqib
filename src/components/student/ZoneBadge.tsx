@@ -3,8 +3,8 @@ import type { CourseZone } from '@/lib/grades';
 const ZONE_META: Record<CourseZone, { label: string; cls: string; dot: string }> = {
   GREEN: {
     label: 'ممتاز / آمن',
-    cls: 'border-lime-500/30 bg-lime-500/[0.09] text-lime-700',
-    dot: 'bg-lime-500',
+    cls: 'border-brand-500/30 bg-brand-500/[0.09] text-brand-700',
+    dot: 'bg-brand-500',
   },
   YELLOW: {
     label: 'يحتاج تحسين',

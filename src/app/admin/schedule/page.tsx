@@ -430,7 +430,7 @@ export default function ScheduleBuilderPage() {
               builder الجداول
             </h1>
             <p className="text-sm text-muted">
-              سحب وإفلات كروت المحاضرات بين الخانات — التبديل والتأريخ والتقليد وتعديل المشي.
+              سحب وإفلات كروت المحاضرات بين الخانات — التبديل بين الخانات، والنسخ من قالب جروب آخر، وتعديل التواريخ والترتيب.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -458,7 +458,7 @@ export default function ScheduleBuilderPage() {
               يتبدل فيًا الصنها بين بتتحرك – swap كامل.
             </li>
             <li>على الموبايل: كليك عشان محتاج مجموعة، وبعدين كليك على الخانة المراد قلبها/تبديلها.</li>
-            <li>كل عملية فورًا هي عمرها للجميع (server authoritative) وع بتراجع كامل من زر "تراجع".</li>
+            <li>كل عملية تُنفّذ فورًا على السيرفر (server authoritative) وتتراجع بالكامل من زر «تراجع».</li>
           </ul>
         </div>
 

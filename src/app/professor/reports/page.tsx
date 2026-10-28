@@ -31,7 +31,7 @@ type Report = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  SAFE: 'bg-lime-500/15 text-brand-700',
+  SAFE: 'bg-brand-500/15 text-brand-700',
   WARNING: 'bg-amber-500/15 text-amber-300',
   DENIED: 'bg-rose-500/15 text-rose-300',
 };
@@ -149,7 +149,7 @@ export default function ProfessorReportsPage() {
                       <td className="px-4 py-2.5">{r.present}</td>
                       <td className="px-4 py-2.5">{r.late}</td>
                       <td className="px-4 py-2.5">{r.absent}</td>
-                      <td className={`px-4 py-2.5 font-bold ${r.attendancePct < report.policy.attendanceThreshold ? 'text-amber-300 print:text-amber-700' : 'text-brand-700 print:text-lime-700'}`}>
+                      <td className={`px-4 py-2.5 font-bold ${r.attendancePct < report.policy.attendanceThreshold ? 'text-amber-300 print:text-amber-700' : 'text-brand-700 print:text-brand-700'}`}>
                         {r.attendancePct}%
                       </td>
                       <td className="px-4 py-2.5">

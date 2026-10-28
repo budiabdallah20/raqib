@@ -157,7 +157,7 @@ export default function ProfessorBoardPage() {
                     من {board?.expected ?? 0} مسجل · {pct}%
                   </p>
                 </div>
-                <div className="rounded-2xl border border-lime-500/15 bg-lime-500/[0.05] p-5">
+                <div className="rounded-2xl border border-brand-500/15 bg-brand-500/[0.05] p-5">
                   <p className="text-xs text-ink-400">تم في الموعد</p>
                   <p className="font-display text-4xl font-extrabold text-brand-700">{board?.present ?? 0}</p>
                 </div>
@@ -198,7 +198,7 @@ export default function ProfessorBoardPage() {
                           جروب {r.group || '—'} · {new Date(r.at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
-                      <span className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${r.status === 'PRESENT' ? 'bg-lime-500/15 text-brand-700' : 'bg-amber-500/15 text-amber-300'}`}>
+                      <span className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${r.status === 'PRESENT' ? 'bg-brand-500/15 text-brand-700' : 'bg-amber-500/15 text-amber-300'}`}>
                         {r.status === 'PRESENT' ? 'حاضر' : 'متأخر'}
                       </span>
                     </li>

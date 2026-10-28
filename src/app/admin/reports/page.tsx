@@ -158,11 +158,11 @@ export default function AdminReportsPage() {
                       <td className="px-4 py-3">{c.late}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
-                          <span className={`font-bold ${c.attendancePct >= report.policy.attendanceThreshold ? 'text-brand-700 print:text-lime-700' : 'text-amber-300 print:text-amber-700'}`}>
+                          <span className={`font-bold ${c.attendancePct >= report.policy.attendanceThreshold ? 'text-brand-700 print:text-brand-700' : 'text-amber-300 print:text-amber-700'}`}>
                             {c.attendancePct}%
                           </span>
                           <div className="h-1.5 w-16 overflow-hidden rounded-full bg-white/60 print:hidden">
-                            <div className="h-full rounded-full bg-gradient-to-l from-lime-400 to-gold-500" style={{ width: `${Math.min(100, c.attendancePct)}%` }} />
+                            <div className="h-full rounded-full bg-gradient-to-l from-brand-400 to-gold-500" style={{ width: `${Math.min(100, c.attendancePct)}%` }} />
                           </div>
                         </div>
                       </td>

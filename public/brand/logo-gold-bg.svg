@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="rqb-tile" x1="12" y1="4" x2="52" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f0dfa6"/>
+      <stop offset="1" stop-color="#c8a24b"/>
+    </linearGradient>
+    <linearGradient id="rqb-iris" x1="26" y1="26" x2="40" y2="38" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fbf6e6"/>
+      <stop offset=".5" stop-color="#f0dfa6"/>
+      <stop offset="1" stop-color="#c8a24b"/>
+    </linearGradient>
+    <radialGradient id="rqb-sheen" cx="0.5" cy="0" r="1" gradientTransform="translate(32 2) scale(34 26)">
+      <stop stop-color="#ffffff" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="1.5" y="1.5" width="61" height="61" rx="20" fill="url(#rqb-tile)"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="20" fill="url(#rqb-sheen)"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="20" stroke="rgba(90,66,35,0.45)"/>
+  <rect x="5" y="5" width="54" height="54" rx="16.5" fill="none" stroke="#5a4223" stroke-opacity=".38" stroke-width="1" stroke-dasharray="1.5 3.5"/>
+
+  <path d="M32 11.5 50 18.2v14.1c0 10.6-7.5 17.4-18 20.7-10.5-3.3-18-10.1-18-20.7V18.2Z" fill="rgba(90,66,35,0.10)" stroke="#5a4223" stroke-width="2.1" stroke-linejoin="round"/>
+  <path d="M24.8 21.5h14.4" stroke="#5a4223" stroke-opacity=".38" stroke-width="1" stroke-linecap="round"/>
+  <path d="M23.6 43.8c4.6 2.4 12.2 2.4 16.8 0" stroke="#5a4223" stroke-opacity=".22" stroke-width="1" stroke-linecap="round"/>
+
+  <path d="M20.6 33.2c3.2-4.4 7-6.6 11.4-6.6s8.2 2.2 11.4 6.6c-3.2 4.4-7 6.6-11.4 6.6s-8.2-2.2-11.4-6.6Z" fill="none" stroke="#5a4223" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="32" cy="33.2" r="4.35" fill="url(#rqb-iris)"/>
+  <circle cx="30.6" cy="31.9" r="1.05" fill="#fbf6e6" fill-opacity=".9"/>
+  <circle cx="32" cy="33.2" r="6.4" fill="none" stroke="#5a4223" stroke-opacity=".28" stroke-width=".9"/>
+
+  <path d="M47.4 13.4l.62 1.78 1.78.62-1.78.62-.62 1.78-.62-1.78-1.78-.62 1.78-.62Z" fill="#fbf6e6" fill-opacity=".92"/>
+</svg>

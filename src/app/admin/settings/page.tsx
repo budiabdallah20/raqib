@@ -80,7 +80,7 @@ export default function SettingsPage() {
         <p className="mb-4 rounded-xl border border-ember-500/30 bg-ember-500/10 p-3 text-sm text-ember-600">{error}</p>
       ) : null}
       {notice ? (
-        <p className="mb-4 rounded-xl border border-lime-500/30 bg-lime-500/10 p-3 text-sm text-brand-600">{notice}</p>
+        <p className="mb-4 rounded-xl border border-brand-500/30 bg-brand-500/10 p-3 text-sm text-brand-600">{notice}</p>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">

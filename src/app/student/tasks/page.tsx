@@ -65,7 +65,7 @@ function taskState(task: TaskItem) {
     if (new Date(task.submission.submittedAt).getTime() > deadline) {
       return { label: 'تسليم متأخر', className: 'border-ember-500/40 bg-ember-500/10 text-ember-600' };
     }
-    return { label: 'تم التسليم', className: 'border-lime-500/40 bg-lime-500/10 text-brand-700' };
+    return { label: 'تم التسليم', className: 'border-brand-500/40 bg-brand-500/10 text-brand-700' };
   }
   if (deadline <= Date.now()) {
     return { label: 'فاتت المدة', className: 'border-ember-500/40 bg-ember-500/10 text-ember-600' };

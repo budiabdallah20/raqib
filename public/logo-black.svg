@@ -1,16 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 120" width="430" height="120" fill="none" role="img" aria-label="رقيب — RAQiB">
-  <g transform="translate(6 10)">
-    <rect x="0" y="0" width="100" height="100" rx="26" fill="#0A0A0C"/>
-    <rect x="1.4" y="1.4" width="97.2" height="97.2" rx="25" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1.4"/>
-    <path d="M33 25v50" stroke="#F7F1E3" stroke-width="13.5"/>
-    <path d="M33 25h23c13.6 0 24.6 9.4 24.6 20.8S69.6 66.6 56 66.6H33" fill="none" stroke="#F7F1E3" stroke-width="13.5" stroke-linejoin="round"/>
-    <circle cx="62" cy="45.8" r="4.9" fill="#F97B22"/>
-    <path d="M54.5 63.5 80 84" stroke="#F97B22" stroke-width="13.5" stroke-linecap="round"/>
-  </g>
-  <text x="124" y="66" font-family="Cairo, Tajawal, Segoe UI, Arial, sans-serif" font-size="52" font-weight="800" fill="#0A0A0C">رقيب</text>
-  <g font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="8">
-    <text x="127" y="94" fill="#0A0A0C" fill-opacity="0.55">RA</text>
-    <text x="172" y="94" fill="#F97B22">Q</text>
-    <text x="187" y="94" fill="#0A0A0C" fill-opacity="0.55">IB</text>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" role="img" aria-label="رقيب — أحادي داكن للطباعة">
+  <path d="M32 11.5 50 18.2v14.1c0 10.6-7.5 17.4-18 20.7-10.5-3.3-18-10.1-18-20.7V18.2Z" fill="rgba(20,18,14,0.06)" stroke="#16130e" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M24.8 21.5h14.4" stroke="#16130e" stroke-opacity=".5" stroke-width="1.1" stroke-linecap="round"/>
+  <path d="M23.6 43.8c4.6 2.4 12.2 2.4 16.8 0" stroke="#16130e" stroke-opacity=".3" stroke-width="1.1" stroke-linecap="round"/>
+  <path d="M20.6 33.2c3.2-4.4 7-6.6 11.4-6.6s8.2 2.2 11.4 6.6c-3.2 4.4-7 6.6-11.4 6.6s-8.2-2.2-11.4-6.6Z" fill="none" stroke="#16130e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="32" cy="33.2" r="4.35" fill="#16130e"/>
+  <circle cx="30.6" cy="31.9" r="1.05" fill="#ffffff" fill-opacity=".85"/>
+  <circle cx="32" cy="33.2" r="6.4" fill="none" stroke="#16130e" stroke-opacity=".3" stroke-width=".9"/>
+  <path d="M47.4 13.4l.62 1.78 1.78.62-1.78.62-.62 1.78-.62-1.78-1.78-.62 1.78-.62Z" fill="#16130e"/>
 </svg>

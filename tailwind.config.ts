@@ -11,9 +11,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Luminous lemon + champagne gold on warm black. The old token names
-        // are kept so every dashboard inherits the refreshed identity
-        // automatically — only the values moved.
+        // Calm academic teal + champagne gold on warm ink. Token names are
+        // preserved so every screen inherits the refreshed identity — values moved.
         royal: {
           black: '#0a0c07',
           coal: '#10130a',
@@ -29,17 +28,17 @@ const config: Config = {
           muted: '#98a383',
         },
         brand: {
-          DEFAULT: '#a3e635',
-          50: '#f7fee7',
-          100: '#ecfccb',
-          200: '#d9f99d',
-          300: '#bef264',
-          400: '#a3e635',
-          500: '#84cc16',
-          600: '#65a30d',
-          700: '#4d7c0f',
-          800: '#3f6212',
-          900: '#365314',
+          DEFAULT: '#2c8f84',
+          50: '#f1faf8',
+          100: '#dff3f0',
+          200: '#bfe7e2',
+          300: '#8fd6cf',
+          400: '#4db8ae',
+          500: '#2c8f84',
+          600: '#22736c',
+          700: '#1d5f5a',
+          800: '#194e4a',
+          900: '#14403d',
         },
         gold: {
           DEFAULT: '#c8a24b',
@@ -70,16 +69,29 @@ const config: Config = {
           950: '#101608',
         },
         mint: {
-          50: '#f7fee7',
-          100: '#ecfccb',
-          200: '#d9f99d',
-          300: '#bef264',
-          400: '#a3e635',
-          500: '#84cc16',
-          600: '#65a30d',
-          700: '#4d7c0f',
-          800: '#3f6212',
-          900: '#365314',
+          50: '#f1faf8',
+          100: '#dff3f0',
+          200: '#bfe7e2',
+          300: '#8fd6cf',
+          400: '#4db8ae',
+          500: '#2c8f84',
+          600: '#22736c',
+          700: '#1d5f5a',
+          800: '#194e4a',
+          900: '#14403d',
+        },
+        sapphire: {
+          DEFAULT: '#4c6397',
+          50: '#f4f6fb',
+          100: '#e7ebf5',
+          200: '#cdd7ec',
+          300: '#a3b3d9',
+          400: '#6d81ae',
+          500: '#4c6397',
+          600: '#3c4f7a',
+          700: '#30405f',
+          800: '#28344c',
+          900: '#202a3e',
         },
         ember: {
           300: '#e58a98',
@@ -100,8 +112,8 @@ const config: Config = {
       boxShadow: {
         gold: '0 18px 45px -18px rgba(200, 162, 75, 0.5)',
         'gold-soft': '0 16px 42px -20px rgba(200, 162, 75, 0.42)',
-        emerald: '0 22px 55px -26px rgba(163, 230, 53, 0.4)',
-        'emerald-soft': '0 18px 45px -24px rgba(163, 230, 53, 0.3)',
+        emerald: '0 22px 55px -26px rgba(44, 143, 132, 0.35)',
+        'emerald-soft': '0 18px 45px -24px rgba(44, 143, 132, 0.26)',
         glass: '0 24px 70px -34px rgba(28, 44, 10, 0.32)',
         lift: '0 30px 80px -38px rgba(28, 44, 10, 0.38)',
         ember: '0 0 24px rgba(200, 74, 90, 0.3)',
@@ -114,7 +126,7 @@ const config: Config = {
         'mint-sheen':
           'linear-gradient(110deg, #365314 0%, #65a30d 26%, #a3e635 52%, #d9f99d 78%, #f7fee7 100%)',
         'mesh-gold':
-          'radial-gradient(at 12% 16%, rgba(163,230,53,0.20) 0px, transparent 48%), radial-gradient(at 86% 8%, rgba(200,162,75,0.22) 0px, transparent 44%), radial-gradient(at 78% 82%, rgba(190,242,100,0.14) 0px, transparent 50%), radial-gradient(at 18% 88%, rgba(200,162,75,0.12) 0px, transparent 46%)',
+          'radial-gradient(at 12% 16%, rgba(44,143,132,0.16) 0px, transparent 48%), radial-gradient(at 86% 8%, rgba(200,162,75,0.22) 0px, transparent 44%), radial-gradient(at 78% 82%, rgba(143,214,207,0.12) 0px, transparent 50%), radial-gradient(at 18% 88%, rgba(200,162,75,0.12) 0px, transparent 46%)',
       },
       keyframes: {
         glowPulse: {

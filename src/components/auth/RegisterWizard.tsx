@@ -341,7 +341,7 @@ export function RegisterWizard({ onPolicy }: { onPolicy: (tab: PolicyTab) => voi
                     type="button"
                     onClick={passkeyEnroll}
                     disabled={pkBusy}
-                    className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#65a30d]/30 bg-[#a3e635]/12 px-4 text-[12.5px] font-extrabold text-[#365314] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#a3e635]/22 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#22736c]/30 bg-[#4db8ae]/12 px-4 text-[12.5px] font-extrabold text-[#14403d] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#4db8ae]/22 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {pkBusy ? (
                       <>
@@ -687,8 +687,8 @@ export function RegisterWizard({ onPolicy }: { onPolicy: (tab: PolicyTab) => voi
                   </Field>
                 </div>
 
-                <div className="flex items-start gap-3 rounded-xl border border-[#65a30d]/25 bg-[#a3e635]/[0.08] px-3 py-2.5">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#65a30d]/30 bg-[#bef264]/25 text-[#365314]">
+                <div className="flex items-start gap-3 rounded-xl border border-[#22736c]/25 bg-[#4db8ae]/[0.08] px-3 py-2.5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#22736c]/30 bg-[#8fd6cf]/25 text-[#14403d]">
                     <Fingerprint className="h-4 w-4" />
                   </span>
                   <span className="min-w-0">

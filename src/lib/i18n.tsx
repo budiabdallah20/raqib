@@ -53,7 +53,6 @@ export type Dict = {
     navTitle: string; contactTitle: string; socialsTitle: string;
     status: string; stackNote: string;
     statusLive: string; kicker: string; ctaLine1: string; ctaLine2: string;
-    builtEyebrow: string; builtHeading: string; builtHeadingGold: string;
     linksPlatform: { label: string; href: string }[];
     linksAccount: { label: string; href: string }[];
     linksNav: { label: string; href: string }[];
@@ -163,9 +162,6 @@ const AR: Dict = {
     status: 'جميع الأنظمة تعمل',
     statusLive: 'شغّال الآن',
     kicker: 'اللمسة الأخيرة',
-    builtEyebrow: "THAT'S WHAT I BUILD ON",
-    builtHeading: 'تقنيات',
-    builtHeadingGold: 'تستاهل الثقة.',
     ctaLine1: 'لنصنع حضورًا',
     ctaLine2: 'يستحق رقيب.',
     stackNote: 'Next.js · TypeScript · Prisma',
@@ -189,7 +185,7 @@ const AR: Dict = {
     copyright: '© 2026 رقيب — جميع الحقوق محفوظة.',
     collage: 'قسم رياضيات وعلوم الحاسب · كلية العلوم',
     devTitle: 'المطوّر',
-    devName: 'محمد عبدالله «BUDI»',
+    devName: 'محمد عبدالله',
     devRole: 'Full-Stack Developer',
     devBio: 'المهندس اللي بنى منصة رقيب من أول سكتش لحد الإنتاج — واجهة تحفة، ومنطق حقيقي، وأمان من أول سطر.',
     devLoc: 'السويس، مصر',
@@ -314,9 +310,6 @@ const EN: Dict = {
     status: 'All systems operational',
     statusLive: 'Live right now',
     kicker: 'The last frame',
-    builtEyebrow: "THAT'S WHAT I BUILD ON",
-    builtHeading: 'Stack',
-    builtHeadingGold: 'built to matter.',
     ctaLine1: "LET'S BUILD",
     ctaLine2: 'ATTENDANCE THAT MATTERS.',
     stackNote: 'Next.js · TypeScript · Prisma',
@@ -340,7 +333,7 @@ const EN: Dict = {
     copyright: '© 2026 Raqib — All rights reserved.',
     collage: 'Math & CS Department · Faculty of Science',
     devTitle: 'Developer',
-    devName: 'Mohamed Abdallah — BUDI',
+    devName: 'Mohamed Abdallah',
     devRole: 'Full-Stack Developer',
     devBio: 'The engineer who built Raqib from first sketch to production — beautiful interfaces, real logic, security from line one.',
     devLoc: 'Suez, Egypt',

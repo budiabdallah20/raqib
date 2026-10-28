@@ -1,9 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="rqb-tile" x1="12" y1="4" x2="52" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#243020"/>
+      <stop offset="1" stop-color="#0d1107"/>
+    </linearGradient>
+    <linearGradient id="rqb-iris" x1="26" y1="26" x2="40" y2="38" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f7f1e3"/>
+      <stop offset=".5" stop-color="#e8e1d0"/>
+      <stop offset="1" stop-color="#cfc7b4"/>
+    </linearGradient>
+    <radialGradient id="rqb-sheen" cx="0.5" cy="0" r="1" gradientTransform="translate(32 2) scale(34 26)">
+      <stop stop-color="#ffffff" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
 
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none">
-  <rect x="1" y="1" width="98" height="98" rx="27" fill="#0A0A0C"/>
-  <rect x="2.2" y="2.2" width="95.6" height="95.6" rx="25.8" stroke="#F7F1E3" stroke-opacity="0.35" stroke-width="1.4"/>
-  <path d="M33 25v50" stroke="#F7F1E3" stroke-width="13.5" stroke-linecap="butt"/>
-  <path d="M33 25h23c13.6 0 24.6 9.4 24.6 20.8S69.6 66.6 56 66.6H33" stroke="#F7F1E3" stroke-width="13.5" stroke-linejoin="round" stroke-linecap="butt"/>
-  <circle cx="62" cy="45.8" r="4.9" fill="#F7F1E3"/>
-  <path d="M54.5 63.5 80 84" stroke="#F7F1E3" stroke-width="13.5" stroke-linecap="round"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="20" fill="url(#rqb-tile)"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="20" fill="url(#rqb-sheen)"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="20" stroke="rgba(247,241,227,0.35)"/>
+  <rect x="5" y="5" width="54" height="54" rx="16.5" fill="none" stroke="#f7f1e3" stroke-opacity=".38" stroke-width="1" stroke-dasharray="1.5 3.5"/>
+
+  <path d="M32 11.5 50 18.2v14.1c0 10.6-7.5 17.4-18 20.7-10.5-3.3-18-10.1-18-20.7V18.2Z" fill="rgba(247,241,227,0.08)" stroke="#f7f1e3" stroke-width="2.1" stroke-linejoin="round"/>
+  <path d="M24.8 21.5h14.4" stroke="#f7f1e3" stroke-opacity=".38" stroke-width="1" stroke-linecap="round"/>
+  <path d="M23.6 43.8c4.6 2.4 12.2 2.4 16.8 0" stroke="#f7f1e3" stroke-opacity=".22" stroke-width="1" stroke-linecap="round"/>
+
+  <path d="M20.6 33.2c3.2-4.4 7-6.6 11.4-6.6s8.2 2.2 11.4 6.6c-3.2 4.4-7 6.6-11.4 6.6s-8.2-2.2-11.4-6.6Z" fill="none" stroke="#f7f1e3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="32" cy="33.2" r="4.35" fill="url(#rqb-iris)"/>
+  <circle cx="30.6" cy="31.9" r="1.05" fill="#fbf6e6" fill-opacity=".9"/>
+  <circle cx="32" cy="33.2" r="6.4" fill="none" stroke="#f7f1e3" stroke-opacity=".28" stroke-width=".9"/>
+
+  <path d="M47.4 13.4l.62 1.78 1.78.62-1.78.62-.62 1.78-.62-1.78-1.78-.62 1.78-.62Z" fill="#ffffff" fill-opacity=".92"/>
 </svg>

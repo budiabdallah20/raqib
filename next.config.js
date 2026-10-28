@@ -41,7 +41,12 @@ const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'off' },
 ];
 
+// distDir: يمكن عزل مجلد البناء محليًا عبر NEXT_DIST_DIR عند تشغيل أكثر من
+// عملية بناء على نفس المشروع (يستخدم Vercel وGitHub Actions الافتراضي .next)
+const distDir = process.env.NEXT_DIST_DIR || '.next';
+
 const nextConfig = {
+  distDir,
   reactStrictMode: true,
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
@@ -59,6 +64,18 @@ const nextConfig = {
       {
         // صفحات لوحات التحكم لا تُفهرس في محركات البحث
         source: '/(admin|student|professor)/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }],
+      },
+      {
+        source: '/admin',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }],
+      },
+      {
+        source: '/student',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }],
+      },
+      {
+        source: '/professor',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }],
       },
       {

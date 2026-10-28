@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const [studentCount, lectureCount, scanCount, attendanceAgg, demoMode] = await Promise.all([
+    const [studentCount, lectureCount, scanCount, attendanceAgg, demoModeSetting] = await Promise.all([
       prisma.user.count({ where: { role: 'STUDENT', isActive: true } }),
       prisma.lecture.count(),
       prisma.attendance.count(),
@@ -32,7 +32,7 @@ export async function GET() {
         scans: scanCount,
         attendancePct: attendanceRatio,
       },
-      demoMode: Boolean(demoMode),
+      demoMode: demoModeSetting?.value === '1',
       updatedAt: new Date().toISOString(),
     }, { headers: { 'cache-control': 'no-store' } });
   } catch {

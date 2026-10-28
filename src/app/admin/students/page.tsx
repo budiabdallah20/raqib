@@ -243,7 +243,7 @@ export default function StudentsPage() {
                     <span className="rounded-md bg-white/60 px-2 py-0.5 text-xs text-ink-600">{row.coursesCount} مقرر</span>
                   </td>
                   <td className="py-3">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${row.isActive ? 'bg-lime-500/10 text-brand-600' : 'bg-ember-500/10 text-ember-600'}`}>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${row.isActive ? 'bg-brand-500/10 text-brand-600' : 'bg-ember-500/10 text-ember-600'}`}>
                       {row.isActive ? 'نشط' : 'معطل'}
                     </span>
                   </td>

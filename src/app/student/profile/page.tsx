@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { CheckCircle2, ImageUp, Save, User } from 'lucide-react';
 import { DashboardShell } from '@/components/shared/DashboardShell';
+import { PasskeyCard } from '@/components/shared/PasskeyCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormField, FormMessage } from '@/components/ui/form';
@@ -134,7 +135,7 @@ export default function StudentProfilePage() {
         </p>
       ) : null}
       {success ? (
-        <p className="mb-6 flex items-center gap-2 rounded-xl border border-lime-500/25 bg-lime-500/[0.08] px-4 py-3 text-sm text-brand-700">
+        <p className="mb-6 flex items-center gap-2 rounded-xl border border-brand-500/25 bg-brand-500/[0.08] px-4 py-3 text-sm text-brand-700">
           <CheckCircle2 className="h-4 w-4" />
           {success}
         </p>
@@ -270,6 +271,10 @@ export default function StudentProfilePage() {
               </Form>
             </CardContent>
           </Card>
+
+          <div className="mt-6 lg:col-span-2">
+            <PasskeyCard />
+          </div>
         </div>
       )}
     </DashboardShell>

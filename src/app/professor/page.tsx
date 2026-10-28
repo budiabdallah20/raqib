@@ -269,7 +269,7 @@ export default function ProfessorPage() {
                     className={`rounded-lg px-2 py-1 text-xs font-bold ${
                       record.status === 'LATE'
                         ? 'bg-gold-500/15 text-gold-700'
-                        : 'bg-lime-500/10 text-brand-700'
+                        : 'bg-brand-500/10 text-brand-700'
                     }`}
                   >
                     {record.status === 'LATE' ? 'متأخر' : 'حاضر'}

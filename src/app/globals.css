@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --brand: #a3e635;
-  --brand-strong: #bef264;
-  --brand-soft: #d9f99d;
-  --brand-deep: #365314;
+  --brand: #2c8f84;
+  --brand-strong: #8fd6cf;
+  --brand-soft: #bfe7e2;
+  --brand-deep: #14403d;
   --gold: #c8a24b;
   --gold-strong: #d8b45a;
   --gold-soft: #f0e0a9;
@@ -55,12 +55,12 @@ body {
   background: #f2f7e6;
 }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #d9f99d, #84cc16);
+  background: linear-gradient(180deg, #bfe7e2, #2c8f84);
   border-radius: 999px;
   border: 2px solid #f2f7e6;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #84cc16, #365314);
+  background: linear-gradient(180deg, #2c8f84, #14403d);
 }
 
 input[type='date']::-webkit-calendar-picker-indicator {
@@ -150,7 +150,7 @@ input:-webkit-autofill:focus {
   }
 
   .text-mint-gradient {
-    background: linear-gradient(100deg, #365314 0%, #84cc16 42%, #a3e635 70%, #c8a24b 100%);
+    background: linear-gradient(100deg, #14403d 0%, #2c8f84 42%, #4db8ae 70%, #c8a24b 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -168,7 +168,7 @@ input:-webkit-autofill:focus {
   }
 
   .text-brand-sheen {
-    background: linear-gradient(100deg, #365314 0%, #65a30d 34%, #a3e635 62%, #c8a24b 100%);
+    background: linear-gradient(100deg, #14403d 0%, #22736c 34%, #4db8ae 62%, #c8a24b 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -260,8 +260,8 @@ input:-webkit-autofill:focus {
 
   .emerald-ring {
     box-shadow:
-      0 0 0 1px rgba(163, 230, 53, 0.3),
-      0 0 42px -12px rgba(163, 230, 53, 0.45);
+      0 0 0 1px rgba(44, 143, 132, 0.3),
+      0 0 42px -12px rgba(44, 143, 132, 0.45);
   }
 
   .shine {
@@ -443,10 +443,9 @@ input:-webkit-autofill:focus {
 .auth-dark .text-ink-500, .site-dark .text-ink-500 { color: rgba(214, 230, 196, 0.6); }
 .auth-dark .text-ink-400, .site-dark .text-ink-400 { color: rgba(208, 226, 190, 0.48); }
 .auth-dark .text-ink-300, .site-dark .text-ink-300 { color: rgba(202, 220, 184, 0.38); }
-.auth-dark .text-brand-600, .site-dark .text-brand-600 { color: #bef264; }
-.auth-dark .text-brand-700, .site-dark .text-brand-700 { color: #bef264; }
-.auth-dark .text-brand-800, .site-dark .text-brand-800 { color: #a3e635; }
-.auth-dark .text-brand-900, .site-dark .text-brand-900 { color: #d9f99d; }
+.auth-dark .text-brand-600, .site-dark .text-brand-600, .auth-dark .text-brand-700, .site-dark .text-brand-700 { color: #8fd6cf; }
+.auth-dark .text-brand-800, .site-dark .text-brand-800 { color: #4db8ae; }
+.auth-dark .text-brand-900, .site-dark .text-brand-900 { color: #bfe7e2; }
 .auth-dark .text-gold-600, .site-dark .text-gold-600 { color: #e6cb78; }
 .auth-dark .text-gold-700, .site-dark .text-gold-700 { color: #e6cb78; }
 .auth-dark .text-gold-800, .site-dark .text-gold-800 { color: #f0e0a9; }
@@ -502,7 +501,7 @@ input:-webkit-autofill:focus {
   box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.9);
 }
 .auth-dark .text-brand-sheen, .site-dark .text-brand-sheen {
-  background-image: linear-gradient(100deg, #d9f99d 8%, #bef264 34%, #a3e635 58%, #e6cb78 88%);
+  background-image: linear-gradient(100deg, #bfe7e2 8%, #8fd6cf 34%, #4db8ae 58%, #e6cb78 88%);
 }
 .auth-dark .border-gold-500\/15, .site-dark .border-gold-500\/15 { border-color: rgba(200, 162, 75, 0.28); }
 .auth-dark .shadow-glass, .site-dark .shadow-glass { box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.9); }
@@ -563,6 +562,33 @@ input:-webkit-autofill:focus {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* شاشة التحميل — غبار ذهبي يطفو + هالة أورورا هادئة */
+@keyframes rqb-float {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(10px, -16px, 0) scale(1.15);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(-8px, -30px, 0) scale(0.95);
+    opacity: 0.45;
+  }
+}
+
+@keyframes rqb-aurora {
+  0% {
+    transform: translate3d(-2%, -1%, 0) scale(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(3%, 2.5%, 0) scale(1.12);
+    opacity: 1;
   }
 }
 

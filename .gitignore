@@ -3,6 +3,7 @@
 # ---------- dependencies / builds ----------
 node_modules/
 .next/
+.next-prod/
 out/
 build/*.js
 dist/
