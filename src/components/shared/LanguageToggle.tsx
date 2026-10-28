@@ -60,7 +60,7 @@ export function LanguageToggle({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'inline-flex h-10 items-center gap-1 rounded-full border border-[#c8a24b]/25 bg-[#0b0f07]/85 p-1 shadow-[0_10px_30px_-18px_rgba(0,0,0,.85),inset_0_1px_0_rgba(255,255,255,.05)] backdrop-blur',
+        'inline-flex h-10 items-center gap-1 rounded-full border border-[rgba(19,31,26,.12)] bg-[rgba(255,255,255,.95)] p-1 shadow-[0_10px_30px_-18px_rgba(19,56,44,.55),inset_0_1px_0_rgba(255,255,255,.95)] backdrop-blur',
         className,
       )}
       role="group"
@@ -68,7 +68,7 @@ export function LanguageToggle({ className }: { className?: string }) {
     >
       <Globe
         aria-hidden="true"
-        className="mx-1.5 h-3.5 w-3.5 shrink-0 text-[#e6cb78]/80"
+        className="mx-1.5 h-3.5 w-3.5 shrink-0 text-[#88632c]/85"
         strokeWidth={2.4}
       />
       {langs.map((code) => {
@@ -85,7 +85,7 @@ export function LanguageToggle({ className }: { className?: string }) {
               'flex h-7 items-center gap-1.5 rounded-full px-2.5 transition',
               active
                 ? 'bg-[linear-gradient(135deg,#c8a24b,#e6cb78)] text-[#1c1503] shadow-[0_6px_18px_-8px_rgba(200,162,75,.6)]'
-                : 'text-[#d9f99d]/60 hover:bg-[#a3e635]/10 hover:text-[#f6f9ef]',
+                : 'text-[#5a6b60] hover:bg-[rgba(163,230,53,.12)] hover:text-[#101608]',
             )}
           >
             {entry.flag === 'eg' ? (

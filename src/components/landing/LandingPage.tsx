@@ -38,23 +38,8 @@ import { LanguageToggle } from '@/components/shared/LanguageToggle';
 import { WelcomeGate } from '@/components/shared/WelcomeGate';
 import { PolicyModal, type PolicyTab } from '@/components/auth/PolicyModal';
 import { TECH_LOGOS, TechLogoMark } from '@/components/shared/TechLogos';
-import Lenis from '@studio-freight/lenis';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
-
-/** ألوان نيون لكل كورة تقنية في سكشن «THAT'S WHAT I BUILD ON» (currentColor). */
-const TILE_COLORS: Record<string, string> = {
-  React: '#61DAFB',
-  'Next.js': '#f6f9ef',
-  TypeScript: '#3178C6',
-  Tailwind: '#38BDF8',
-  'Node.js': '#8CC84B',
-  Prisma: '#8b6cf0',
-  SQLite: '#7dd3fc',
-  Framer: '#d9f99d',
-};
 
 const NAV_ANCHORS = [
   { href: '#features', key: 'features' },
@@ -205,7 +190,7 @@ function QrArt({ className = '' }: { className?: string }) {
 /* Small chrome                                                        */
 /* ------------------------------------------------------------------ */
 
-function ClockChip({ light = false }: { light?: boolean }) {
+function ClockChip() {
   const [now, setNow] = React.useState<Date | null>(null);
   React.useEffect(() => {
     setNow(new Date());
@@ -214,73 +199,39 @@ function ClockChip({ light = false }: { light?: boolean }) {
   }, []);
 
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] shadow-[inset_0_1px_0_rgba(255,255,255,.06)] backdrop-blur-md ${
-        light
-          ? 'border-[#c8a24b]/35 bg-[#c8a24b]/[0.14] text-[#8a6424] shadow-[inset_0_1px_0_rgba(255,255,255,.5)]'
-          : 'border-[#c8a24b]/30 bg-[#c8a24b]/[0.09] text-gold-200'
-      }`}
-    >
-      <Clock3 className={`h-3 w-3 ${light ? 'text-[#8a6424]' : 'text-[#e6cb78]'}`} />
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#c8a24b]/30 bg-[#c8a24b]/[0.09] px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] text-gold-200 shadow-[inset_0_1px_0_rgba(255,255,255,.06)] backdrop-blur-md">
+      <Clock3 className="h-3 w-3 text-[#e6cb78]" />
       <span dir="ltr">{now ? now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
-      <span className={`h-1 w-1 rounded-full ${light ? 'bg-[#8a6424]/80' : 'bg-[#e6cb78]/80'}`} />
+      <span className="h-1 w-1 rounded-full bg-[#e6cb78]/80" />
     </span>
   );
 }
 
-function DateChip({ light = false }: { light?: boolean }) {
+function DateChip() {
   const [now, setNow] = React.useState<Date | null>(null);
   React.useEffect(() => setNow(new Date()), []);
   return (
-    <span
-      className={`hidden items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] backdrop-blur-md 2xl:inline-flex ${
-        light
-          ? 'border-[#65a30d]/35 bg-[#bef264]/[0.2] text-[#3f6212] shadow-[inset_0_1px_0_rgba(255,255,255,.5)]'
-          : 'border-[#a3e635]/25 bg-[#a3e635]/[0.07] text-[#d9f99d]'
-      }`}
-    >
-      <Calendar className={`h-3 w-3 ${light ? 'text-[#4d7c0f]' : 'text-[#bef264]'}`} />
+    <span className="hidden items-center gap-1.5 rounded-full border border-[#a3e635]/25 bg-[#a3e635]/[0.07] px-2.5 py-1.5 font-latin text-[10px] font-semibold tracking-[0.12em] text-[#d9f99d] backdrop-blur-md 2xl:inline-flex">
+      <Calendar className="h-3 w-3 text-[#bef264]" />
       <span dir="ltr">{now ? now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—'}</span>
     </span>
   );
 }
 
 function StatusPill({ dark = false }: { dark?: boolean }) {
-  const [status, setStatus] = React.useState<'ok' | 'degraded' | null>(null);
-
-  React.useEffect(() => {
-    let alive = true;
-    fetch('/api/health', { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data: { status?: string }) => {
-        if (alive) setStatus(data.status === 'ok' ? 'ok' : 'degraded');
-      })
-      .catch(() => {
-        if (alive) setStatus('degraded');
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const degraded = status === 'degraded';
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-latin text-[9px] font-bold uppercase tracking-[0.18em] ${
-        degraded
-          ? dark
-            ? 'border-ember-400/30 bg-white/[0.06] text-ember-200'
-            : 'border-ember-500/25 bg-white/60 text-ember-600 shadow-[inset_0_1px_0_rgba(255,255,255,.9)]'
-          : dark
-            ? 'border-brand-300/20 bg-white/[0.06] text-brand-100'
-            : 'border-brand-500/20 bg-white/60 text-brand-700 shadow-[inset_0_1px_0_rgba(255,255,255,.9)]'
+        dark
+          ? 'border-brand-300/20 bg-white/[0.06] text-brand-100'
+          : 'border-brand-500/20 bg-white/60 text-brand-700 shadow-[inset_0_1px_0_rgba(255,255,255,.9)]'
       } backdrop-blur-md`}
     >
       <span className="relative flex h-1.5 w-1.5">
-        <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${degraded ? 'bg-ember-500/60' : 'bg-brand-400/60'}`} />
-        <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${degraded ? 'bg-ember-500' : 'bg-brand-500'}`} />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400/60" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-500" />
       </span>
-      {status === null ? 'Checking status' : degraded ? 'Systems degraded' : 'All systems operational'}
+      All systems operational
     </span>
   );
 }
@@ -301,47 +252,6 @@ export function LandingPage() {
     document.documentElement.lang = lang;
     document.documentElement.dir = t.dir;
   }, [lang, t.dir]);
-
-  React.useEffect(() => {
-    const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
-    let raf = 0;
-    const loop = (time: number) => {
-      lenis.raf(time);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => {
-      cancelAnimationFrame(raf);
-      lenis.destroy();
-    };
-  }, []);
-
-  React.useEffect(() => {
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    gsap.registerPlugin(ScrollTrigger);
-    const targets = Array.from(document.querySelectorAll<HTMLElement>('#features, #how, #roles, #security'));
-    const tweens = targets.map((el) =>
-      gsap.fromTo(
-        el,
-        { y: 32, opacity: 0.6 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.9,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: el, start: 'top 88%', once: true },
-        },
-      ),
-    );
-    return () => {
-      tweens.forEach((tw) => {
-        tw.scrollTrigger?.kill();
-        tw.kill();
-      });
-      ScrollTrigger.getAll().forEach((st) => st.kill());
-    };
-  }, []);
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -411,7 +321,7 @@ export function LandingPage() {
       <header
         className={`sticky top-0 z-50 transition-all duration-500 ${
           scrolled
-            ? 'border-b border-[#a3e635]/20 bg-[#f2f7ee]/88 shadow-[0_18px_45px_-30px_rgba(63,98,18,.28)] backdrop-blur-2xl'
+            ? 'border-b border-white/10 bg-[#080b06]/78 shadow-[0_18px_45px_-32px_rgba(0,0,0,.9)] backdrop-blur-2xl'
             : 'border-b border-transparent bg-transparent'
         }`}
       >
@@ -420,30 +330,28 @@ export function LandingPage() {
             <Logo markClassName="h-10 w-10 transition-transform duration-500 group-hover:rotate-[-4deg]" />
           </Link>
 
-          <nav className="hidden items-center gap-0.5 rounded-full border border-[#a3e635]/25 bg-[#f8fcf4]/80 p-1.5 shadow-[0_10px_30px_-18px_rgba(63,98,18,.30),inset_0_1px_0_rgba(255,255,255,.65)] backdrop-blur-xl lg:flex">
+          <nav className="hidden items-center gap-0.5 rounded-full border border-[#c8a24b]/25 bg-[#0b0f07]/85 p-1 shadow-[0_10px_30px_-18px_rgba(0,0,0,.85),inset_0_1px_0_rgba(255,255,255,.05)] backdrop-blur-xl lg:flex">
             {NAV_ANCHORS.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="group relative rounded-full px-4 py-2 text-[13px] font-semibold text-[#2f4023]/65 transition-all duration-300 hover:bg-[#a3e635]/15 hover:text-[#1b2a12]"
+                className="group relative rounded-full px-4 py-2 text-[13px] font-semibold text-[#d9f99d]/65 transition-all duration-300 hover:bg-[#a3e635]/10 hover:text-[#f6f9ef]"
               >
                 {t.nav[item.key]}
-                <span className="absolute inset-x-4 -bottom-[1px] h-px origin-center scale-x-0 bg-gradient-to-r from-transparent via-[#65a30d]/70 to-transparent transition-transform duration-300 group-hover:scale-x-100" />
+                <span className="absolute inset-x-4 -bottom-[1px] h-px origin-center scale-x-0 bg-gradient-to-r from-transparent via-[#a3e635]/70 to-transparent transition-transform duration-300 group-hover:scale-x-100" />
               </a>
             ))}
           </nav>
 
           <div className="flex items-center gap-2.5">
             <div className="hidden items-center gap-1.5 md:flex">
-              <ClockChip light={scrolled} />
-              <DateChip light={scrolled} />
+              <ClockChip />
+              <DateChip />
             </div>
             <LanguageToggle />
             <Link
               href="/login"
-              className={`hidden rounded-full px-3 py-2 text-[12px] font-semibold transition-colors sm:inline-flex ${
-                scrolled ? 'text-[#3a4d33] hover:text-[#1b2a12]' : 'text-[#d9f99d]/70 hover:text-[#f6f9ef]'
-              }`}
+              className="hidden rounded-full px-3 py-2 text-[12px] font-semibold text-ink-600 transition-colors hover:text-ink-950 sm:inline-flex"
             >
               {t.nav.login}
             </Link>
@@ -460,11 +368,7 @@ export function LandingPage() {
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={t.nav.menu}
               aria-expanded={menuOpen}
-              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-all duration-300 ${
-                scrolled
-                  ? 'border-[#65a30d]/40 bg-[#bef264]/25 text-[#365314] hover:bg-[#bef264]/40'
-                  : 'border-[#a3e635]/30 bg-[#a3e635]/10 text-[#bef264] hover:bg-[#a3e635]/20'
-              }`}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#a3e635]/30 bg-[#a3e635]/10 text-[#bef264] backdrop-blur-md transition-all duration-300 hover:bg-[#a3e635]/20 lg:hidden"
             >
               {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
@@ -767,39 +671,22 @@ export function LandingPage() {
         </section>
 
         {/* -------------------------------------------------------------- */}
-        {/* tech tiles — "THAT'S WHAT I BUILD ON"                          */}
+        {/* tech marquee                                                   */}
         {/* -------------------------------------------------------------- */}
-        <section aria-label={t.footer.builtEyebrow} className="relative mx-auto w-full max-w-7xl px-5 py-16 sm:px-8 sm:py-24">
-          <div className="relative">
-            <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 h-[320px] w-[560px] -translate-x-1/2 rounded-full opacity-70 blur-3xl" style={{ background: 'radial-gradient(ellipse, rgba(163,230,53,0.10), transparent 70%)' }} />
-
-            <p className="kicker-mono relative text-[9px] font-bold uppercase text-gold-700">{t.footer.builtEyebrow}</p>
-            <h2 className="relative mt-4 font-display text-[clamp(2.4rem,6vw,4.6rem)] font-black leading-[1.04] tracking-[-0.035em] text-ink-950">
-              {t.footer.builtHeading}
-              <span className="block bg-[linear-gradient(100deg,#c8a24b,#e6cb78_42%,#a3e635)] bg-clip-text text-transparent">
-                {t.footer.builtHeadingGold}
-              </span>
-            </h2>
-
-            <div className="relative mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {TECH_LOGOS.map((tech, i) => (
-                <div
-                  key={tech.name}
-                  className="stagger-item group relative overflow-hidden rounded-2xl border border-white/70 bg-white/40 p-5 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_-26px_rgba(19,56,44,.5)]"
-                  style={{ '--d': `${i * 70}ms` } as React.CSSProperties}
-                >
-                  {/* highlight منظري */}
-                  <span aria-hidden className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
-                  <span aria-hidden className="absolute -right-2 -top-2 h-[150%] w-px origin-top rotate-[26deg] bg-gradient-to-b from-white/40 via-white/10 to-transparent" />
-                  <span aria-hidden className="absolute -bottom-10 -left-6 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(163,230,53,0.14),transparent_70%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  <div className="relative flex items-start justify-between" style={{ color: TILE_COLORS[tech.name] ?? undefined }}>
-                    <TechLogoMark index={i} className="h-9 w-9 transition-transform duration-300 group-hover:scale-110" />
-                    <span className="font-coded text-[9px] tabular-nums text-ink-300">0{i + 1}</span>
-                  </div>
-                  <p className="font-coded relative mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-ink-700">{tech.name}</p>
-                </div>
-              ))}
+        <section aria-label="Technology stack" className="relative border-y border-ink-950/[0.06] bg-white/30 py-5 backdrop-blur-sm">
+          <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 sm:px-8">
+            <span className="hidden shrink-0 font-latin text-[9px] font-bold uppercase tracking-[0.26em] text-ink-400 md:block">Built with</span>
+            <div className="relative flex-1 overflow-hidden mask-fade-x">
+              <div className="flex w-max animate-marquee items-center gap-9 hover:[animation-play-state:paused]">
+                {[...TECH_LOGOS, ...TECH_LOGOS].map((tech, i) => (
+                  <span key={`${tech.name}-${i}`} className="flex shrink-0 items-center gap-2 text-ink-400/80 transition-colors hover:text-brand-700">
+                    <TechLogoMark index={i % TECH_LOGOS.length} className="h-4 w-4" />
+                    <span className="font-latin text-[10px] font-semibold tracking-[0.12em]">{tech.name}</span>
+                  </span>
+                ))}
+              </div>
             </div>
+            <span className="hidden shrink-0 font-latin text-[9px] font-medium tracking-[0.16em] text-ink-300 sm:block">{t.footer.stackNote}</span>
           </div>
         </section>
 
@@ -851,7 +738,7 @@ export function LandingPage() {
         {/* -------------------------------------------------------------- */}
         {/* features                                                       */}
         {/* -------------------------------------------------------------- */}
-        <section id="features" className="relative scroll-mt-24 border-t border-ink-950/[0.06] py-20 sm:py-24">
+        <section id="features" className="relative [content-visibility:auto] [contain-intrinsic-size:auto_900px] scroll-mt-24 border-t border-ink-950/[0.06] py-20 sm:py-24">
           <div className="mx-auto w-full max-w-7xl px-5 sm:px-8">
             <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-end">
               <motion.div {...fadeUp()}>
@@ -902,7 +789,7 @@ export function LandingPage() {
         {/* -------------------------------------------------------------- */}
         {/* how it works — dark jewel band                                 */}
         {/* -------------------------------------------------------------- */}
-        <section id="how" className="relative scroll-mt-24 px-3 sm:px-5">
+        <section id="how" className="relative [content-visibility:auto] [contain-intrinsic-size:auto_900px] scroll-mt-24 px-3 sm:px-5">
           <div className="relative mx-auto w-full max-w-[1400px] overflow-hidden rounded-[38px] bg-[#0a0c07] px-5 py-20 text-[#f2f8e8] shadow-[0_40px_100px_-46px_rgba(10,12,7,.72)] sm:px-8 sm:py-24">
             <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_14%_0%,rgba(163,230,53,.2),transparent_44%),radial-gradient(circle_at_88%_100%,rgba(200,162,75,.2),transparent_48%)]" />
             <div aria-hidden className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px)] bg-[size:58px_58px] opacity-50 [mask-image:radial-gradient(70%_60%_at_50%_30%,#000,transparent)]" />
@@ -957,7 +844,7 @@ export function LandingPage() {
         {/* -------------------------------------------------------------- */}
         {/* roles                                                          */}
         {/* -------------------------------------------------------------- */}
-        <section id="roles" className="relative scroll-mt-24 py-20 sm:py-24">
+        <section id="roles" className="relative [content-visibility:auto] [contain-intrinsic-size:auto_900px] scroll-mt-24 py-20 sm:py-24">
           <div className="mx-auto w-full max-w-7xl px-5 sm:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <motion.div {...fadeUp()} className="flex items-center justify-center gap-3">
@@ -1020,7 +907,7 @@ export function LandingPage() {
         {/* -------------------------------------------------------------- */}
         {/* security                                                       */}
         {/* -------------------------------------------------------------- */}
-        <section id="security" className="relative scroll-mt-24 border-y border-ink-950/[0.06] bg-white/25 py-20 backdrop-blur-sm sm:py-24">
+        <section id="security" className="relative [content-visibility:auto] [contain-intrinsic-size:auto_900px] scroll-mt-24 border-y border-ink-950/[0.06] bg-white/25 py-20 backdrop-blur-sm sm:py-24">
           <div className="mx-auto grid w-full max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <motion.div {...fadeUp()}>
               <div className="flex items-center gap-3">
@@ -1088,7 +975,7 @@ export function LandingPage() {
         {/* -------------------------------------------------------------- */}
         {/* final CTA                                                      */}
         {/* -------------------------------------------------------------- */}
-        <section className="relative px-4 py-20 sm:px-6 sm:py-24">
+        <section className="relative [content-visibility:auto] [contain-intrinsic-size:auto_900px] px-4 py-20 sm:px-6 sm:py-24">
           <motion.div
             {...fadeUp()}
             className="relative mx-auto w-full max-w-[1320px] overflow-hidden rounded-[38px] bg-[linear-gradient(125deg,#0c1006_0%,#1a2408_46%,#2c3d10_100%)] px-6 py-14 text-center shadow-[0_46px_110px_-48px_rgba(10,12,7,.72)] sm:px-10 sm:py-20"
@@ -1133,13 +1020,13 @@ export function LandingPage() {
       {/* ---------------------------------------------------------------- */}
       {/* footer                                                           */}
       {/* ---------------------------------------------------------------- */}
-      <footer className="relative overflow-clip border-t border-white/[0.06] bg-[#0d1206] text-[#f2f8e8]">
+      <footer className="relative overflow-clip border-t border-white/[0.06] bg-[#040709] text-[#eafbf8]">
         <span aria-hidden className="absolute inset-x-0 top-0 h-px overflow-hidden">
-          <span className="animate-bar-shine block h-full w-full bg-gradient-to-r from-transparent via-gold-300 to-transparent" />
+          <span className="animate-bar-shine block h-full w-full bg-gradient-to-r from-transparent via-teal-300 to-transparent" />
         </span>
-        <div aria-hidden className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(163,230,53,0.13), transparent 65%)' }} />
-        <div aria-hidden className="animate-aurora-a pointer-events-none absolute left-[2%] top-[26%] h-[340px] w-[340px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(163,230,53,0.16) 0%, transparent 65%)' }} />
-        <div aria-hidden className="animate-aurora-b pointer-events-none absolute bottom-[5%] right-[3%] h-[300px] w-[300px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(200,162,75,0.18) 0%, transparent 65%)' }} />
+        <div aria-hidden className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(45,212,191,0.15), transparent 65%)' }} />
+        <div aria-hidden className="animate-aurora-a pointer-events-none absolute left-[2%] top-[26%] h-[340px] w-[340px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(45,212,191,0.16) 0%, transparent 65%)' }} />
+        <div aria-hidden className="animate-aurora-b pointer-events-none absolute bottom-[5%] right-[3%] h-[300px] w-[300px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(34,211,238,0.16) 0%, transparent 65%)' }} />
         <div aria-hidden className="absolute -right-8 top-40 font-display text-[18vw] font-bold leading-none text-white/[0.02]">رقيب</div>
 
         <div className="relative mx-auto w-full max-w-7xl px-5 pb-8 pt-14 sm:px-8 sm:pt-16">
@@ -1147,7 +1034,7 @@ export function LandingPage() {
           <div aria-hidden className="mask-fade-x relative mb-14 overflow-hidden border-y border-white/[0.06] py-3">
             <div className="animate-marquee flex w-max items-center gap-8">
               {[...TECH_LOGOS, ...TECH_LOGOS].map((tech, i) => (
-                <span key={`${tech.name}-${i}`} className="flex shrink-0 items-center gap-2 text-[#d9f99d]/55 transition-colors duration-300 hover:text-[#f6f9ef]">
+                <span key={`${tech.name}-${i}`} className="flex shrink-0 items-center gap-2 text-[#99f6e4]/55 transition-colors duration-300 hover:text-[#eafffb]">
                   <TechLogoMark index={i % TECH_LOGOS.length} className="h-4 w-4" />
                   <span className="font-latin text-[10px] font-semibold tracking-[0.14em]">{tech.name}</span>
                 </span>
@@ -1156,7 +1043,7 @@ export function LandingPage() {
           </div>
 
           {/* نداء الإطلاق */}
-          <div className="relative flex flex-col items-center pb-16 text-center">
+          <div className="relative flex flex-col items-center pb-10 text-center">
             <p className="flex max-w-full items-center gap-2.5 rounded-full border border-brand-300/30 bg-brand-300/[0.08] px-4 py-1.5 font-latin text-[10px] uppercase tracking-[0.25em] text-brand-200">
               <span className="relative flex h-1.5 w-1.5 shrink-0">
                 <span className="animate-ping-soft absolute inline-flex h-full w-full rounded-full bg-brand-300" />
@@ -1166,10 +1053,10 @@ export function LandingPage() {
             </p>
             <p className="mt-6 font-latin text-[11px] uppercase tracking-[0.35em] text-white/30">{t.footer.kicker}</p>
             <p className="mt-4 font-display font-black tracking-tight">
-              <span className="animate-shimmer block bg-[linear-gradient(100deg,#f6f9ef_0%,#d9f99d_28%,#bef264_48%,#c8a24b_68%,#f6f9ef_100%)] bg-[length:220%_100%] bg-clip-text text-[clamp(2.3rem,7vw,4.6rem)] text-transparent">
+              <span className="animate-shimmer block bg-[linear-gradient(100deg,#eafffb_0%,#99f6e4_28%,#5eead4_48%,#2dd4bf_68%,#eafffb_100%)] bg-[length:220%_100%] bg-clip-text text-[clamp(2.3rem,7vw,4.6rem)] text-transparent">
                 {t.footer.ctaLine1}
               </span>
-              <span aria-hidden className="text-stroke-lemon block text-[clamp(2.3rem,7vw,4.6rem)] drop-shadow-[0_0_28px_rgba(163,230,53,0.22)]">
+              <span aria-hidden className="text-stroke-teal block text-[clamp(2.3rem,7vw,4.6rem)] drop-shadow-[0_0_28px_rgba(45,212,191,0.25)]">
                 {t.footer.ctaLine2}
               </span>
               <span className="sr-only">{t.footer.ctaLine1} {t.footer.ctaLine2}</span>
@@ -1177,7 +1064,7 @@ export function LandingPage() {
             <p className="mt-5 max-w-xl text-[13px] leading-relaxed text-white/50 sm:text-[15px]">{t.footer.tagline}</p>
             <span className="relative mt-9 inline-flex rounded-[15px] p-[1.5px]">
               <span aria-hidden className="animate-spin-conic absolute inset-[-70%] m-auto h-[240%] w-[45%] opacity-80" style={{ background: 'conic-gradient(from 0deg, transparent 0%, #c8a24b 15%, #bef264 30%, transparent 45%, transparent 60%, #f0e0a9 75%, transparent 90%)', filter: 'blur(7px)' }} />
-              <Link href="/login?tab=register" className="group relative inline-flex items-center gap-2 overflow-hidden rounded-[14px] bg-[linear-gradient(110deg,#8a6424,#c8a24b_45%,#e6cb78)] px-8 py-4 text-sm font-extrabold text-[#1c1503] transition-all duration-200 hover:shadow-[0_16px_50px_-12px_rgba(200,162,75,.75)]">
+              <Link href="/login?tab=register" className="group relative inline-flex items-center gap-2 overflow-hidden rounded-[14px] bg-[linear-gradient(110deg,#0f766e,#2dd4bf_45%,#99f6e4)] px-8 py-4 text-sm font-extrabold text-[#022c22] transition-all duration-200 hover:shadow-[0_16px_50px_-12px_rgba(45,212,191,.6)]">
                 <span aria-hidden className="absolute inset-y-0 left-0 w-1/2 -skew-x-12 -translate-x-[180%] bg-black/25 blur-md transition-transform duration-700 group-hover:translate-x-[380%]" />
                 <span className="relative">{t.nav.start}</span>
                 <ArrowUpRight className="relative h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -1185,7 +1072,7 @@ export function LandingPage() {
             </span>
           </div>
 
-          <div className="grid gap-12 border-t border-white/[0.06] pt-12 lg:grid-cols-[1.25fr_0.6fr_0.85fr] lg:gap-10">
+          <div className="grid gap-10 border-t border-white/[0.06] pt-10 lg:grid-cols-[1.2fr_0.5fr_0.6fr_0.7fr_0.9fr] lg:gap-8">
             <div className="group/brand relative">
               <span aria-hidden className="pointer-events-none absolute -inset-5 rounded-3xl opacity-0 blur-2xl transition-opacity duration-700 group-hover/brand:opacity-100" style={{ background: 'radial-gradient(ellipse 70% 60% at 20% 20%, rgba(163,230,53,0.12), transparent 65%), radial-gradient(ellipse 50% 50% at 80% 90%, rgba(200,162,75,0.14), transparent 65%)' }} />
               <Logo tone="light" markClassName="h-11 w-11" wordmarkClassName="[&_span:first-child]:text-[#f6f9ef] [&_span:last-child]:text-white/35" />
@@ -1193,26 +1080,26 @@ export function LandingPage() {
               <div className="mt-6 flex flex-wrap items-center gap-2">
                 <StatusPill dark />
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 font-latin text-[9px] font-semibold text-[#d9f99d]/70">
-                  <ShieldCheck className="h-3 w-3 text-gold-300/65" />
+                  <ShieldCheck className="h-3 w-3 text-teal-300/70" />
                   {t.footer.secure}
                 </span>
               </div>
-              <p className="mt-4 font-latin text-[9px] uppercase tracking-[0.22em] text-gold-200/50">{t.footer.stackNote}</p>
+              <p className="mt-4 font-latin text-[9px] uppercase tracking-[0.22em] text-teal-200/60">{t.footer.stackNote}</p>
 
               <div className="mt-8 border-t border-white/[0.07] pt-5">
-                <p className="font-display text-[15px] leading-8 text-gold-200/70">{t.footer.quote}</p>
-                <p className="mt-1 font-latin text-[9px] tracking-[0.16em] text-gold-200/45">{t.footer.quoteRef}</p>
+                <p className="font-display text-[15px] leading-8 text-teal-200/75">{t.footer.quote}</p>
+                <p className="mt-1 font-latin text-[9px] tracking-[0.16em] text-teal-200/50">{t.footer.quoteRef}</p>
               </div>
             </div>
 
             <nav aria-label={t.footer.navTitle}>
-              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.navTitle}</h3>
+              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-teal-300/55">{t.footer.navTitle}</h3>
               <ul className="mt-5 space-y-3">
                 {t.footer.linksNav.map((link, i) => (
                   <li key={link.href}>
                     <Link href={link.href} className="group inline-flex items-center gap-2 text-[12px] font-medium text-brand-100/55 transition-colors hover:text-[#f6f9ef]">
                       <span aria-hidden className="font-latin text-[9px] tabular-nums text-brand-100/25">0{i + 1}</span>
-                      <span className="h-px w-0 bg-gold-300/60 transition-all duration-300 group-hover:w-3" />
+                      <span className="h-px w-0 bg-teal-300/60 transition-all duration-300 group-hover:w-3" />
                       {link.label}
                     </Link>
                   </li>
@@ -1221,27 +1108,32 @@ export function LandingPage() {
             </nav>
 
             <nav aria-label={t.footer.platform}>
-              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.platform}</h3>
+              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-teal-300/55">{t.footer.platform}</h3>
               <ul className="mt-5 space-y-3">
                 {t.footer.linksPlatform.map((link, i) => (
                   <li key={link.label}>
                     <a href={link.href} className="group inline-flex items-center gap-2 text-[12px] font-medium text-brand-100/55 transition-colors hover:text-[#f6f9ef]">
                       <span aria-hidden className="font-latin text-[9px] tabular-nums text-brand-100/25">0{i + 1}</span>
-                      <span className="h-px w-0 bg-gold-300/60 transition-all duration-300 group-hover:w-3" />
+                      <span className="h-px w-0 bg-teal-300/60 transition-all duration-300 group-hover:w-3" />
                       {link.label}
                     </a>
                   </li>
                 ))}
               </ul>
-              <h3 className="mt-7 font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.legal}</h3>
-              <ul className="mt-4 space-y-2.5">
+            </nav>
+
+            <nav aria-label={t.footer.legal}>
+              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-teal-300/55">{t.footer.legal}</h3>
+              <ul className="mt-5 space-y-3">
                 {[
                   { label: t.footer.privacy, tab: 'privacy' as PolicyTab },
                   { label: t.footer.terms, tab: 'terms' as PolicyTab },
                   { label: t.footer.rights, tab: 'rights' as PolicyTab },
-                ].map((item) => (
+                ].map((item, i) => (
                   <li key={item.tab}>
-                    <button type="button" onClick={() => openPolicy(item.tab)} className="text-[11px] text-brand-100/38 transition-colors hover:text-gold-200/80">
+                    <button type="button" onClick={() => openPolicy(item.tab)} className="group inline-flex items-center gap-2 text-[12px] font-medium text-brand-100/55 transition-colors hover:text-[#eafffb]">
+                      <span aria-hidden className="font-latin text-[9px] tabular-nums text-brand-100/25">0{i + 1}</span>
+                      <span className="h-px w-0 bg-teal-300/60 transition-all duration-300 group-hover:w-3" />
                       {item.label}
                     </button>
                   </li>
@@ -1249,186 +1141,177 @@ export function LandingPage() {
               </ul>
             </nav>
 
+            <div>
+              <h3 className="font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-teal-300/55">{t.footer.contactTitle}</h3>
+              <ul className="mt-5 space-y-3">
+                {t.footer.devLinks.map((link) => {
+                  const icons = {
+                    WhatsApp: MessageCircle,
+                    Email: Mail,
+                    Phone: Phone,
+                    Portfolio: ArrowUpRight,
+                  } as const;
+                  const Icon = icons[link.label as keyof typeof icons] ?? ArrowUpRight;
+                  return (
+                    <li key={link.href}>
+                      <a
+                        href={link.href}
+                        target={link.href.startsWith('http') ? '_blank' : undefined}
+                        rel={link.href.startsWith('http') ? 'noreferrer' : undefined}
+                        className="group inline-flex items-center gap-2.5 text-[11px] font-medium text-[#e8f3d2]/75 transition-colors hover:text-[#f6f9ef]"
+                      >
+                        <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/[0.045] text-teal-200/70 transition-colors group-hover:border-teal-300/25 group-hover:text-teal-200">
+                          <Icon className="h-3 w-3" />
+                        </span>
+                        {link.label}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+              {/* صف أيقونات السوشيال — لوجوهات رسمية */}
+              <p className="mt-6 font-latin text-[9px] font-bold uppercase tracking-[0.28em] text-teal-300/55">{t.footer.socialsTitle}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {[
+                  { name: 'WhatsApp', href: 'https://wa.me/201065228072', color: '#25D366', file: 'whatsapp.svg' },
+                  { name: 'GitHub', href: 'https://github.com/budiabdallah20', color: '#f2f8e8', file: 'github.svg' },
+                  { name: 'LinkedIn', href: 'https://linkedin.com/in/budi-abdallah-ba61323a7', color: '#0A66C2', file: 'linkedin.svg' },
+                  { name: 'TikTok', href: 'https://tiktok.com/@mohamedabdallah_10', color: '#f2f8e8', file: 'tiktok.svg' },
+                  { name: 'Facebook', href: 'https://facebook.com/mohamed.abdallah.45254', color: '#0866FF', file: 'facebook.svg' },
+                  { name: 'Instagram', href: 'https://instagram.com/mohamedabdallahh_18', color: '#E4405F', file: 'instagram.svg' },
+                  { name: 'Email', href: 'mailto:budiabdallah922@gmail.com', color: '#c8a24b', file: null },
+                  { name: 'Phone', href: 'tel:+201065228072', color: '#a3e635', file: null },
+                ].map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    target={social.href.startsWith('http') ? '_blank' : undefined}
+                    rel={social.href.startsWith('http') ? 'noreferrer' : undefined}
+                    aria-label={social.name}
+                    title={social.name}
+                    className="group flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_28px_-10px_rgba(0,0,0,.7)]"
+                    style={{ color: social.color }}
+                  >
+                    {social.file ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={`/brand-icons/${social.file}`} alt="" className="h-4 w-4 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+                    ) : social.name === 'Email' ? (
+                      <Mail className="h-3.5 w-3.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+                    ) : (
+                      <Phone className="h-3.5 w-3.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+                    )}
+                  </a>
+                ))}
+              </div>
+              <div className="mt-6 flex items-center gap-2 text-[10px] text-brand-100/35">
+                <MapPin className="h-3 w-3 text-teal-300/60" />
+                {t.footer.devLoc}
+              </div>
+            </div>
           </div>
 
-          {/* developer card — الكارت الاحترافي الكامل */}
-          <div className="relative mt-14 overflow-hidden rounded-[30px] border border-white/[0.09] bg-[#10160b]/70 p-5 backdrop-blur-md sm:p-8">
-            <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,rgba(163,230,53,.12),transparent_42%),radial-gradient(circle_at_100%_100%,rgba(200,162,75,.13),transparent_42%)]" />
-            <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-300/50 to-transparent" />
-
-            <div className="relative grid gap-8 lg:grid-cols-[215px_1fr]">
-              {/* الصورة — إطار ذهبي + أقواس منظور */}
-              <div className="group relative mx-auto w-full max-w-[225px] lg:mx-0">
-                <div aria-hidden className="absolute -inset-1.5 rounded-[26px] bg-[conic-gradient(from_140deg,rgba(200,162,75,.55),rgba(190,242,100,.45),rgba(200,162,75,.55))] opacity-70 blur-[1px] transition-opacity duration-500 group-hover:opacity-100" />
-                <div aria-hidden className="absolute -inset-1 rounded-[24px] border border-gold-300/30 [transform:rotate(-2deg)] transition-transform duration-500 group-hover:rotate-0" />
-                <span aria-hidden className="magic-sparkle on" style={{ width: 4, height: 4, top: -8, right: 10, animationDelay: '0.4s' }} />
-                <span aria-hidden className="magic-sparkle on" style={{ width: 3, height: 3, bottom: -6, left: 8, animationDelay: '1.8s' }} />
-                <div className="relative rounded-[22px] border border-white/20 bg-[#0a0c07] p-1.5">
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-[17px]">
+          {/* developer card */}
+          <div className="relative mt-14 overflow-hidden rounded-[28px] border border-white/[0.09] bg-white/[0.035] p-4 backdrop-blur-md sm:p-5">
+            <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(163,230,53,.14),transparent_45%),radial-gradient(circle_at_100%_100%,rgba(200,162,75,.14),transparent_45%)]" />
+            <div className="relative grid gap-5 sm:grid-cols-[150px_1fr] sm:items-center lg:grid-cols-[170px_1fr_auto]">
+              <div className="group relative mx-auto w-full max-w-[190px] sm:mx-0">
+                <div aria-hidden className="absolute -inset-1 rounded-[24px] bg-[conic-gradient(from_140deg,rgba(45,212,191,.55),rgba(94,234,212,.5),rgba(45,212,191,.55))] opacity-70 blur-[1px] transition-opacity duration-500 group-hover:opacity-100" />
+                <div className="relative overflow-hidden rounded-[22px] border border-white/15 bg-[#0a0c07] p-1">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[17px] bg-[#0a1417]">
                     <Image
-                      src="/brand/fotterfPicture.jpg"
+                      src="/1-sm.jpg"
                       alt={t.footer.devName}
-                      fill
-                      priority
-                      sizes="225px"
-                      className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
+                      width={480}
+                      height={640}
+                      sizes="240px"
+                      className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
                     />
-                    <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#0a0c07]/85 via-transparent to-transparent" />
-                    <span aria-hidden className="absolute left-2.5 top-2.5 h-5 w-5 rounded-tl-md border-l-2 border-t-2 border-gold-300/80" />
-                    <span aria-hidden className="absolute right-2.5 top-2.5 h-5 w-5 rounded-tr-md border-r-2 border-t-2 border-gold-300/80" />
-                    <span aria-hidden className="absolute bottom-10 left-2.5 h-5 w-5 rounded-bl-md border-b-2 border-l-2 border-gold-300/80" />
-                    <span aria-hidden className="absolute bottom-10 right-2.5 h-5 w-5 rounded-br-md border-b-2 border-r-2 border-gold-300/80" />
-                    <div className="absolute inset-x-2 bottom-2 flex items-center gap-1.5 rounded-lg border border-gold-300/25 bg-[#0a0c07]/70 px-2 py-1.5 backdrop-blur-md">
-                      <span className="h-1 w-1 rounded-full bg-brand-300 shadow-[0_0_8px_rgba(163,230,53,.8)]" />
-                      <span className="font-latin text-[7px] font-bold uppercase tracking-[0.16em] text-brand-100/85">Raqeeb creator</span>
+                    <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#0a0c07]/80 via-transparent to-transparent" />
+                    <div className="absolute inset-x-2 bottom-2 flex items-center gap-1.5 rounded-lg border border-teal-300/25 bg-[#040709]/60 px-2 py-1.5 backdrop-blur-md">
+                      <span className="h-1 w-1 rounded-full bg-teal-300 shadow-[0_0_8px_rgba(45,212,191,.8)]" />
+                      <span className="font-latin text-[7px] font-bold uppercase tracking-[0.16em] text-teal-100/85">Raqeeb creator</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* المعلومات */}
-              <div>
-                <p className="font-latin text-[8px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.devTitle}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <h3 className="font-grotesk text-[1.85rem] font-bold leading-tight tracking-[-0.03em] text-[#f6f9ef]">{t.footer.devName}</h3>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-300/20 bg-brand-300/[0.08] px-2.5 py-1 font-latin text-[8px] font-bold uppercase tracking-[0.16em] text-brand-200/85">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping-soft absolute inline-flex h-full w-full rounded-full bg-brand-300" />
-                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-300" />
-                    </span>
-                    Open to work
+              <div className="text-center sm:text-start">
+                <p className="font-latin text-[8px] font-bold uppercase tracking-[0.28em] text-teal-300/55">{t.footer.devTitle}</p>
+                <h3 className="mt-2 font-display text-[1.65rem] font-bold tracking-[-0.035em]">
+                  <span className="animate-name-cycle bg-[linear-gradient(90deg,#5eead4,#a3e635,#e6cb78,#f472b6,#5eead4)] bg-[length:300%_100%] bg-clip-text text-transparent">
+                    {t.footer.devName}
                   </span>
-                </div>
-                <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-brand-300/20 bg-brand-300/[0.08] px-2.5 py-1 font-latin text-[8px] font-bold uppercase tracking-[0.16em] text-brand-200/80">{t.footer.devRole}</span>
+                </h3>
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                  <span className="rounded-full border border-teal-300/20 bg-teal-300/[0.08] px-2.5 py-1 font-latin text-[8px] font-bold uppercase tracking-[0.16em] text-teal-200/85">Full-Stack Developer</span>
                   <span className="rounded-full border border-gold-300/20 bg-gold-300/[0.07] px-2.5 py-1 font-latin text-[8px] font-bold uppercase tracking-[0.16em] text-gold-200/80">Raqeeb Creator</span>
                 </div>
-                <p className="mt-3 max-w-2xl text-[11px] leading-[1.9] text-brand-100/45">{t.footer.devBio}</p>
+                <p className="mx-auto mt-3 max-w-2xl text-[11px] leading-[1.9] text-brand-100/42 sm:mx-0">{t.footer.devBio}</p>
+              </div>
 
-                {/* لغات البناء */}
-                <p className="mt-6 font-latin text-[8px] font-bold uppercase tracking-[0.28em] text-gold-300/55">Languages built on</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {TECH_LOGOS.map((tech, i) => (
-                    <span
-                      key={tech.name}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 font-coded text-[9px] font-bold uppercase tracking-[0.12em] text-[#d9f99d]/70 transition-colors hover:border-gold-300/30 hover:text-[#f6f9ef]"
-                    >
-                      <span style={{ color: TILE_COLORS[tech.name] ?? undefined }}>
-                        <TechLogoMark index={i} className="h-3 w-3" />
-                      </span>
-                      {tech.name}
-                    </span>
-                  ))}
-                </div>
-
-                {/* التواصل + السوشيال — جوه الكارت */}
-                <div className="mt-7 grid gap-6 border-t border-white/[0.07] pt-5 sm:grid-cols-[1fr_auto]">
-                  <div>
-                    <p className="font-latin text-[8px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.contactTitle}</p>
-                    <ul className="mt-3 space-y-2.5">
-                      {t.footer.devLinks.filter((link) => link.label !== 'Portfolio').map((link) => {
-                        const display: Record<string, string> = {
-                          WhatsApp: '+20 106 522 8072',
-                          Email: 'budiabdallah922@gmail.com',
-                          Phone: '+20 106 522 8072',
-                        };
-                        const Icon = link.label === 'WhatsApp' ? MessageCircle : link.label === 'Email' ? Mail : Phone;
-                        return (
-                          <li key={link.href}>
-                            <a href={link.href} className="group inline-flex items-center gap-2.5 text-[12px] font-medium text-[#e8f3d2]/80 transition-colors hover:text-[#f6f9ef]">
-                              <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/[0.045] text-gold-200/60 transition-colors group-hover:border-gold-300/25 group-hover:text-gold-200">
-                                <Icon className="h-3 w-3" />
-                              </span>
-                              <span dir="ltr" className="font-coded text-[10px] tracking-[0.06em] text-[#e8f3d2]/80 group-hover:text-[#f6f9ef]">
-                                {display[link.label] ?? link.label}
-                              </span>
-                            </a>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                  <div>
-                    <p className="font-latin text-[8px] font-bold uppercase tracking-[0.28em] text-gold-300/55">{t.footer.socialsTitle}</p>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {[
-                        { name: 'WhatsApp', href: 'https://wa.me/201065228072', color: '#25D366', file: 'whatsapp.svg' },
-                        { name: 'GitHub', href: 'https://github.com/budiabdallah20', color: '#f2f8e8', file: 'github.svg' },
-                        { name: 'LinkedIn', href: 'https://linkedin.com/in/budi-abdallah-ba61323a7', color: '#0A66C2', file: 'linkedin.svg' },
-                        { name: 'TikTok', href: 'https://tiktok.com/@mohamedabdallah_10', color: '#f2f8e8', file: 'tiktok.svg' },
-                        { name: 'Facebook', href: 'https://facebook.com/mohamed.abdallah.45254', color: '#0866FF', file: 'facebook.svg' },
-                        { name: 'Instagram', href: 'https://instagram.com/mohamedabdallahh_18', color: '#E4405F', file: 'instagram.svg' },
-                        { name: 'Email', href: 'mailto:budiabdallah922@gmail.com', color: '#c8a24b', file: null },
-                        { name: 'Phone', href: 'tel:+201065228072', color: '#a3e635', file: null },
-                      ].map((social) => (
-                        <a
-                          key={social.name}
-                          href={social.href}
-                          target={social.href.startsWith('http') ? '_blank' : undefined}
-                          rel={social.href.startsWith('http') ? 'noreferrer' : undefined}
-                          aria-label={social.name}
-                          title={social.name}
-                          className="group flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_28px_-10px_rgba(0,0,0,.7)]"
-                          style={{ color: social.color }}
-                        >
-                          {social.file ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img src={`/brand-icons/${social.file}`} alt="" className="h-4 w-4 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
-                          ) : social.name === 'Email' ? (
-                            <Mail className="h-3.5 w-3.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
-                          ) : (
-                            <Phone className="h-3.5 w-3.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
-                          )}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* المسار */}
-                <div className="mt-6 flex flex-wrap items-center gap-3">
-                  <span className="inline-flex items-center gap-1.5 font-latin text-[9px] font-semibold text-brand-100/40">
-                    <MapPin className="h-3 w-3 text-gold-300/55" />
-                    {t.footer.devLoc}
-                  </span>
-                  <a
-                    href="https://budi-portfolio-dev.vercel.app/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group inline-flex h-9 items-center gap-2 rounded-full border border-gold-300/25 bg-gold-300/[0.07] px-4 font-latin text-[8px] font-bold uppercase tracking-[0.18em] text-gold-200/80 transition-colors hover:border-gold-300/50 hover:bg-gold-300/[0.14]"
-                  >
-                    <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-md ring-1 ring-gold-300/40">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/brand-icons/budi.svg" alt="" className="h-5 w-5" />
-                    </span>
-                    BUDI Portfolio
-                    <ArrowUpRight className="h-3 w-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                  </a>
-                </div>
+              <div className="flex flex-col items-center gap-2 sm:items-end lg:min-w-[140px]">
+                <span className="inline-flex items-center gap-1.5 font-latin text-[9px] font-semibold text-brand-100/35">
+                  <MapPin className="h-3 w-3 text-teal-300/55" />
+                  {t.footer.devLoc}
+                </span>
+                <a
+                  href="https://budi-portfolio-dev.vercel.app/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group inline-flex h-9 items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-4 font-latin text-[8px] font-bold uppercase tracking-[0.18em] text-teal-100/65 transition-colors hover:border-teal-300/30 hover:text-teal-200"
+                >
+                  Portfolio
+                  <ArrowUpRight className="h-3 w-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </a>
               </div>
             </div>
           </div>
 
-          <div className="mt-10 flex flex-col gap-4 border-t border-white/[0.07] pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="font-latin text-[9px] tracking-[0.12em] text-[#d9f99d]/45">{t.footer.copyright}</span>
-              <span aria-hidden className="hidden h-3 w-px bg-white/10 sm:block" />
-              <span className="font-latin text-[9px] tracking-[0.12em] text-[#d9f99d]/35">{t.footer.collage}</span>
+          {/* شريط الكلية والجامعة — لوجوهات رسمية + اسم الكلية متدرج متحرك */}
+          <div className="mt-10 border-t border-white/[0.07] pt-8">
+            <div className="flex flex-col items-center justify-center gap-5 sm:flex-row sm:gap-7">
+              <div className="flex items-center gap-3">
+                <span className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-teal-300/20 bg-white/[0.92] p-1.5 shadow-[0_12px_34px_-16px_rgba(45,212,191,.45)] sm:h-16 sm:w-16">
+                  <Image
+                    src="/logos/suez-uni-logo.png"
+                    alt="شعار جامعة السويس"
+                    width={413}
+                    height={375}
+                    sizes="64px"
+                    className="h-full w-full object-contain"
+                  />
+                </span>
+                <span className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-teal-300/20 bg-white/[0.92] p-1 shadow-[0_12px_34px_-16px_rgba(45,212,191,.45)] sm:h-16 sm:w-16">
+                  <Image
+                    src="/logos/faculty-sci-logo-sm.jpg"
+                    alt="شعار كلية العلوم — جامعة السويس"
+                    width={256}
+                    height={243}
+                    sizes="64px"
+                    className="h-full w-full rounded-xl object-cover"
+                  />
+                </span>
+              </div>
+              <div className="text-center sm:text-start">
+                <p className="animate-name-cycle bg-[linear-gradient(90deg,#2dd4bf,#a3e635,#e6cb78,#f472b6,#2dd4bf)] bg-[length:300%_100%] bg-clip-text font-display text-[clamp(1.55rem,3.6vw,2.35rem)] font-black tracking-tight text-transparent">
+                  كلية العلوم — جامعة السويس
+                </p>
+                <p className="mt-1.5 text-[12px] font-medium text-teal-100/55">قسم رياضيات وعلوم الحاسب · Faculty of Science</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-[9px] text-brand-100/40">
-              <span className="text-gold-200/55">{t.footer.engineered}</span>
-              <a href="https://budi-portfolio-dev.vercel.app/" target="_blank" rel="noreferrer" className="group inline-flex items-center gap-2 rounded-full border border-gold-300/25 bg-gold-300/[0.07] py-1.5 pr-3.5 pl-1.5 transition-all duration-300 hover:border-gold-300/50 hover:bg-gold-300/[0.12]">
-                <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-md ring-1 ring-gold-300/40">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/brand-icons/budi.svg" alt="" className="h-5 w-5" />
-                </span>
-                <span className="font-latin text-[8px] font-semibold uppercase tracking-[0.14em] text-gold-200/70">
-                  {t.footer.engineeredRole ?? ''}
-                </span>
-                <span className="bg-[linear-gradient(100deg,#e6cb78,#f0e0a9,#c8a24b)] bg-clip-text text-[11px] font-bold text-transparent">
+          </div>
+
+          <div className="mt-8 flex flex-col gap-4 border-t border-white/[0.07] pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="font-latin text-[9px] tracking-[0.12em] text-teal-100/45">{t.footer.copyright}</span>
+            </div>
+            <div className="flex items-center gap-2 text-[9px] text-teal-100/40">
+              <span className="text-teal-200/60">{t.footer.engineered}</span>
+              <a href="https://budi-portfolio-dev.vercel.app/" target="_blank" rel="noreferrer" className="group inline-flex items-center gap-2 rounded-full border border-teal-300/25 bg-teal-300/[0.07] py-1.5 px-3.5 transition-all duration-300 hover:border-teal-300/50 hover:bg-teal-300/[0.12]">
+                <span className="animate-name-cycle bg-[linear-gradient(90deg,#5eead4,#a3e635,#e6cb78,#f472b6,#5eead4)] bg-[length:300%_100%] bg-clip-text text-[11px] font-bold text-transparent">
                   {t.footer.devName}
                 </span>
-                <ArrowUpRight className="h-3 w-3 text-gold-200/70 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                <ArrowUpRight className="h-3 w-3 text-teal-200/70 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               </a>
             </div>
           </div>

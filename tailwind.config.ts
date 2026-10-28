@@ -231,6 +231,7 @@ const config: Config = {
         rise: 'rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both',
         'pulse-ring': 'pulse-ring 2.6s ease-out infinite',
         'gradient-x': 'gradient-x 8s ease infinite',
+        'name-cycle': 'gradient-x 10s ease infinite',
         'bar-shine': 'barShine 4.2s ease-in-out infinite',
         'spin-conic': 'spinConic 5.5s linear infinite',
         'ping-soft': 'pingSoft 2.2s cubic-bezier(0, 0, 0.2, 1) infinite',

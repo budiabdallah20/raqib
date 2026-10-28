@@ -349,6 +349,11 @@ input:-webkit-autofill:focus {
     -webkit-text-stroke: 1.6px rgba(190, 242, 100, 0.4);
   }
 
+  .text-stroke-teal {
+    color: transparent;
+    -webkit-text-stroke: 1.6px rgba(94, 234, 212, 0.42);
+  }
+
   .text-stroke-sand {
     color: transparent;
     -webkit-text-stroke: 1.4px rgba(16, 22, 8, 0.18);
@@ -404,14 +409,6 @@ input:-webkit-autofill:focus {
     font-weight: 700;
     letter-spacing: 0.32em;
     text-transform: uppercase;
-  }
-
-  /* Budi-style Latin display (Space Grotesk) + terminal labels (JetBrains Mono) */
-  .font-grotesk {
-    font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
-  }
-  .font-coded {
-    font-family: var(--font-coded), var(--font-inter), ui-monospace, monospace;
   }
 
   .no-scrollbar {

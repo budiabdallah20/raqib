@@ -1,30 +1,21 @@
 'use client';
 
 /**
- * شاشة تحميل رقيب — «الوهج الذهبي» (دراك):
- * أسود مخملي، وهج ليموني×ذهبي، علامة المنصة تدور في مدار ذهبي،
- * عدّاد نسبة، ساعة زمن منقضٍ، آيات متحركة، وتلميح تخطي — على طراز
- * شاشة تحميل بورتفوليو BUDI. البرمجة تُنهي المشهد بأناقة نفسها.
+ * شاشة تحميل رقيب — «الليمون المشرق»:
+ * خلفية ليمونية فاتحة بلون واحد، لوجو المنصة + الاسم بأنيميشن دخول،
+ * نسبة تقدّم 0 → 100 بدون شريط (عدّاد كبير)، وفيدي أوت ناعم.
+ * نقرة واحدة تُسرّع الانتقال — ويلتزم prefers-reduced-motion.
  */
 
 import * as React from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { LogoMark } from './Logo';
 
-const DURATION = 2600;
-const VERSE_CYCLE = 1100;
-
-const VERSES = [
-  'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
-  'وَقُل رَّبِّ زِدْنِي عِلْمًا',
-  'وَأَن تَصُومُوا خَيْرٌ لَّكُمْ',
-];
+const DURATION = 2000;
 
 export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const reduceMotion = useReducedMotion();
-  const barRef = React.useRef<HTMLDivElement>(null);
   const numRef = React.useRef<HTMLSpanElement>(null);
-  const clockRef = React.useRef<HTMLSpanElement>(null);
   const finished = React.useRef(false);
 
   const finish = React.useCallback(() => {
@@ -47,18 +38,11 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
     const tick = (now: number) => {
       const linear = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - linear, 3);
-      if (barRef.current) barRef.current.style.transform = `scaleX(${eased})`;
       if (numRef.current) numRef.current.textContent = String(Math.round(eased * 100));
-      const elapsed = Math.max(0, Math.floor((now - start) / 1000));
-      if (clockRef.current) {
-        const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
-        const ss = String(elapsed % 60).padStart(2, '0');
-        clockRef.current.textContent = `00:${mm}:${ss}`;
-      }
       if (linear < 1) {
         raf = window.requestAnimationFrame(tick);
       } else {
-        window.setTimeout(finish, reduceMotion ? 100 : 320);
+        window.setTimeout(finish, reduceMotion ? 100 : 150);
       }
     };
 
@@ -71,36 +55,27 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
       role="status"
       aria-live="polite"
       aria-label="جارٍ تحميل منصة رقيب"
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden bg-[#060805] text-ink-950"
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden bg-[#d3f36c] text-ink-950"
       initial={false}
-      exit={{ opacity: 0, y: -28, scale: 0.988 }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      exit={{ opacity: 0, scale: 1.045, filter: 'blur(5px)' }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
     >
-      {/* هالة ليمونية×ذهبية على أسود */}
+      {/* لمسة عمق: إشراقة بيضاء عالية على الليمون الموحّد */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
-            'radial-gradient(ellipse 60% 44% at 50% -8%, rgba(163,230,53,0.14), transparent 62%), radial-gradient(ellipse 44% 34% at 86% 100%, rgba(200,162,75,0.12), transparent 60%)',
+            'radial-gradient(ellipse 55% 38% at 50% -6%, rgba(255,255,255,0.5), transparent 62%)',
         }}
       />
-      <div aria-hidden className="absolute inset-0 bg-grid-dark opacity-[0.35] [mask-image:radial-gradient(70%_60%_at_50%_42%,#000_20%,transparent_82%)]" />
       <div
         aria-hidden
-        className="pointer-events-none absolute h-[560px] w-[560px] rounded-full opacity-90 blur-3xl"
-        style={{ background: 'radial-gradient(circle, rgba(163,230,53,.22), rgba(200,162,75,.13) 46%, transparent 70%)' }}
-      />
-      {/* خطّا وهج علوي وسفلي متحركان */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px opacity-90 animate-bar-shine"
-        style={{ background: 'linear-gradient(90deg, transparent, rgba(163,230,53,.65), rgba(200,162,75,.7), transparent)' }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-px opacity-70 animate-bar-shine"
-        style={{ background: 'linear-gradient(90deg, transparent, rgba(200,162,75,.55), rgba(163,230,53,.55), transparent)' }}
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            'radial-gradient(ellipse 40% 30% at 88% 104%, rgba(101,163,13,0.16), transparent 60%)',
+        }}
       />
 
       <div className="relative flex flex-col items-center px-8">
@@ -108,11 +83,11 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-8 flex items-center gap-3 font-coded text-[9px] font-bold uppercase tracking-[0.36em] text-gold-200/50"
+          className="mb-8 flex items-center gap-3 font-latin text-[9px] font-bold uppercase tracking-[0.36em] text-ink-800/55"
         >
-          <span className="h-px w-8 bg-gradient-to-r from-transparent to-gold-400/60" />
-          Loading Experience
-          <span className="h-px w-8 bg-gradient-to-l from-transparent to-gold-400/60" />
+          <span className="h-px w-8 bg-gradient-to-r from-transparent to-ink-800/45" />
+          Academic Presence
+          <span className="h-px w-8 bg-gradient-to-l from-transparent to-ink-800/45" />
         </motion.div>
 
         <motion.div
@@ -124,25 +99,25 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           <span
             aria-hidden
             className="absolute -inset-10 rounded-[38px] animate-ping-soft"
-            style={{ boxShadow: '0 0 0 1px rgba(163,230,53,.24) inset' }}
+            style={{ boxShadow: '0 0 0 1px rgba(28,44,10,.18) inset' }}
           />
-          <span aria-hidden className="absolute -inset-7 rounded-[34px] border border-gold-400/30 [transform:rotate(8deg)]" />
+          <span aria-hidden className="absolute -inset-7 rounded-[34px] border border-ink-950/15 [transform:rotate(8deg)]" />
           <span
             aria-hidden
-            className="absolute -inset-5 rounded-[30px] border border-brand-400/25 animate-spin-slow"
-            style={{ borderTopColor: 'rgba(200,162,75,.65)' }}
+            className="absolute -inset-5 rounded-[30px] border border-ink-800/20 animate-spin-slow"
+            style={{ borderTopColor: 'rgba(101,163,13,.7)' }}
           />
-          {/* مدار ذهبي — نقطتان تدوران حول العلامة */}
+          {/* مداران متنافران — نقاط داكنة حول العلامة */}
           <span aria-hidden className="absolute -inset-11 animate-spin-reverse">
-            <span className="absolute left-1/2 top-0 h-2 w-2 -translate-x-1/2 rounded-full bg-gold-400 shadow-[0_0_16px_rgba(200,162,75,.9)]" />
-            <span className="absolute bottom-2 left-2 h-1.5 w-1.5 rounded-full bg-brand-400 shadow-[0_0_12px_rgba(163,230,53,.85)]" />
+            <span className="absolute left-1/2 top-0 h-2 w-2 -translate-x-1/2 rounded-full bg-ink-950 shadow-[0_0_14px_rgba(28,44,10,.55)]" />
+            <span className="absolute bottom-2 left-2 h-1.5 w-1.5 rounded-full bg-gold-700 shadow-[0_0_12px_rgba(136,99,44,.7)]" />
           </span>
           <LogoMark
             tone="ink"
-            className="relative h-[96px] w-[96px] drop-shadow-[0_22px_50px_rgba(163,230,53,.32)] sm:h-[112px] sm:w-[112px]"
+            className="relative h-[96px] w-[96px] drop-shadow-[0_18px_36px_rgba(28,44,10,.28)] sm:h-[112px] sm:w-[112px]"
           />
-          <span aria-hidden className="absolute -right-2 -top-1 h-2 w-2 rounded-full bg-gold-400 shadow-[0_0_18px_rgba(200,162,75,.85)]" />
-          <span aria-hidden className="absolute -left-3 top-6 h-1.5 w-1.5 rounded-full bg-brand-400 shadow-[0_0_14px_rgba(163,230,53,.85)]" />
+          <span aria-hidden className="absolute -right-2 -top-1 h-2 w-2 rounded-full bg-ink-950/85 shadow-[0_0_14px_rgba(28,44,10,.5)]" />
+          <span aria-hidden className="absolute -left-3 top-6 h-1.5 w-1.5 rounded-full bg-gold-700 shadow-[0_0_12px_rgba(136,99,44,.6)]" />
         </motion.div>
 
         <motion.h1
@@ -151,104 +126,44 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           transition={{ delay: 0.22, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="relative mt-7 font-display text-[4.2rem] font-bold leading-none tracking-[-0.055em] sm:text-[5rem]"
         >
-          <span className="animate-shimmer bg-[linear-gradient(100deg,#f6f9ef_0%,#d9f99d_26%,#bef264_46%,#a3e635_60%,#e6cb78_78%,#f6f9ef_100%)] bg-[length:220%_100%] bg-clip-text text-transparent drop-shadow-[0_0_28px_rgba(163,230,53,.25)]">
+          <span className="animate-shimmer bg-[linear-gradient(100deg,#101608_0%,#365314_28%,#65a30d_48%,#84cc16_62%,#101608_100%)] bg-[length:220%_100%] bg-clip-text text-transparent">
             رقيب
           </span>
-          <span aria-hidden className="magic-sparkle on" style={{ width: 4, height: 4, right: -16, top: 10, animationDelay: '0.5s' }} />
-          <span aria-hidden className="magic-sparkle on" style={{ width: 3, height: 3, left: -14, bottom: 12, animationDelay: '1.6s', background: 'radial-gradient(circle,#fff,#c8a24b 65%,transparent)' }} />
+          <span aria-hidden className="magic-sparkle on" style={{ width: 4, height: 4, right: -16, top: 10, animationDelay: '0.5s', background: 'radial-gradient(circle,#fff,#365314 65%,transparent)' }} />
+          <span aria-hidden className="magic-sparkle on" style={{ width: 3, height: 3, left: -14, bottom: 12, animationDelay: '1.6s', background: 'radial-gradient(circle,#fff,#88632c 65%,transparent)' }} />
           <span aria-hidden className="magic-sparkle on" style={{ width: 3, height: 3, right: -10, bottom: 4, animationDelay: '2.4s' }} />
         </motion.h1>
-
-        {/* آيات متحركة — تتبدل بين موتّفات راقية */}
-        <div className="relative mt-5 flex h-6 items-center justify-center">
-          <AnimatePresence mode="wait" initial={false}>
-            {reduceMotion ? null : <VerseTicker key="verses" />}
-          </AnimatePresence>
-        </div>
 
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45, duration: 0.7 }}
-          className="mt-3 font-coded text-[10px] font-medium uppercase tracking-[0.38em] text-brand-100/40"
+          className="mt-4 font-latin text-[10px] font-medium uppercase tracking-[0.38em] text-ink-900/60"
         >
-          No risk, no story
+          RAQIB · سجل الحضور الذكي
         </motion.p>
       </div>
 
-      {/* شريط سفلي: العدّاد العملاق + الشريط + معلومات العلامة والتخطي */}
+      {/* نسبة التقدّم — عدّاد كبير بدون شريط */}
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-4 px-8"
+        className="absolute inset-x-0 bottom-10 flex flex-col items-center gap-2 px-8"
       >
-        {/* نسبة التقدم — رقم عريض متدرج بتوهج */}
-        <div className="relative flex items-start" dir="ltr">
-          <span aria-hidden className="absolute -inset-x-10 -top-2 h-12 animate-pulse rounded-full bg-[radial-gradient(ellipse,rgba(163,230,53,.16),transparent_70%)]" />
+        <p className="flex items-baseline gap-1.5 font-display" dir="ltr" aria-label="نسبة التقدم">
           <span
             ref={numRef}
-            className="relative bg-[linear-gradient(180deg,#f6f9ef_8%,#d9f99d_58%,#a3e635_115%)] bg-clip-text font-grotesk text-[44px] font-bold leading-none tabular-nums text-transparent drop-shadow-[0_2px_18px_rgba(163,230,53,.30)] sm:text-[52px]"
+            className="text-7xl font-black tabular-nums leading-none tracking-tight text-ink-950 sm:text-8xl"
           >
             0
           </span>
-          <span className="relative mt-1.5 font-coded text-[13px] font-bold text-gold-300/85">%</span>
-        </div>
-
-        <div className="relative h-[5px] w-64 overflow-hidden rounded-full bg-white/[0.08] shadow-[inset_0_1px_2px_rgba(0,0,0,.55)] sm:w-80">
-          <div
-            ref={barRef}
-            className="h-full w-full origin-left rounded-full bg-[linear-gradient(90deg,#365314_0%,#84cc16_36%,#a3e635_62%,#bef264_78%,#c8a24b_100%)] shadow-[0_0_20px_rgba(163,230,53,.5)] will-change-transform"
-            style={{ transform: 'scaleX(0)' }}
-          />
-        </div>
-
-        <div className="flex w-full max-w-md flex-row-reverse items-center justify-between gap-4">
-          {/* يمين (RTL): العلامة + الموقع */}
-          <span className="flex items-center gap-2 font-coded text-[9px] font-semibold uppercase tracking-[0.24em] text-brand-100/40">
-            <LogoMark tone="ink" className="h-4 w-4 rounded-[6px]" />
-            <span className="h-px w-4 bg-gold-400/40" />
-            <span dir="ltr">E G Y — S U Z</span>
-          </span>
-
-          {/* يسار: زمن + تخطي */}
-          <span className="flex items-center gap-3 font-coded text-[9px] font-semibold tracking-[0.2em] text-brand-100/45" dir="ltr">
-            <span ref={clockRef} className="text-gold-200/60">00:00:00</span>
-            <span className="h-3 w-px bg-white/10" />
-            <span className="text-white/25">Click to skip</span>
-          </span>
-        </div>
+          <span className="text-2xl font-bold text-ink-900/70">%</span>
+        </p>
+        <p className="font-latin text-[9px] font-semibold uppercase tracking-[0.3em] text-ink-900/45">
+          انقر للانتقال
+        </p>
       </motion.div>
     </motion.div>
-  );
-}
-
-/** شريط الآيات: يعيد ترتيب نفسه كل دورة مع انتقال ناعم */
-function VerseTicker() {
-  const [index, setIndex] = React.useState(0);
-
-  React.useEffect(() => {
-    const id = window.setInterval(
-      () => setIndex((current) => (current + 1) % VERSES.length),
-      VERSE_CYCLE,
-    );
-    return () => window.clearInterval(id);
-  }, []);
-
-  return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.p
-        key={VERSES[index]}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -6 }}
-        transition={{ duration: 0.5, ease: 'easeInOut' }}
-        className="absolute whitespace-nowrap text-center text-[13px] font-semibold text-brand-100/55"
-        style={{ textShadow: '0 0 18px rgba(163,230,53,.16)' }}
-        dir="rtl"
-      >
-        {VERSES[index]}
-      </motion.p>
-    </AnimatePresence>
   );
 }
