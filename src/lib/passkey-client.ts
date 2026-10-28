@@ -5,7 +5,6 @@
  */
 import {
   browserSupportsWebAuthn,
-  platformAuthenticatorIsAvailable,
   startAuthentication,
   startRegistration,
 } from '@simplewebauthn/browser';
@@ -19,15 +18,6 @@ export type PasskeyVerifyResult = {
 export function passkeySupported(): boolean {
   try {
     return typeof window !== 'undefined' && browserSupportsWebAuthn();
-  } catch {
-    return false;
-  }
-}
-
-/** هل الطرف يحتوي مصدّقًا مدمجًا (بصمة/وجه/قفل شاشة)؟ */
-export async function hasPlatformAuthenticator(): Promise<boolean> {
-  try {
-    return await platformAuthenticatorIsAvailable();
   } catch {
     return false;
   }

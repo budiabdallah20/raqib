@@ -1,9 +1,7 @@
 export const APP_NAME = 'رقيب';
 export const APP_NAME_EN = 'RAQiB';
-export const APP_TAGLINE = 'الحضور صار أذكى. والوقت صار لك.';
 export const FACULTY = 'كلية العلوم — جامعة السويس';
 export const DEPARTMENT = 'قسم رياضيات وعلوم الحاسب';
-export const UNIVERSITY = 'جامعة السويس';
 
 export const COOKIE_NAME = 'raqib_token';
 export const JWT_EXPIRES_IN = 60 * 60 * 24 * 7;
@@ -15,12 +13,6 @@ export const QR_SESSION_TTL_MS = 60_000;
 
 export const RESET_CODE_TTL_MS = 10 * 60 * 1000;
 export const RESET_MAX_ATTEMPTS = 5;
-
-export const ROLES = {
-  STUDENT: 'STUDENT',
-  PROFESSOR: 'PROFESSOR',
-  ADMIN: 'ADMIN',
-} as const;
 
 export const ROLE_HOME: Record<string, string> = {
   STUDENT: '/student',
@@ -34,14 +26,7 @@ export const ROLE_LABEL: Record<string, string> = {
   ADMIN: 'أدمن',
 };
 
-export const GENDER_LABEL: Record<string, string> = {
-  MALE: 'ذكر',
-  FEMALE: 'أنثى',
-  UNDISCLOSED: 'أفضل عدم الذكر',
-};
-
-export const PUBLIC_PATHS = [
-  '/',
+export const PUBLIC_PATHS = [  '/',
   '/login',
   '/register',
   '/privacy',
@@ -63,7 +48,6 @@ export const PUBLIC_PATHS = [
 // ─────────────────────────────────────────────────────────
 // نظام الجداول — الشبكة والفترات وأنواع الكروت
 // ─────────────────────────────────────────────────────────
-export type SchedKind = 'LECTURE' | 'SECTION' | 'LAB';
 
 // day في DB: 2=الاثنين 3=الثلاثاء 4=الأربعاء 5=الخميس (الجريد الرسمي)
 export const SCHED_DAYS: { day: number; ar: string }[] = [

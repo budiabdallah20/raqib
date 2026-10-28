@@ -6,13 +6,7 @@ import { logAudit } from './security';
 import type { AuthUser, Role } from '@/types';
 
 export { signToken, verifyToken } from './jwt';
-export {
-  issueSession,
-  revokeSession,
-  revokeAllSessions,
-  getSessionUser,
-  hashToken,
-} from './session';
+export { issueSession, revokeAllSessions } from './session';
 
 export async function hashPassword(password: string) {
   return bcrypt.hash(password, 12);

@@ -207,11 +207,12 @@ export async function POST(request: Request) {
       await prisma.$transaction([
         prisma.scheduleSlot.delete({ where: { id: sa.id } }),
         prisma.scheduleSlot.delete({ where: { id: sb.id } }),
-        prisma.scheduleSlot.create({ data: { group, day: b.day, period: b.period, term, ...payloadA } }),
-        prisma.scheduleSlot.create({ data: { group, day: a.day, period: a.period, term, ...payloadB } }),
+        // جروب الخانتين نفسه (تأكدنا منه أعلاه) — لا تستخدم جروب الـ POST الخارجي
+        prisma.scheduleSlot.create({ data: { group: sa.group, day: b.day, period: b.period, term, ...payloadA } }),
+        prisma.scheduleSlot.create({ data: { group: sa.group, day: a.day, period: a.period, term, ...payloadB } }),
       ]);
 
-      auditDetail = { group, term, swap: [`d${a.day}p${a.period}`, `d${b.day}p${b.period}`] };
+      auditDetail = { group: sa.group, term, swap: [`d${a.day}p${a.period}`, `d${b.day}p${b.period}`] };
       result = { ok: true };
     } else if (op === 'create') {
       const parsed = createSchema.safeParse(body);

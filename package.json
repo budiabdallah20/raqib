@@ -15,12 +15,16 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:verify": "node scripts/db-verify.mjs",
+    "db:audit": "node scripts/db-audit.mjs",
+    "db:audit:cleanup": "node scripts/db-cleanup-audit.mjs",
+    "db:purge-demo": "node scripts/db-purge-demo.mjs",
     "db:backup": "node scripts/db-backup.mjs",
     "storage:migrate": "node scripts/migrate-storage.mjs",
     "security:env": "node scripts/security-env.mjs",
     "admin:code": "node scripts/admin-code.mjs",
     "brand:assets": "node scripts/brand-assets.mjs",
-    "backup:db": "node scripts/backup-db.mjs",
+    "backup:db": "node scripts/db-backup.mjs",
+    "screenshots": "node scripts/capture-screenshots.mjs",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "verify": "tsc --noEmit && next build && vitest run"
@@ -66,6 +70,8 @@
     "@types/react-dom": "^19.2.0",
     "@vitest/coverage-v8": "^5.0.5",
     "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.5.28",
     "postcss": "^8.5.23",
     "prisma": "^5.22.0",
     "sharp": "^0.35.5",
@@ -81,6 +87,7 @@
     "esbuild@0.28.2": true,
     "esbuild@0.27.0": true,
     "esbuild@0.27.7": true,
-    "prisma@5.22.0": true
+    "prisma@5.22.0": true,
+    "unrs-resolver@1.12.2": true
   }
 }
