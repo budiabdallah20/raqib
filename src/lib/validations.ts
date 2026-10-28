@@ -160,7 +160,16 @@ export const lectureSchema = z.object({
 });
 
 export const attendanceSchema = z.object({
-  token: z.string().min(8, 'رمز الحضور غير صالح'),
+  // توكِن QR (32 hex) أو الرمز اليدوي 6 أرقام الظاهر على لوحة الأستاذ
+  token: z
+    .string()
+    .trim()
+    .regex(/^(\d{6}|[a-f0-9]{16,})$/i, 'رمز الحضور غير صالح'),
+});
+
+export const lectureToggleSchema = z.object({
+  action: z.literal('toggle'),
+  id: z.string().min(1),
 });
 
 export const courseSchema = z.object({
@@ -173,7 +182,7 @@ export const courseSchema = z.object({
 export const createUserSchema = z.object({
   name: z.string().trim().min(3).max(80),
   email: z.string().trim().email(),
-  password: z.string().min(8),
+  password: passwordRule,
   role: z.enum(['STUDENT', 'PROFESSOR', 'ADMIN']),
   studentCode: z.string().trim().min(4).max(20).optional().or(z.literal('')),
   courseIds: z.array(z.string()).optional(),

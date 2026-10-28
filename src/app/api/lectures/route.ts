@@ -1,8 +1,8 @@
 import { randomBytes } from 'node:crypto';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
-import { lectureSchema } from '@/lib/validations';
-import { handleApiError, jsonError, sanitizeString } from '@/lib/security';
+import { lectureSchema, lectureToggleSchema } from '@/lib/validations';
+import { handleApiError, jsonError, logAudit, sanitizeString } from '@/lib/security';
 import { QR_TTL_MS } from '@/lib/constants';
 import { notifyUsers } from '@/lib/notify';
 
@@ -54,8 +54,11 @@ export async function POST(request: Request) {
     const user = await requireUser(['PROFESSOR', 'ADMIN']);
     const body = await request.json();
 
-    if (body.action === 'toggle' && body.id) {
-      const lecture = await prisma.lecture.findUnique({ where: { id: body.id } });
+    const toggleParsed = lectureToggleSchema.safeParse(body);
+    if (toggleParsed.success) {
+      const lecture = await prisma.lecture.findUnique({
+        where: { id: toggleParsed.data.id },
+      });
       if (!lecture) return jsonError('المحاضرة غير موجودة', 404);
       if (user.role !== 'ADMIN' && lecture.professorId !== user.id) {
         return jsonError('ليست لديك صلاحية', 403);
@@ -87,6 +90,14 @@ export async function POST(request: Request) {
         });
       }
 
+      await logAudit({
+        user,
+        request,
+        action: isOpen ? 'LECTURE_OPEN' : 'LECTURE_CLOSE',
+        entity: 'Lecture',
+        detail: { lectureId: lecture.id, courseId: lecture.courseId },
+      });
+
       return Response.json({ lecture: updated });
     }
 
@@ -114,6 +125,13 @@ export async function POST(request: Request) {
         qrToken: randomBytes(16).toString('hex'),
         qrExpiresAt: new Date(Date.now() + QR_TTL_MS),
       },
+    });
+    await logAudit({
+      user,
+      request,
+      action: 'LECTURE_CREATE',
+      entity: 'Lecture',
+      detail: { lectureId: lecture.id, courseId: course.id },
     });
     return Response.json({ lecture });
   } catch (error) {

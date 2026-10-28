@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
 import { hashPassword, requireUser } from '@/lib/auth';
 import { createUserSchema } from '@/lib/validations';
-import { handleApiError, jsonError, sanitizeString } from '@/lib/security';
+import { handleApiError, jsonError, logAudit, sanitizeString } from '@/lib/security';
 
 export async function GET() {
   try {
@@ -26,7 +26,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    await requireUser(['ADMIN']);
+    const admin = await requireUser(['ADMIN']);
     const body = await request.json();
     const parsed = createUserSchema.safeParse(body);
     if (!parsed.success) {
@@ -52,6 +52,13 @@ export async function POST(request: Request) {
             }
           : undefined,
       },
+    });
+    await logAudit({
+      user: { id: admin.id, role: admin.role },
+      request,
+      action: 'ADMIN_USER_CREATE',
+      entity: 'User',
+      detail: { createdUserId: user.id, role: user.role },
     });
     return Response.json({
       user: {

@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { courseSchema, enrollSchema } from '@/lib/validations';
-import { handleApiError, jsonError, sanitizeString } from '@/lib/security';
+import { handleApiError, jsonError, logAudit, sanitizeString } from '@/lib/security';
 
 export async function GET() {
   try {
@@ -71,6 +71,13 @@ export async function POST(request: Request) {
           ? sanitizeString(parsed.data.department, 80)
           : undefined,
       },
+    });
+    await logAudit({
+      user,
+      request,
+      action: 'COURSE_CREATE',
+      entity: 'Course',
+      detail: { courseId: course.id, code: course.code },
     });
     return Response.json({ course });
   } catch (error) {

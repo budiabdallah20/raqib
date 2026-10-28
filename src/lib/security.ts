@@ -32,11 +32,12 @@ export function clientKey(ip: string | null, email?: string) {
  * TRUST_PROXY=1 في الإنتاج خلف Nginx/Cloudflare.
  */
 export function getClientIp(request: Request) {
+  // بلا TRUST_PROXY=1: أي هيدر IP ممكن يزوّره العميل نفسه — نتجاهله كلياً (fail-safe)
   const trusted = process.env.TRUST_PROXY === '1';
-  const forwarded = trusted ? request.headers.get('x-forwarded-for') : null;
-  const candidate = forwarded
-    ? forwarded.split(',')[0]?.trim()
-    : request.headers.get('x-real-ip')?.trim();
+  if (!trusted) return null;
+  // آخر مدخل في XFF هو اللي سجّله آخر بروكسي موثوق قبلنا — الأصعب على التلاعب
+  const forwarded = request.headers.get('x-forwarded-for');
+  const candidate = forwarded?.split(',').pop()?.trim();
   if (!candidate) return null;
   return isIP(candidate) ? candidate : null;
 }

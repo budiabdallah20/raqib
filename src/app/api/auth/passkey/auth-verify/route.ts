@@ -97,9 +97,8 @@ export async function POST(request: Request) {
     }
 
     // دفاع الاستنساخ: لو العداد كان فوق الصفر، الجديد لازِم يكون أكبر منه
-    type CounterBag = { credential?: { counter?: number }; credentialInfo?: { counter?: number } };
-    const bag = verification as CounterBag;
-    const newCounter = (bag.credentialInfo ?? bag.credential)?.counter ?? 0;
+    // v14: العداد الحقيقي في authenticationInfo.newCounter — الحقول القديمة لم تكن موجودة أبداً
+    const newCounter = verification.authenticationInfo?.newCounter ?? 0;
     if (storedCounter > 0 && newCounter > 0 && newCounter <= storedCounter) {
       await logAudit({
         user: { id: record.user.id, role: record.user.role },

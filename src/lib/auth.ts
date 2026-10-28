@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { COOKIE_NAME, JWT_EXPIRES_IN } from './constants';
 import { getCurrentSession, revokeCurrentSession } from './session';
+import { logAudit } from './security';
 import type { AuthUser, Role } from '@/types';
 
 export { signToken, verifyToken } from './jwt';
@@ -49,8 +50,18 @@ export function clearAuthCookie(response: NextResponse) {
   return response;
 }
 
-export async function logoutCurrentSession(response: NextResponse) {
+export async function logoutCurrentSession(response: NextResponse, request?: Request) {
+  const session = await getCurrentSession().catch(() => null);
   await revokeCurrentSession().catch(() => undefined);
+  if (session) {
+    await logAudit({
+      user: { id: session.user.id, role: session.user.role },
+      request,
+      action: 'LOGOUT',
+      entity: 'Session',
+      detail: { sessionId: session.sessionId },
+    });
+  }
   return clearAuthCookie(response);
 }
 
