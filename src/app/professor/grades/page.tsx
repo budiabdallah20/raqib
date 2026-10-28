@@ -315,7 +315,7 @@ export default function ProfessorGradesPage() {
                   const dirty = `${row.quiz}|${row.work}|${row.midterm}` !== baselines[row.studentId];
                   const status: RowStatus = rawStatus === 'saved' && dirty ? 'idle' : rawStatus;
                   return (
-                    <tr key={row.studentId} className="border-b border-brand-900/[0.07] transition hover:bg-white/605">
+                    <tr key={row.studentId} className="border-b border-brand-900/[0.07] transition hover:bg-white/65">
                       <td className="px-2 py-2.5">
                         <p className="font-semibold text-ink-900">{row.name}</p>
                         <p className="font-latin text-[11px] text-ink-400" dir="ltr">

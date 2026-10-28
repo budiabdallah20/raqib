@@ -324,7 +324,7 @@ function StudentDetails({ data }: { data: Details }) {
         ) : (
           <ul className="space-y-2">
             {data.enrollments.map(({ course }) => (
-              <li key={course.id} className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/605 px-3 py-2 text-sm">
+              <li key={course.id} className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/65 px-3 py-2 text-sm">
                 <span className="text-ink-700">{course.name}</span>
                 <span className="font-latin text-xs text-gold-700">{course.code}</span>
               </li>
@@ -340,7 +340,7 @@ function StudentDetails({ data }: { data: Details }) {
         ) : (
           <ul className="space-y-2">
             {data.grades.slice(0, 6).map((g) => (
-              <li key={`${g.course.code}-${g.updatedAt}`} className="rounded-xl border border-brand-900/[0.08] bg-white/605 px-3 py-2 text-sm">
+              <li key={`${g.course.code}-${g.updatedAt}`} className="rounded-xl border border-brand-900/[0.08] bg-white/65 px-3 py-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="font-latin text-xs font-bold text-gold-700">{g.course.code}</span>
                   <span className="text-xs text-ink-400">تحديث {fmt(g.updatedAt)}</span>
@@ -363,7 +363,7 @@ function StudentDetails({ data }: { data: Details }) {
         ) : (
           <ul className="space-y-2">
             {data.attendances.map((a, i) => (
-              <li key={i} className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/605 px-3 py-2 text-sm">
+              <li key={i} className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/65 px-3 py-2 text-sm">
                 <span className="text-ink-700">{a.lecture.course.code} — {a.lecture.title}</span>
                 <span className="text-xs text-ink-400">{fmt(a.scannedAt)}</span>
               </li>
@@ -377,7 +377,7 @@ function StudentDetails({ data }: { data: Details }) {
 
 function InfoCell({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-brand-900/[0.08] bg-white/605 p-3">
+    <div className="rounded-xl border border-brand-900/[0.08] bg-white/65 p-3">
       <p className="text-xs text-ink-400">{label}</p>
       <p className="mt-0.5 text-ink-700">{value}</p>
     </div>

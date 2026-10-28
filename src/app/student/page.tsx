@@ -92,7 +92,7 @@ type DashboardData = {
     final: number | null;
     total: number;
   }[];
-  unread: number;
+  policy: { attendanceThreshold: number; maxAbsence: number; lateCountsAs: number };
 };
 
 type ProfileData = {
@@ -111,6 +111,8 @@ type ProfileData = {
     previousSetAt: string | null;
     term: number | null;
     cumulative: number | null;
+    cumulativeIsTermOnly?: boolean;
+    cumulativeSource?: 'snapshots' | 'previous' | null;
     gradedCredits: number;
     creditTotal: number;
     maxTotal: number;
@@ -149,10 +151,10 @@ function birthdayCountdown(birthDate: string | null): number | null {
   return diff;
 }
 
-// لون نقطة الدرجة: ≥75 أخضر، ≥50 ذهبي، أقل أحمر
+// لون نقطة الدرجة: ≥75 أخضر، ≥60 ذهبي، أقل أحمر (متوافق مع zoneFor)
 function gradeDotClass(total: number) {
   if (total >= 75) return 'bg-lime-400';
-  if (total >= 50) return 'bg-gold-400';
+  if (total >= 60) return 'bg-gold-400';
   return 'bg-ember-500';
 }
 
@@ -330,7 +332,7 @@ function StudentDashboard() {
   const todayName = DAY_NAMES[new Date().getDay()] ?? '';
   const birthdayDays = data ? birthdayCountdown(data.me.birthDate) : null;
   const upcomingCountdown = useCountdown(data?.upcoming?.nextAt ?? null);
-  const threshold = 75; // نسبة الحرمان — من سياسة الحضور (attendanceThreshold)
+  const threshold = data?.policy.attendanceThreshold ?? 75; // سياسة الحضور من إعدادات الأدمن
 
   return (
     <DashboardShell>
@@ -425,7 +427,7 @@ function StudentDashboard() {
                     <RadialProgress
                       value={profile.gpa.cumulative}
                       valueText={profile.gpa.cumulative === null ? '—' : profile.gpa.cumulative.toFixed(2)}
-                      labelText="تراكمي"
+                      labelText={profile.gpa.cumulativeIsTermOnly ? 'حتى الترم الحالي' : 'تراكمي'}
                       tone="lime"
                     />
                     {profile.gpa.previousSetAt === null ? (
@@ -466,7 +468,7 @@ function StudentDashboard() {
             {/* أزرار الوصول السريع */}
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <Link href="/student/schedule" className="group">
-                <div className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/605 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
+                <div className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
                   <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
                     <CalendarDays className="h-5 w-5" />
                   </span>
@@ -479,7 +481,7 @@ function StudentDashboard() {
                 </div>
               </Link>
               <Link href="/student/tasks" className="group">
-                <div className="relative flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/605 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
+                <div className="relative flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
                   {data.stats.lateTasks > 0 ? (
                     <span className="absolute -top-1.5 left-3 rounded-full bg-ember-500 px-2 py-0.5 text-[10px] font-bold text-white">
                       {data.stats.lateTasks} متأخرة
@@ -497,7 +499,7 @@ function StudentDashboard() {
                 </div>
               </Link>
               <button type="button" onClick={() => setScanOpen(true)} className="text-right">
-                <div className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/605 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
+                <div className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
                   <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
                     <QrCode className="h-5 w-5" />
                   </span>
@@ -508,7 +510,7 @@ function StudentDashboard() {
                 </div>
               </button>
               <Link href="/student/report" className="group">
-                <div className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/605 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
+                <div className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
                   <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
                     <FileDown className="h-5 w-5" />
                   </span>
@@ -622,7 +624,7 @@ function StudentDashboard() {
                                   : 'bg-lime-500/[0.08] text-lime-700'
                             }`}
                           >
-                            {zoneHint(zone, (course.total ?? 0) > 0)}
+                            {zoneHint(zone)}
                           </p>
                         ) : null}
 
@@ -688,7 +690,7 @@ function StudentDashboard() {
                         className={`flex items-start gap-3 rounded-2xl border p-4 ${
                           lecture.isVip
                             ? 'border-gold-400/45 bg-gold-400/10 shadow-gold-soft'
-                            : 'border-brand-900/10 bg-white/605'
+                            : 'border-brand-900/10 bg-white/65'
                         }`}
                       >
                         <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
@@ -730,7 +732,7 @@ function StudentDashboard() {
                     {data.lastGrades.map((grade) => (
                       <li
                         key={grade.course.code}
-                        className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/605 p-4"
+                        className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4"
                       >
                         <span
                           className={`h-2.5 w-2.5 shrink-0 rounded-full ${gradeDotClass(grade.total)}`}
@@ -819,7 +821,7 @@ function StudentDashboard() {
                       }`}
                     >
                       {remaining <= 0
-                        ? '⚠️ دخلت منطقة الحرمان — نسبة حضورك تحت 75%'
+                        ? `⚠️ دخلت منطقة الحرمان — نسبة حضورك تحت ${threshold}%`
                         : `باقي لك ${remaining} غياب وتدخل في الحرمان`}
                     </p>
                   ) : null;
@@ -834,7 +836,7 @@ function StudentDashboard() {
               <CardContent className="grid gap-3">
                 <Link
                   href="/student/tasks"
-                  className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/605 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]"
+                  className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]"
                 >
                   <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
                     <ClipboardList className="h-5 w-5" />
@@ -846,7 +848,7 @@ function StudentDashboard() {
                 </Link>
                 <Link
                   href="/student/schedule"
-                  className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/605 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]"
+                  className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]"
                 >
                   <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
                     <CalendarDays className="h-5 w-5" />
@@ -858,7 +860,7 @@ function StudentDashboard() {
                 </Link>
                 <Link
                   href="/student/lectures"
-                  className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/605 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]"
+                  className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]"
                 >
                   <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
                     <CalendarClock className="h-5 w-5" />

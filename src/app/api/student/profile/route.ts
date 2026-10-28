@@ -144,7 +144,10 @@ export async function GET() {
     // إن لم توجد لقطات والمعدل السابق مُدخل يدوياً نزنّه بأرصدة الترم الحالي المقيّم
     // (أو وزن 1 إن لم تُقيَّم أي درجة بعد) — ولا نخلط أبداً أرصدة مواد الترم الحالي
     // غير المقيّمة في وزن الترمات السابقة (كانت تُضاعَف خطأً).
-    const pastTerms = gpaSnapshots.filter((snapshot) => snapshot.credits > 0);
+    const pastTerms = gpaSnapshots.filter(
+      (snapshot): snapshot is (typeof gpaSnapshots)[number] & { credits: number } =>
+        snapshot.credits !== null && snapshot.credits > 0,
+    );
     const pastWeighted = pastTerms.reduce((sum, snapshot) => sum + snapshot.gpa * snapshot.credits, 0);
     const pastCredits = pastTerms.reduce((sum, snapshot) => sum + snapshot.credits, 0);
 

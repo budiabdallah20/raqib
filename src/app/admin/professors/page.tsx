@@ -239,7 +239,7 @@ export default function ProfessorsPage() {
               ) : (
                 <ul className="space-y-2">
                   {details.courses.map((course) => (
-                    <li key={course.id} className="rounded-xl border border-brand-900/[0.08] bg-white/605 px-3 py-2 text-sm">
+                    <li key={course.id} className="rounded-xl border border-brand-900/[0.08] bg-white/65 px-3 py-2 text-sm">
                       <div className="flex items-center justify-between">
                         <span className="text-ink-700">{course.name}</span>
                         <span className="font-latin text-xs font-bold text-gold-700">{course.code}</span>
@@ -260,7 +260,7 @@ export default function ProfessorsPage() {
               ) : (
                 <ul className="space-y-2">
                   {details.lectures.map((lecture) => (
-                    <li key={lecture.id} className="rounded-xl border border-brand-900/[0.08] bg-white/605 px-3 py-2 text-sm">
+                    <li key={lecture.id} className="rounded-xl border border-brand-900/[0.08] bg-white/65 px-3 py-2 text-sm">
                       <div className="flex items-center justify-between gap-2">
                         <span className="truncate text-ink-700">{lecture.title}</span>
                         <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${lecture.isOpen ? 'bg-gold-400/15 text-gold-700' : 'bg-white/60 text-ink-400'}`}>
@@ -285,7 +285,7 @@ export default function ProfessorsPage() {
               ) : (
                 <ul className="space-y-2">
                   {details.resources.map((res) => (
-                    <li key={res.id} className="flex items-center justify-between gap-2 rounded-xl border border-brand-900/[0.08] bg-white/605 px-3 py-2 text-sm">
+                    <li key={res.id} className="flex items-center justify-between gap-2 rounded-xl border border-brand-900/[0.08] bg-white/65 px-3 py-2 text-sm">
                       <span className="truncate text-ink-700">{res.originalName}</span>
                       <span className="shrink-0 font-latin text-xs text-ink-400">
                         {res.course.code} · {(res.size / 1024).toFixed(0)} KB
@@ -304,7 +304,7 @@ export default function ProfessorsPage() {
 
 function Cell({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-brand-900/[0.08] bg-white/605 p-3">
+    <div className="rounded-xl border border-brand-900/[0.08] bg-white/65 p-3">
       <p className="text-xs text-ink-400">{label}</p>
       <p className="mt-0.5 text-ink-700">{value}</p>
     </div>

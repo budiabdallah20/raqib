@@ -32,9 +32,8 @@ export function ZoneBadge({ zone, className }: { zone: CourseZone; className?: s
 }
 
 /** جملة التحذير المرافقة للمنطقة — كما في البريف */
-export function zoneHint(zone: CourseZone, hasFinal: boolean): string | null {
+export function zoneHint(zone: CourseZone): string | null {
   if (zone === 'GREEN') return 'مستواك متقدم — حافظ على الوتيرة';
-  if (zone === 'YELLOW')
-    return hasFinal ? 'ركّز في الفاينل لتفادي هبوط التقدير' : 'ركّز في الفاينل لتفادي هبوط التقدير';
+  if (zone === 'YELLOW') return 'ركّز في الفاينل لتفادي هبوط التقدير';
   return 'تنبيه مبكر: وضعك يحتاج تدخلاً عاجلاً قبل الفاينل';
 }

@@ -194,7 +194,7 @@ export default function AdminPage() {
                     initial={{ opacity: 0, x: 12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.04 }}
-                    className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-brand-900/[0.08] bg-white/605 px-3 py-2 text-sm"
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-brand-900/[0.08] bg-white/65 px-3 py-2 text-sm"
                   >
                     <span className="rounded-md bg-gold-400/10 px-2 py-0.5 font-latin text-xs font-bold text-gold-700">
                       {item.action}

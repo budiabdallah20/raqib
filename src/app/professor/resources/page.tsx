@@ -315,7 +315,7 @@ export default function ProfessorResourcesPage() {
               resources.map((item) => (
                 <div
                   key={item.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-900/10 bg-white/605 px-4 py-3 transition hover:border-gold-400/25"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-900/10 bg-white/65 px-4 py-3 transition hover:border-gold-400/25"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="rounded-xl bg-gold-500/15 p-2 text-gold-700">

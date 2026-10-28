@@ -73,7 +73,7 @@ export function AvatarUpload({
           'flex items-center gap-4 rounded-2xl border border-dashed p-3 transition',
           dragging
             ? 'border-gold-400/60 bg-gold-500/[0.07]'
-            : 'border-brand-900/10 bg-white/605',
+            : 'border-brand-900/10 bg-white/65',
         )}
         onDragOver={(event) => {
           event.preventDefault();

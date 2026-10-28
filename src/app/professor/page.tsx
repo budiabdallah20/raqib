@@ -257,7 +257,7 @@ export default function ProfessorPage() {
               records.slice(0, 12).map((record) => (
                 <div
                   key={record.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand-900/10 bg-white/605 px-4 py-2.5"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand-900/10 bg-white/65 px-4 py-2.5"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-ink-900">{record.student.name}</p>

@@ -157,7 +157,7 @@ export default function AuditPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: Math.min(i * 0.02, 0.4) }}
-                  className="overflow-hidden rounded-xl border border-brand-900/[0.08] bg-white/605"
+                  className="overflow-hidden rounded-xl border border-brand-900/[0.08] bg-white/65"
                 >
                   <button
                     onClick={() => setOpenId(open ? null : row.id)}

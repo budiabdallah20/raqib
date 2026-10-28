@@ -168,7 +168,7 @@ export default function ProfessorBoardPage() {
               </div>
 
               {/* البديل اليدوي 6 أرقام */}
-              <div className="rounded-2xl border border-gold-500/15 bg-white/605 p-5">
+              <div className="rounded-2xl border border-gold-500/15 bg-white/65 p-5">
                 <div className="flex items-center gap-2 text-ink-500">
                   <KeyRound className="h-4 w-4" />
                   <p className="text-xs">بديل يدوي — للطلاب كارثة الكاميرا</p>
@@ -179,7 +179,7 @@ export default function ProfessorBoardPage() {
               </div>
 
               {/* آخر 5 مسحات */}
-              <div className="rounded-2xl border border-brand-900/10 bg-white/605 p-5">
+              <div className="rounded-2xl border border-brand-900/10 bg-white/65 p-5">
                 <div className="mb-3 flex items-center gap-2 text-ink-500">
                   <Zap className="h-4 w-4" />
                   <p className="text-xs">آخر المسحات</p>

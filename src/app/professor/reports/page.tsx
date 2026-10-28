@@ -141,7 +141,7 @@ export default function ProfessorReportsPage() {
                 </thead>
                 <tbody>
                   {report.rows.map((r) => (
-                    <tr key={r.studentId} className="border-b border-brand-900/[0.06] transition hover:bg-white/605 print:text-black">
+                    <tr key={r.studentId} className="border-b border-brand-900/[0.06] transition hover:bg-white/65 print:text-black">
                       <td className="px-4 py-2.5 text-ink-500 print:text-black" dir="ltr">{r.studentCode}</td>
                       <td className="px-4 py-2.5 font-semibold" dir="rtl">{r.name}</td>
                       <td className="px-4 py-2.5 text-ink-500 print:text-black">{r.level}</td>

@@ -146,7 +146,7 @@ export default function AdminReportsPage() {
                 </thead>
                 <tbody>
                   {report.courses.map((c) => (
-                    <tr key={c.id} className="border-b border-brand-900/[0.06] transition hover:bg-white/605 print:text-black">
+                    <tr key={c.id} className="border-b border-brand-900/[0.06] transition hover:bg-white/65 print:text-black">
                       <td className="px-4 py-3">
                         <div className="font-semibold">{c.code}</div>
                         <div className="text-xs text-ink-400 print:text-black/70">{c.name}</div>

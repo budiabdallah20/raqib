@@ -124,7 +124,7 @@ export default function StudentSchedulePage() {
                   key={period.period}
                   className="grid grid-cols-[130px_repeat(4,minmax(0,1fr))] gap-3"
                 >
-                  <div className="flex flex-col justify-center rounded-xl border border-brand-900/10 bg-white/605 px-3 py-4 text-center">
+                  <div className="flex flex-col justify-center rounded-xl border border-brand-900/10 bg-white/65 px-3 py-4 text-center">
                     <p className="text-xs font-bold text-ink-700">{period.label}</p>
                     <p className="mt-1 text-[11px] text-ink-400" dir="ltr">
                       {period.time}
@@ -141,7 +141,7 @@ export default function StudentSchedulePage() {
                       return (
                         <div
                           key={day}
-                          className="flex min-h-[96px] items-center justify-center rounded-2xl border border-dashed border-brand-900/10 bg-white/605 text-xs text-ink-300"
+                          className="flex min-h-[96px] items-center justify-center rounded-2xl border border-dashed border-brand-900/10 bg-white/65 text-xs text-ink-300"
                         >
                           ☕ فراغ
                         </div>

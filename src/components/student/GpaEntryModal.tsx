@@ -29,6 +29,16 @@ export function GpaEntryModal({
     }
   }, [open]);
 
+  // إغلاق بـ Escape أو بالضغط على الخلفية خارج النافذة
+  React.useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   const submit = async () => {
@@ -59,6 +69,9 @@ export function GpaEntryModal({
       role="dialog"
       aria-modal="true"
       aria-label="إدخال المعدل التراكمي السابق"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
     >
       <div className="w-full max-w-md animate-rise rounded-3xl border border-gold-400/30 bg-white/85 p-6 shadow-[0_24px_70px_-20px_rgba(60,42,4,0.35)] backdrop-blur-xl">
         <div className="flex items-start justify-between gap-3">

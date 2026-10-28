@@ -180,7 +180,7 @@ export default function StudentAttendancePage() {
             </thead>
             <tbody>
               {filtered.slice(0, 80).map((r) => (
-                <tr key={r.id} className="border-b border-brand-900/[0.06] transition hover:bg-white/605">
+                <tr key={r.id} className="border-b border-brand-900/[0.06] transition hover:bg-white/65">
                   <td className="px-4 py-2.5 text-ink-500" dir="ltr">
                     {new Date(r.scannedAt).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })} · {new Date(r.scannedAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
                   </td>

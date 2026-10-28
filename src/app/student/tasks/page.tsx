@@ -133,7 +133,7 @@ function TaskRow({
   };
 
   return (
-    <div className="rounded-2xl border border-brand-900/10 bg-white/605 p-4">
+    <div className="rounded-2xl border border-brand-900/10 bg-white/65 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-ink-950">{task.title}</p>
@@ -168,7 +168,7 @@ function TaskRow({
       </div>
 
       {task.submission ? (
-        <div className="mt-3 space-y-2 rounded-xl border border-brand-900/10 bg-white/605 p-3 text-xs">
+        <div className="mt-3 space-y-2 rounded-xl border border-brand-900/10 bg-white/65 p-3 text-xs">
           <p className="text-ink-500">
             سلّمت في {formatDate(task.submission.submittedAt)}
           </p>
