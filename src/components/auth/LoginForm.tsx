@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   AlertCircle,
@@ -61,6 +61,13 @@ export function LoginForm({
   const idValid = touched.id && identifier.trim().length >= 3;
   const passValid = touched.pass && password.length >= 8;
 
+  const params = useSearchParams();
+  const homeFor = (role: string) => {
+    const next = params.get('next');
+    if (next && next.startsWith('/') && !next.startsWith('//')) return next;
+    return ROLE_HOME[role as AuthUser['role']] || '/';
+  };
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
@@ -77,7 +84,7 @@ export function LoginForm({
           remember,
         }),
       });
-      router.replace(ROLE_HOME[data.user.role] || '/');
+      router.replace(homeFor(data.user.role));
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -90,7 +97,7 @@ export function LoginForm({
     setPkLoading(true);
     try {
       const result = await loginWithPasskey(identifier.trim() || undefined);
-      router.replace(result.user ? ROLE_HOME[result.user.role] || '/' : '/');
+      router.replace(result.user ? homeFor(result.user.role) : '/');
       router.refresh();
     } catch (err) {
       setPkError((err as Error).message);

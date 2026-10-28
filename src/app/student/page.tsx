@@ -312,6 +312,12 @@ function StudentDashboard() {
     [load],
   );
 
+  // هويات ثابتة لـQRScanner حتى لا يعيد تشغيل الكاميرا مع كل ري-رندر
+  const handleScanResult = React.useCallback((value: string) => {
+    void submitToken(value);
+  }, [submitToken]);
+  const handleScanClose = React.useCallback(() => setScanOpen(false), []);
+
   // حضور عبر رمز في الرابط (?token=...)
   React.useEffect(() => {
     const token = searchParams.get('token');
@@ -869,12 +875,7 @@ function StudentDashboard() {
       )}
 
       {scanOpen ? (
-        <QRScanner
-          onResult={(value) => {
-            void submitToken(value);
-          }}
-          onClose={() => setScanOpen(false)}
-        />
+        <QRScanner onResult={handleScanResult} onClose={handleScanClose} />
       ) : null}
 
       <GpaEntryModal

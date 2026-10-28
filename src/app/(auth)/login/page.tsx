@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { AuthCard, type AuthTab } from '@/components/auth/AuthCard';
 
 export const metadata: Metadata = {
@@ -20,5 +21,9 @@ export default async function LoginPage({
   const requested = params?.tab as AuthTab | undefined;
   const initialTab = requested && TABS.includes(requested) ? requested : 'login';
 
-  return <AuthCard initialTab={initialTab} />;
+  return (
+    <Suspense fallback={<div className="grid min-h-screen place-items-center text-ink-400">جارٍ التحميل...</div>}>
+      <AuthCard initialTab={initialTab} />
+    </Suspense>
+  );
 }

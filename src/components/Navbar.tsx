@@ -85,13 +85,8 @@ function NotificationsBell() {
             {items.length === 0 && (
               <p className="py-8 text-center text-xs text-ink-400">لا إشعارات بعد — ستوصلك تلقائيًا مع أهم الأحداث</p>
             )}
-            {items.map((n) => (
-              <a
-                key={n.id}
-                href={n.link || '#'}
-                onClick={() => setOpen(false)}
-                className={`block rounded-xl px-3 py-2.5 transition hover:bg-brand-500/[0.06] ${!n.readAt ? 'bg-gold-500/[0.07]' : ''}`}
-              >
+            {items.map((n) => {
+              const inner = (
                 <div className="flex items-start gap-2">
                   <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${!n.readAt ? 'bg-gold-500' : 'bg-ink-200'}`} />
                   <div className="min-w-0">
@@ -102,8 +97,18 @@ function NotificationsBell() {
                     </p>
                   </div>
                 </div>
-              </a>
-            ))}
+              );
+              const shell = `block rounded-xl px-3 py-2.5 transition hover:bg-brand-500/[0.06] ${!n.readAt ? 'bg-gold-500/[0.07]' : ''}`;
+              return n.link ? (
+                <Link key={n.id} href={n.link} onClick={() => setOpen(false)} className={shell}>
+                  {inner}
+                </Link>
+              ) : (
+                <div key={n.id} className={shell}>
+                  {inner}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

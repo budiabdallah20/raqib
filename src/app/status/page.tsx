@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import { prisma } from '@/lib/db';
 import { APP_NAME, FACULTY } from '@/lib/constants';
 
@@ -23,8 +24,15 @@ async function getHealth() {
   } catch {
     checks.push({ name: 'رموز QR', ok: false, detail: 'غير قابل للفحص' });
   }
-  checks.push({ name: 'اتصال HTTPS', ok: true, detail: 'شهادة محلية صالحة (certs/)' });
-  checks.push({ name: 'سجل التدقيق', ok: true, detail: 'يُكتب تلقائيًا لكل عملية حساسة' });
+  const h = await headers();
+  const proto = h.get('x-forwarded-proto') ?? 'http';
+  checks.push({ name: 'اتصال HTTPS', ok: proto === 'https', detail: proto === 'https' ? 'اتصال مشفر عبر البروكسي' : `غير مشفر (${proto})` });
+  try {
+    const auditCount = await prisma.auditLog.count();
+    checks.push({ name: 'سجل التدقيق', ok: auditCount > 0, detail: `${auditCount} عملية مسجلة` });
+  } catch {
+    checks.push({ name: 'سجل التدقيق', ok: false, detail: 'غير قابل للفحص' });
+  }
   return checks;
 }
 
