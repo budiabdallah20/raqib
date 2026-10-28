@@ -6,6 +6,7 @@ import { DashboardShell } from '@/components/shared/DashboardShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
+import TermDatePicker from '@/components/admin/TermDatePicker';
 
 type SettingsResponse = {
   settings: Record<string, string>;
@@ -94,16 +95,13 @@ export default function SettingsPage() {
               <div className="grid place-items-center py-10 text-ink-400"><Loader2 className="animate-spin" size={24} /></div>
             ) : (
               FIELDS.map((field) => (
-                <div key={field.key} className="rounded-2xl border border-brand-900/[0.08] bg-white/605 p-4">
-                  <label htmlFor={field.key} className="block font-display font-bold text-ink-950">{field.label}</label>
+                <div key={field.key} className="rounded-2xl border border-brand-900/[0.08] bg-white/65 p-4">
+                  <label className="block font-display font-bold text-ink-950">{field.label}</label>
                   <p className="mt-0.5 text-xs text-ink-400">{field.hint}</p>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <input
-                      id={field.key}
-                      type="date"
-                      value={values[field.key] ?? ''}
-                      onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                      className="h-10 flex-1 min-w-44 rounded-xl border border-brand-900/10 bg-white/60 px-3 text-sm text-ink-950 [color-scheme:dark]"
+                    <TermDatePicker
+                      value={values[field.key] ?? null}
+                      onValueChange={(v) => setValues((prev) => ({ ...prev, [field.key]: v }))}
                     />
                     <Button onClick={() => save(field.key)} disabled={savingKey === field.key} size="sm" className="gap-1.5">
                       {savingKey === field.key ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
@@ -135,19 +133,19 @@ export default function SettingsPage() {
               الإعدادات المحفوظة حاليًا تظهر هنا مباشرة.
             </p>
             <ul className="space-y-3 text-sm">
-              <li className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/605 px-3 py-2.5">
+              <li className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/65 px-3 py-2.5">
                 <span className="text-ink-700">تاريخ فتح الترم الثاني</span>
                 <span className="font-latin text-xs font-bold text-gold-700">{values.secondTermStart ? values.secondTermStart : '—'}</span>
               </li>
-              <li className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/605 px-3 py-2.5">
+              <li className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/65 px-3 py-2.5">
                 <span className="text-ink-700">نهاية الترم الأول</span>
                 <span className="font-latin text-xs font-bold text-gold-700">{values.firstTermEnd ? values.firstTermEnd : '—'}</span>
               </li>
-              <li className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/605 px-3 py-2.5">
+              <li className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/65 px-3 py-2.5">
                 <span className="text-ink-700">إشعارات الدرجات</span>
                 <span className="rounded-full bg-white/60 px-2.5 py-1 text-[10px] font-semibold text-ink-400">قريبًا</span>
               </li>
-              <li className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/605 px-3 py-2.5">
+              <li className="flex items-center justify-between rounded-xl border border-brand-900/[0.08] bg-white/65 px-3 py-2.5">
                 <span className="text-ink-700">تنبيهات المواعيد</span>
                 <span className="rounded-full bg-white/60 px-2.5 py-1 text-[10px] font-semibold text-ink-400">قريبًا</span>
               </li>

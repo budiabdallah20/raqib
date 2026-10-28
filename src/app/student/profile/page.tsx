@@ -9,6 +9,7 @@ import { Form, FormField, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { api } from '@/lib/api';
+import { celebrate } from '@/lib/celebrate';
 
 type MeUser = {
   id: string;
@@ -108,6 +109,7 @@ export default function StudentProfilePage() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      celebrate();
       setSuccess('تم حفظ التغييرات بنجاح ✅');
     } catch (err) {
       setError((err as Error).message);

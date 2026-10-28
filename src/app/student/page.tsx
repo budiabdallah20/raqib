@@ -33,6 +33,7 @@ import { api } from '@/lib/api';
 import { GRADE_MAX } from '@/lib/grades';
 import { zoneFor } from '@/lib/grades';
 import { SCHED_KIND_LABEL } from '@/lib/constants';
+import { celebrate } from '@/lib/celebrate';
 
 type DashboardData = {
   me: {
@@ -300,6 +301,7 @@ function StudentDashboard() {
           method: 'POST',
           body: JSON.stringify({ token: value }),
         });
+        celebrate();
         setMessage(`تم تسجيل حضورك في ${result.lecture.course} — ${result.lecture.title}`);
         setScanOpen(false);
         await load();

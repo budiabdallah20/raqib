@@ -38,6 +38,9 @@ import { LanguageToggle } from '@/components/shared/LanguageToggle';
 import { WelcomeGate } from '@/components/shared/WelcomeGate';
 import { PolicyModal, type PolicyTab } from '@/components/auth/PolicyModal';
 import { TECH_LOGOS, TechLogoMark } from '@/components/shared/TechLogos';
+import Lenis from '@studio-freight/lenis';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -243,19 +246,41 @@ function DateChip({ light = false }: { light?: boolean }) {
 }
 
 function StatusPill({ dark = false }: { dark?: boolean }) {
+  const [status, setStatus] = React.useState<'ok' | 'degraded' | null>(null);
+
+  React.useEffect(() => {
+    let alive = true;
+    fetch('/api/health', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data: { status?: string }) => {
+        if (alive) setStatus(data.status === 'ok' ? 'ok' : 'degraded');
+      })
+      .catch(() => {
+        if (alive) setStatus('degraded');
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const degraded = status === 'degraded';
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-latin text-[9px] font-bold uppercase tracking-[0.18em] ${
-        dark
-          ? 'border-brand-300/20 bg-white/[0.06] text-brand-100'
-          : 'border-brand-500/20 bg-white/60 text-brand-700 shadow-[inset_0_1px_0_rgba(255,255,255,.9)]'
+        degraded
+          ? dark
+            ? 'border-ember-400/30 bg-white/[0.06] text-ember-200'
+            : 'border-ember-500/25 bg-white/60 text-ember-600 shadow-[inset_0_1px_0_rgba(255,255,255,.9)]'
+          : dark
+            ? 'border-brand-300/20 bg-white/[0.06] text-brand-100'
+            : 'border-brand-500/20 bg-white/60 text-brand-700 shadow-[inset_0_1px_0_rgba(255,255,255,.9)]'
       } backdrop-blur-md`}
     >
       <span className="relative flex h-1.5 w-1.5">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400/60" />
-        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-500" />
+        <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${degraded ? 'bg-ember-500/60' : 'bg-brand-400/60'}`} />
+        <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${degraded ? 'bg-ember-500' : 'bg-brand-500'}`} />
       </span>
-      All systems operational
+      {status === null ? 'Checking status' : degraded ? 'Systems degraded' : 'All systems operational'}
     </span>
   );
 }
@@ -276,6 +301,47 @@ export function LandingPage() {
     document.documentElement.lang = lang;
     document.documentElement.dir = t.dir;
   }, [lang, t.dir]);
+
+  React.useEffect(() => {
+    const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
+    let raf = 0;
+    const loop = (time: number) => {
+      lenis.raf(time);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      lenis.destroy();
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    gsap.registerPlugin(ScrollTrigger);
+    const targets = Array.from(document.querySelectorAll<HTMLElement>('#features, #how, #roles, #security'));
+    const tweens = targets.map((el) =>
+      gsap.fromTo(
+        el,
+        { y: 32, opacity: 0.6 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.9,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+        },
+      ),
+    );
+    return () => {
+      tweens.forEach((tw) => {
+        tw.scrollTrigger?.kill();
+        tw.kill();
+      });
+      ScrollTrigger.getAll().forEach((st) => st.kill());
+    };
+  }, []);
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
