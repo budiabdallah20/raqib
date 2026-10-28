@@ -190,7 +190,7 @@ function DistributionBar({
     { label: 'كويز', value: quiz ?? 0, max: GRADE_MAX.QUIZ, cls: 'bg-brand-500' },
     { label: 'أعمال', value: work ?? 0, max: GRADE_MAX.WORK, cls: 'bg-gold-400' },
     { label: 'ميدترم', value: midterm ?? 0, max: GRADE_MAX.MIDTERM, cls: 'bg-amber-500' },
-    { label: 'فاينل', value: finalGrade, max: GRADE_MAX.FINAL, cls: 'bg-orange-500', pending: finalGrade === null },
+    { label: 'فاينل', value: finalGrade ?? 0, max: GRADE_MAX.FINAL, cls: 'bg-orange-500', pending: finalGrade === null },
   ];
   const filled = segments.filter((segment) => segment.value > 0);
   return (
