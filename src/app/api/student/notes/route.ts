@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
-import { handleApiError, jsonError, logAudit, sanitizeString } from '@/lib/security';
+import { assertRateLimit, handleApiError, jsonError, logAudit, sanitizeString } from '@/lib/security';
 
 // ───────────────────────────────────────────────────────────────
 // GET /api/student/notes — ملاحظات الطالب (تيك نوتس)
@@ -47,6 +47,7 @@ const noteSchema = z.object({
 export async function POST(request: Request) {
   try {
     const user = await requireUser(['STUDENT']);
+    assertRateLimit(`note-create:${user.id}`, 30, 60 * 60 * 1000);
     const body = await request.json().catch(() => null);
     if (!body) return jsonError('بيانات غير صالحة');
 
@@ -54,6 +55,18 @@ export async function POST(request: Request) {
     if (!parsed.success) return jsonError(parsed.error.issues[0]?.message || 'بيانات غير صالحة');
 
     const { title, body: content, courseId, lectureId, pinned } = parsed.data;
+
+    // لا تُقبل ملاحظة مرتبطة بمقرر/محاضرة من خارج مواد الطالب المسجلة
+    if (courseId) {
+      const enrolled = await prisma.enrollment.findFirst({ where: { studentId: user.id, courseId } });
+      if (!enrolled) return jsonError('المقرر غير موجود في موادك المسجلة');
+    }
+    if (lectureId) {
+      const lecture = await prisma.lecture.findUnique({ where: { id: lectureId }, select: { courseId: true } });
+      if (!lecture) return jsonError('المحاضرة غير موجودة');
+      const enrolled = await prisma.enrollment.findFirst({ where: { studentId: user.id, courseId: lecture.courseId } });
+      if (!enrolled) return jsonError('المحاضرة ليست من موادك المسجلة');
+    }
 
     const created = await prisma.studentNote.create({
       data: {
@@ -87,6 +100,7 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const user = await requireUser(['STUDENT']);
+    assertRateLimit(`note-delete:${user.id}`, 60, 60 * 60 * 1000);
     const id = new URL(request.url).searchParams.get('id') || '';
     if (!id) return jsonError('حدد الملاحظة المطلوبة');
 

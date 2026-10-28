@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { handleApiError, jsonError } from '@/lib/security';
+import { getPolicy } from '@/lib/attendance-policy';
+import { totalOf } from '@/lib/grades';
 import { SCHED_PERIODS } from '@/lib/constants';
 
 // ───────────────────────────────────────────────────────────────
@@ -28,6 +30,8 @@ export async function GET() {
     const { enrollments, ...meFields } = me;
     const courseIds = enrollments.map((item) => item.courseId);
     const now = new Date();
+    // سياسة الحضور من إعدادات الأدمن (AppSetting) — يستهلكها العميل بدل الأرقام الثابتة
+    const policy = await getPolicy();
 
     // الترم النشط: T1 هو المعتمد حتى تاريخ فتح T2 الرسمي (2 فبراير 2027)
     const secondTermSetting = await prisma.appSetting.findUnique({ where: { key: 'secondTermStart' } });
@@ -178,11 +182,14 @@ export async function GET() {
         late: lateCount,
         // الغياب = محاضرات ماضية غير ملغاة بلا سجل حضور
         absent: Math.max(0, pastLectureCount - cancelledLectureCount - presentCount - lateCount),
-        // الحضور الموزون وفق سياسة المنصة: المتأخر نصف حاضِر
+        // الحضور الموزون وفق سياسة المنصة من الإعدادات: التأخير بوزن lateCountsAs
         weightedPct: ((): number | null => {
           const denom = pastLectureCount - cancelledLectureCount;
           if (denom <= 0) return null;
-          return Math.max(0, Math.min(100, Math.round(((presentCount + lateCount * 0.5) / denom) * 100)));
+          return Math.max(
+            0,
+            Math.min(100, Math.round(((presentCount + lateCount * policy.lateCountsAs) / denom) * 100)),
+          );
         })(),
       },
       todayLectures,
@@ -193,9 +200,13 @@ export async function GET() {
         work: grade.work,
         midterm: grade.midterm,
         final: grade.final,
-        total: (grade.quiz ?? 0) + (grade.work ?? 0) + (grade.midterm ?? 0) + (grade.final ?? 0),
+        total: totalOf(grade),
       })),
-      unread: 0,
+      policy: {
+        attendanceThreshold: policy.attendanceThreshold,
+        maxAbsence: policy.maxAbsence,
+        lateCountsAs: policy.lateCountsAs,
+      },
     });
   } catch (error) {
     return handleApiError(error, 'تعذر إتمام الطلب');

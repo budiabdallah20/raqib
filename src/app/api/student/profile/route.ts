@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
-import { handleApiError, jsonError, logAudit } from '@/lib/security';
+import { assertRateLimit, handleApiError, jsonError, logAudit } from '@/lib/security';
 import { GRADE_TOTAL_MAX, gpaPointFor, letterFor, totalOf } from '@/lib/grades';
 
 // ───────────────────────────────────────────────────────────────
@@ -51,6 +51,11 @@ export async function GET() {
 
     const { enrollments, gpaSnapshots, ...meFields } = me;
 
+    // الصف المكتمل = كل مكونات الدرجة مسجلة — الصفوف الناقصة لا تدخل أي ترتيب
+    type GradeRow = { quiz: number | null; work: number | null; midterm: number | null; final: number | null };
+    const isCompleteRow = (row: GradeRow) =>
+      row.quiz !== null && row.work !== null && row.midterm !== null && row.final !== null;
+
     // ── ترتيب الطالب داخل كل مقرر (على إجمالي مقياس 100) ──
     const courseIds = enrollments.map((item) => item.course.id);
     const courseGradeRows = courseIds.length
@@ -61,6 +66,7 @@ export async function GET() {
       : [];
     const byCourse = new Map<string, Map<string, number>>(); // courseId → (studentId → إجمالي)
     for (const row of courseGradeRows) {
+      if (!isCompleteRow(row)) continue; // درجات ناقصة (بها null) لا تُحتسب ترتيباً
       let table = byCourse.get(row.courseId);
       if (!table) {
         table = new Map();
@@ -89,8 +95,9 @@ export async function GET() {
         },
       });
       for (const student of sameLevel) {
-        if (!student.grades.length) continue;
-        const avg = student.grades.reduce((sum, row) => sum + totalOf(row), 0) / student.grades.length;
+        const completeRows = student.grades.filter(isCompleteRow);
+        if (!completeRows.length) continue; // طالب بلا درجات مكتملة لا يدخل الترتيب
+        const avg = completeRows.reduce((sum, row) => sum + totalOf(row), 0) / completeRows.length;
         levelAverages.push({ id: student.id, avg });
       }
       levelAverages.sort((a, b) => b.avg - a.avg);
@@ -132,16 +139,35 @@ export async function GET() {
 
     const termGpa = gradedCredits ? Math.round((weighted / gradedCredits) * 100) / 100 : null;
 
-    // التراكمي = المتوسط الموزون للترم السابق (المُدخل يدوياً) والترم الحالي
-    let cumulativeGpa = termGpa;
-    if (meFields.previousGpa !== null) {
-      cumulativeGpa =
-        termGpa !== null && gradedCredits
-          ? Math.round(
-              ((meFields.previousGpa * creditTotal + termGpa * gradedCredits) / (creditTotal + gradedCredits)) * 100,
-            ) / 100
-          : meFields.previousGpa;
+    // التراكمي = متوسط موزون للترمات السابقة + الترم الحالي.
+    // أرصدة الترمات السابقة تأتي من لقطات GpaSnapshot المحفوظة (الأدق)؛
+    // إن لم توجد لقطات والمعدل السابق مُدخل يدوياً نزنّه بأرصدة الترم الحالي المقيّم
+    // (أو وزن 1 إن لم تُقيَّم أي درجة بعد) — ولا نخلط أبداً أرصدة مواد الترم الحالي
+    // غير المقيّمة في وزن الترمات السابقة (كانت تُضاعَف خطأً).
+    const pastTerms = gpaSnapshots.filter((snapshot) => snapshot.credits > 0);
+    const pastWeighted = pastTerms.reduce((sum, snapshot) => sum + snapshot.gpa * snapshot.credits, 0);
+    const pastCredits = pastTerms.reduce((sum, snapshot) => sum + snapshot.credits, 0);
+
+    let prevWeighted = pastWeighted;
+    let prevCredits = pastCredits;
+    let cumulativeSource: 'snapshots' | 'previous' | null = pastCredits > 0 ? 'snapshots' : null;
+    if (pastCredits === 0 && meFields.previousGpa !== null) {
+      const weight = gradedCredits > 0 ? gradedCredits : 1;
+      prevWeighted = meFields.previousGpa * weight;
+      prevCredits = weight;
+      cumulativeSource = 'previous';
     }
+
+    const cumulativeParts = [
+      ...(prevCredits > 0 ? [{ weighted: prevWeighted, credits: prevCredits }] : []),
+      ...(termGpa !== null && gradedCredits > 0 ? [{ weighted: termGpa * gradedCredits, credits: gradedCredits }] : []),
+    ];
+    const cumulativeCredits = cumulativeParts.reduce((sum, part) => sum + part.credits, 0);
+    const cumulativeWeighted = cumulativeParts.reduce((sum, part) => sum + part.weighted, 0);
+    const cumulativeGpa =
+      cumulativeCredits > 0 ? Math.round((cumulativeWeighted / cumulativeCredits) * 100) / 100 : null;
+    // التراكمي = معدل الترم الحالي فقط (لا يوجد ترم سابق مسجل) — العميل يعرضه بهذه الصياغة الصادقة
+    const cumulativeIsTermOnly = prevCredits === 0 && termGpa !== null;
 
     // منحنى التطور: لقطات الترمات السابقة + نقطة الترم الحالي
     const curve: { term: string; gpa: number | null }[] = gpaSnapshots.map((snapshot) => ({
@@ -166,6 +192,8 @@ export async function GET() {
         previousSetAt: meFields.previousGpaSetAt ? meFields.previousGpaSetAt.toISOString() : null,
         term: termGpa,
         cumulative: cumulativeGpa,
+        cumulativeIsTermOnly,
+        cumulativeSource,
         gradedCredits,
         creditTotal,
         maxTotal: GRADE_TOTAL_MAX,
@@ -192,6 +220,7 @@ const previousGpaSchema = z.object({
 export async function POST(request: Request) {
   try {
     const user = await requireUser(['STUDENT']);
+    assertRateLimit(`gpa-set:${user.id}`, 10, 60 * 60 * 1000);
     const body = await request.json().catch(() => null);
     if (!body) return jsonError('بيانات غير صالحة');
 

@@ -41,6 +41,14 @@ export async function GET(request: Request) {
     let group: string;
     let myGroup: string | null = null;
     if (user.role === 'STUDENT') {
+      // قفل الترم الثاني: جدول T2 لا يُعرض للطالب قبل تاريخ فتحه الرسمي (من AppSetting)
+      if (term.data === 'T2') {
+        const setting = await prisma.appSetting.findUnique({ where: { key: 'secondTermStart' } });
+        const start = setting ? new Date(`${setting.value}T00:00:00`) : null;
+        if (start && new Date() < start) {
+          return jsonError('جدول الترم الثاني لم يُفتح بعد — يُعرض في تاريخ بدايته الرسمي', 403);
+        }
+      }
       const me = await prisma.user.findUnique({
         where: { id: user.id },
         select: { group: true },
