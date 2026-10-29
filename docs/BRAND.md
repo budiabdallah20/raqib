@@ -1,101 +1,105 @@
-﻿# دليل الهوية البصرية — رقيب RAQiB (v4)
+﻿# Comprehensive Master Specification: Student Portal Web Application
 
-> المرجع النصي المقابل لصفحة `/brand` في التطبيق.
-> كل الأصول الجاهزة للتنزيل موجودة في `public/brand/` (مولّدة عبر `npm run brand:assets` من `scripts/brand-assets.mjs`).
+## 1. Project Overview & Architecture
+Build a modern, high-performance, and ultra-responsive Student Portal Web Application. The application must feature seamless onboarding, persistent session state, dark/light theme support, micro-interactions, and real-time student analytics.
 
----
-
-## ١. مفهوم العلامة — «RAQIB بالبلوك»
-
-الشعار كلمة **RAQIB** بحروف مدورة سميكة (خطوط بأطراف مستديرة)، والحرف الأخير **B داخل بلوك مُدوَّر صلب مُفرَّغ أبيض**:
-
-- **الحروف المدورة** — لطاقة الطالب الأكاديمية: ودّية، حاضرة، واضحة من بعيد.
-- **البلوك الترابي (Terra `#C4552F`)** — قوة الجهاز الكتابي المطبوع: ختم واحد ثابت في آخر الكلمة.
-- **حرف B الأبيض** — قلب الدفتر: العلامة تقرأ كنقطة دخول، لا كمنشور.
-
-بدون أي شِعار جانبي (slogan). اللون الوحيد للعلامة هو الترابي + الأبيض المفرَّغ.
-
-## ٢. نسخ اللوجو الأربع
-
-| النسخة | الملف | تُستخدم على |
-|---|---|---|
-| Mark (أساسية) | `public/brand/logo-mark.svg` + `logo-primary.svg` | كل الخلفيات: بلوك ترابي + B أبيض |
-| Mono | `public/brand/logo-mono.svg` | الطباعة — بلوك شبه أسود + B أبيض |
-| Inverse | `public/brand/logo-inverse.svg` | الأسطح الفاتحة — خطوط ترابية بلا بلوك |
-| Gold | `public/brand/logo-gold-bg.svg` | مواد دعائية — بلوك ذهبي |
-
-مكوّن React الرسمي: `src/components/shared/Logo.tsx` (`<Logo/>` الشعار الكامل، `<LogoMark/>` البلوك وحده، `framed={false}` لنسخة الخطوط المفتوحة، `stacked` للرهس).
-
-أيقونات النظام: `icon-192.png` · `icon-512.png` · `apple-touch-icon.png` · `icon-32.png` · `src/app/icon.png` (فافيكون تلقائي عبر Next) · `og-1200x630.png` (لحصص المشاركة).
-
-## ٣. قواعد الاستخدام
-
-**افعل ✓**
-
-- المساحة الحرة (clear space) ≥ **25% من عرض العلامة** من كل الجهات.
-- الحد الأدنى للحجم **16px** — وتحقق بصريًا أن العين الذهبية ما زالت ظاهرة.
-- على خلفية فاتحة: استخدم نسخة `Inverse` أو `Mono`.
-- زوايا مشطوفة، حواف حادة، هندسة صريحة — هي شخصية العلامة.
-
-**ممنوع ✗**
-
-- التشويه أو الدوران أو تغيير النِسَب.
-- تغيير ألوان اللوجو خارج الحزمة المعتمدة.
-- الجلوس على صور مشبعة بلا طبقة عتامة داكنة تحتها.
-- ظل/توهج قوي يخفي الحواف الهندسية.
-- إضافة لمسة ذهبية ثانية في أي عنصر.
-
-## ٤. الألوان (Design Tokens)
-
-| الاسم | HEX | الاستخدام |
-|---|---|---|
-| Terra / العلامة | `#C4552F` | بلوك الشعار والأيقونات — قلب الهوية |
-| Ink / الحبر | `#0b0e06` | خلفيات داكنة، سبلاش الدخول، الـ PWA |
-| Ivory / الكريمي | `#fbf9f1` | الخلفيات الفاتحة |
-| Gold / اللمسة | `#c8a24b` | الفواصل والأوسمة والنبرة الذهبية |
-| Brand / الأزرق المخضر | `#2c8f84` | هوية قسم الطالب — الأزرار والروابط والنجاح |
-| Sapphire / النيلة | `#4c6397` | هوية لوحات الإدارة — هادئة ومنسجمة |
-| Amber تحذير | `#E8AE2E` | إنذارات الحضور (تحت السقف) |
-| Orange تأخر | `#E8762E` | حالة «متأخر» |
-| Ember خطر | `#C2410C` | الحرمان · الأخطاء · DENIED |
-
-الألوان الثلاثة قسما (**Teal / Gold / Sapphire**) هادئة ومنسجمة بينها — كل دور يأخذ تيّنه بلا صدام، والعلامة الترابية تبقى كالختم الثابت فوقها كلها.
-
-الذهب جزءٌ من **النظام الوظيفي** لا من الديكور: كل درجة ذهب/عنبر/برتقالي تقابل حالة حضور معروضة للمستخدم، لذلك لا تُستخدم عشوائيًا.
-
-## ٥. الخطوط
-
-| الخط | الدور |
-|---|---|
-| **Cairo** | العناوين والواجهات العربية — أوزان 400→900، العناوين Extrabold/Black |
-| **Inter** | اللاتيني والأرقام (خصائص tabular) داخل الجداول والتقارير |
-
-السلم الطباعي: display 30/36 · t1 20/28 · t2 16/24 · body 14/22 · caption 12/18.
-
-## ٦. الحركة (Motion)
-
-- المدد: **fast 150ms** (hover/focus) · **base 250ms** (عناصر تفاعلية) · **slow 500ms** (انتقالات صفحة).
-- منحنيات: `ease-out` للدخول، `ease-in` للخروج.
-- `prefers-reduced-motion`: كل الحركات تتبسط إلى opacity فقط.
-- شاشة السبلاش: cold **1.6s** عند أول تحميل، **350ms** بين الصفحات.
-
-## ٧. الطباعة والمواد المطبوعة
-
-قوالب المطبوعات (HTML جاهزة للطباعة A4) في `docs/printables/`:
-
-- `poster-template.html` — ملصق QR قابل للتوليد لأي محاضرة (portrait، مساحة لـ A4).
-- `posters-today.html` — 3 ملصقات جاهزة للمحاضرات المفتوحة اليوم في بيانات العرض.
-- `student-card.html` — كارت طالب تجريبي (85.6×54mm، معياري CR80).
-
-قواعد الطباعة: خلفية Cream أو Ink فقط، نسخة Mono/Inverse على الفاتح، وQR بمساحة صامتة (quiet zone) ≥ 4 وحدات.
-
-## ٨. المصادر التقنية
-
-- `scripts/brand-assets.mjs` — يولّد كل الملفات من SVG واحد (هندسة واحدة للـ LogoMark) عبر sharp.
-- `public/brand/` — المخرجات المُولّدة (SVG + PNG).
-- `/brand` — صفحة مرجعية حية داخل التطبيق (public path).
-- إعادة التوليد بعد أي تعديل: `npm run brand:assets`.
+### Technical Stack Guidelines
+- Framework: Next.js / React (TypeScript)
+- Styling: Tailwind CSS, Framer Motion (for smooth animations and transitions)
+- Icons: Lucide React
+- State & Persistence: LocalStorage / IndexedDB with React Context for global state management.
 
 ---
 
-رقيب · كلية العلوم — جامعة السويس · نسخة v4 · 2026
+## 2. Onboarding & Session Management
+- **First-Time Student Onboarding (Modal):**
+  - Upon first login or session initialization, trigger a clean, step-by-step onboarding modal asking the student:
+    1. Academic Year / Level (e.g., Level 1, 2, 3, 4).
+    2. Student Group / Section (e.g., Group A, Group B).
+    3. Major / Department.
+  - Save these variables in persistent storage (`LocalStorage` / DB Profile Context).
+  - Automatically filter schedules, tasks, lecture materials, and notices based on the saved Group and Level across the entire portal.
+
+---
+
+## 3. Global Layout & Theme System
+
+### Color Palette System (Tailwind CSS Dynamic Variables)
+- **Light Theme:** Background `#F8FAFC`, Cards `#FFFFFF`, Text `#0F172A`.
+- **Dark Theme:** Background `#0F172A` (Slate Dark), Cards `#1E293B`, Borders `#334155`.
+- **Primary Brand Color:** Royal Blue / Tech Indigo (`#3B82F6` / `#6366F1`).
+- **Status Colors:**
+  - Attendance Safe / Excellent: `#10B981` (Emerald)
+  - Attendance Warning: `#F59E0B` (Amber)
+  - Attendance Danger / Risk of Deprivation: `#EF4444` (Rose)
+- **Lecture Type Badges:**
+  - Theoretical Lecture: Light Blue (`#0EA5E9`)
+  - Practical Section: Violet (`#8B5CF6`)
+  - Lab / Experiment: Mint Green (`#14B8A6`)
+
+### Layout Architecture
+- **Collapsible Sidebar:** Contains Student Mini-Profile (Avatar, Name, Level, Group A/B), Navigation Links (Home, Schedule & Courses, Tasks & Assignments, Resources, Notifications), and Live Network Status Indicator.
+- **Top Header Bar:**
+  - Global Command Palette (`Ctrl + K` / `Cmd + K`) for instant search.
+  - Theme Switcher Toggle (Light/Dark Mode).
+  - Notification Bell Badge with drop-down overlay.
+
+---
+
+## 4. Module 1: Home Dashboard (`/home`)
+
+1. **Academic Health Index (Overall Performance Widget):** Combined visual gauge integrating attendance percentage and coursework scores to yield student status (*Excellent*, *Safe Zone*, *Needs Improvement*, *Critical Risk*).
+2. **Absence Warning Widget:** High-priority warning card highlighting courses where the student is 1-2 absences away from official exam deprivation.
+3. **Dynamic Focus Mode (Today's Feed):** Time-aware header banner:
+   - *Morning:* Displays upcoming lecture in X minutes with venue/hall details.
+   - *Afternoon/Evening:* Summarizes pending assignments due tomorrow or upcoming exams.
+4. **Countdown Timer:** Live countdown to the next scheduled lecture or lab session.
+5. **Notice Board / Urgent Announcements:** Ticker/card list for doctor announcements, hall changes, or lecture reschedules.
+6. **Predictive GPA Calculator Widget:** Interactive mini-calculator predicting final grades based on recorded quizzes, midterms, and assignments.
+7. **Customizable Dashboard Layout:** Drag & Drop layout customization allowing students to reorder home widgets.
+8. **Study Time Analytics Widget:** Recommended study hours per course calculated from credit hours and syllabus difficulty.
+
+---
+
+## 5. Module 2: Schedule & Course Hub (`/schedule`)
+
+1. **Interactive Timetable Views:**
+   - Toggle between **Grid View** (classic timetable) and **Weekly Timeline View** (highlighting breaks between classes).
+   - Filter by: Lecture Type (Theory/Section), Hall/Venue, or Absence Days.
+2. **Active Lecture Highlight:** The current ongoing lecture card features a subtle pulsing glow effect (`Glow Effect`) with a remaining time counter.
+3. **Smart QR Attendance Scanner:**
+   - Button triggering QR Scanner overlay for attendance check-in generated by the instructor.
+   - **Adaptive Geofencing (GPS Check):** Validates device location within campus boundaries before registering attendance.
+   - **Offline Attendance Sync:** Captures check-in payload offline if network drops inside halls, auto-syncing upon reconnection.
+4. **Export & Print Capabilities:**
+   - One-click **Export to Google Calendar** (.ics).
+   - Clean single-page CSS print view (`Ctrl + P` optimized layout).
+
+### Modular Subject Cards (Course Card Anatomy)
+Each course card must contain:
+- **Header:** Course Name, Course Code (e.g., `MATH201`), Type Badge, and Instructor Name.
+- **Quick Analytics Row:** Radial progress indicator for attendance % + Badge for current projected grade (e.g., `A-`, `B+`).
+- **Internal Horizontal Tabs:**
+  - **Grades Breakdown Tab:** Table listing Quizzes, Midterm, Assignments, and Final Exam scores.
+  - **Resources & Files Tab:** Downloadable list of PDFs, Slides, and Assignment sheets.
+  - **Personal Notes & File Upload Tab:**
+    - Embedded rich/quick text area for lecture notes.
+    - **Drag & Drop Upload Zone:** Allows students to upload external notes, summaries, audio notes, or images directly attached to that course.
+- **Footer Action Bar:** Instant `[Scan Attendance]` button (if class is live) and `[View Full Details]` button.
+
+---
+
+## 6. Module 3: Tasks & Assignments (`/tasks`)
+
+1. **Task Sync from Instructor Portal:** Auto-populated assignments, sheets, and project deadlines assigned by professors.
+2. **Status Columns / Views:** Categorized into *Pending*, *In Progress*, and *Submitted/Completed*.
+3. **Due Date Urgency Indicators:** Color-coded priority tags based on submission deadlines.
+
+---
+
+## 7. UI/UX Micro-Interactions & Accessibility
+- **Skeleton Loading Screens:** Smooth gray shimmering placeholders during data fetches.
+- **Glassmorphism UI:** Translucent card backgrounds with border glow on hover.
+- **Micro-illustrations:** Engaging SVG illustrations for empty states (e.g., "No Lectures Today").
+- **Accessibility & Contrast:** High contrast mode toggle and font size adjustment tools.
+- **Web Push Notifications:** Browser alerts 15 minutes prior to lectures and on new task assignments.

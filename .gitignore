@@ -26,6 +26,7 @@ dist/
 *.db.backup-*
 prisma/backups/
 prisma/*.db.*
+prisma/schema-*.generated.prisma
 
 # ---------- uploads / storage ----------
 storage/
