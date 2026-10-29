@@ -10,21 +10,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const COLORS = [
-  { name: 'Emerald / الأساس', hex: '#14795F', note: 'هوية رقيب · الأزرار والروابط' },
-  { name: 'Emerald عميق', hex: '#0B3D30', note: 'نهاية التدرج · حالات التركيز' },
-  { name: 'Gold / اللمسة', hex: '#C8A24B', note: 'لمسة الذهب · الأوسمة والفواصل' },
-  { name: 'Ink / النص', hex: '#0B1F19', note: 'النص الأساسي على الفاتح' },
-  { name: 'Mint / الخلفية', hex: '#F4F8F5', note: 'خلفية الصفحات الهادئة' },
-  { name: 'Ivory / الخلفية', hex: '#F9FBF9', note: 'أساس الأسطح الزجاجية' },
-  { name: 'Muted / الثانوي', hex: '#5C7269', note: 'النص الثانوي والوصف' },
+  { name: 'Terra / الختم', hex: '#C4552F', note: 'بلوك العلامة — الشعار والأيقونات' },
+  { name: 'Brand / الأساس', hex: '#2C8F84', note: 'هوية رقيب · أزرار وروابط قسم الطالب' },
+  { name: 'Sapphire / الأدمن', hex: '#4C6397', note: 'هوية لوحات الإدارة الهادئة' },
+  { name: 'Gold / اللمسة', hex: '#C8A24B', note: 'الفواصل والأوسمة · النبرة الذهبية' },
+  { name: 'Ink / الحبر', hex: '#0B0E06', note: 'الخلفيات الداكنة وسبلاش الدخول' },
+  { name: 'Ivory / الخلفية', hex: '#FBF9F1', note: 'أساس الأسطح الزجاجية الفاتحة' },
   { name: 'Ember / التحذير', hex: '#C2410C', note: 'الأخطاء وحالات الخطر' },
 ];
 
 const DOS = [
   'استخدم المساحة الحرة (≥ 25% من عرض العلامة حول اللوجو).',
-  'لا تنزل اللوجو عن 16px — حافظ على وضوح الحرف R واللمسة الذهبية.',
-  'على الخلفيات الفاتحة استخدم tone="light" أو tone="ink".',
-  'اللمسة الذهبية عنصر واحد: نقطة المدار + ساق الحرف — لا تزدها.',
+  'لا تنزل اللوجو عن 16px — حافظ على وضوح البلوك وحرف B الأبيض.',
+  'على الخلفيات الفاتحة والداكنة بلوكهم واحد: ترابي ثابت وحرف أبيض.',
+  'البلوك الترابي هو قلب العلامة — لا تغيّر لونه ولا زواياه.',
 ];
 
 const DONT = [
@@ -36,8 +35,8 @@ const DONT = [
 
 const LOGO_TONES = [
   { name: 'Light — للأسطح الفاتحة', tone: 'light' as const, tile: 'bg-white/70' },
-  { name: 'Ink — للطباعة', tone: 'ink' as const, tile: 'bg-[#f4f8f5]' },
-  { name: 'Gold — للمناسبات', tone: 'gold' as const, tile: 'bg-[#0b3d30]' },
+  { name: 'Ink — للداكن', tone: 'ink' as const, tile: 'bg-[#101408]' },
+  { name: 'Gold — للمناسبات', tone: 'gold' as const, tile: 'bg-[#101408]' },
 ];
 
 export default function BrandPage() {
@@ -50,7 +49,7 @@ export default function BrandPage() {
             دليل الهوية البصرية — رقيب RAQIB
           </h1>
           <p className="mt-2 text-center text-sm text-ink-500">
-            نسخة v2 · 2026 · هوية الزمرد والذهب على أسطح عاجية زجاجية
+            نسخة v4 · 2026 · «RAQIB بالبلوك»: كلمة مدورة سميكة وبلوك ترابي مُفرَّغ أبيض
           </p>
         </header>
 

@@ -1,40 +1,19 @@
 
 <svg xmlns="http://www.w3.org/2000/svg" width="480" height="160" viewBox="0 0 480 160" fill="none">
   <rect width="480" height="160" fill="#0b0e06"/>
-  <g transform="translate(26,26) scale(1.15)">
-  <defs>
-    <linearGradient id="rqb-tile-p" x1="12" y1="4" x2="52" y2="60" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#243020"/>
-      <stop offset="1" stop-color="#0d1107"/>
-    </linearGradient>
-    <linearGradient id="rqb-iris-p" x1="26" y1="26" x2="40" y2="38" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#f4e6b6"/>
-      <stop offset=".5" stop-color="#d8b45a"/>
-      <stop offset="1" stop-color="#aa8137"/>
-    </linearGradient>
-    <radialGradient id="rqb-sheen-p" cx="0.5" cy="0" r="1" gradientTransform="translate(32 2) scale(34 26)">
-      <stop stop-color="#ffffff" stop-opacity=".14"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-
-  <rect x="1.5" y="1.5" width="61" height="61" rx="20" fill="url(#rqb-tile-p)"/>
-  <rect x="1.5" y="1.5" width="61" height="61" rx="20" fill="url(#rqb-sheen-p)"/>
-  <rect x="1.5" y="1.5" width="61" height="61" rx="20" stroke="rgba(200,162,75,0.30)"/>
-  <rect x="5" y="5" width="54" height="54" rx="16.5" fill="none" stroke="#c8a24b" stroke-opacity=".38" stroke-width="1" stroke-dasharray="1.5 3.5"/>
-
-  <path d="M32 11.5 50 18.2v14.1c0 10.6-7.5 17.4-18 20.7-10.5-3.3-18-10.1-18-20.7V18.2Z" fill="rgba(200,162,75,0.10)" stroke="#c8a24b" stroke-width="2.1" stroke-linejoin="round"/>
-  <path d="M24.8 21.5h14.4" stroke="#c8a24b" stroke-opacity=".38" stroke-width="1" stroke-linecap="round"/>
-  <path d="M23.6 43.8c4.6 2.4 12.2 2.4 16.8 0" stroke="#c8a24b" stroke-opacity=".22" stroke-width="1" stroke-linecap="round"/>
-
-  <path d="M20.6 33.2c3.2-4.4 7-6.6 11.4-6.6s8.2 2.2 11.4 6.6c-3.2 4.4-7 6.6-11.4 6.6s-8.2-2.2-11.4-6.6Z" fill="none" stroke="#c8a24b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="32" cy="33.2" r="4.35" fill="url(#rqb-iris-p)"/>
-  <circle cx="30.6" cy="31.9" r="1.05" fill="#fbf6e6" fill-opacity=".9"/>
-  <circle cx="32" cy="33.2" r="6.4" fill="none" stroke="#f0dfa6" stroke-opacity=".28" stroke-width=".9"/>
-
-  <path d="M47.4 13.4l.62 1.78 1.78.62-1.78.62-.62 1.78-.62-1.78-1.78-.62 1.78-.62Z" fill="#f4e6b6" fill-opacity=".92"/>
-</g>
-  <text x="126" y="78" font-family="Cairo, Segoe UI, Tahoma, sans-serif" font-size="52" font-weight="800" fill="#f7f1e3">رقيب</text>
-  <text x="126" y="112" font-family="Inter, Segoe UI, sans-serif" font-size="15" font-weight="700" letter-spacing="9" fill="#c8a24b">RAQIB</text>
-  <rect x="70" y="132" width="42" height="3.5" fill="#c8a24b"/>
+  <g transform="translate(28,42) scale(1.2)"><rect x="4" y="4" width="56" height="56" rx="15" fill="#C4552F"/>
+  <g stroke="#ffffff" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M20 48V16
+M20 16h11a7.5 7.5 0 1 1 0 15h-11
+M20 31h13a7.5 7.5 0 1 1 0 17h-13"/>
+  </g></g>
+  <g transform="translate(118,46.4) scale(1.2)">
+    <g stroke="#F7F1E3" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M8 15V49"/><path d="M8 15h14a11.5 11.5 0 1 1 0 23H8"/><path d="M22 38L32.5 49"/><path d="M50 49L60 15L70 49"/><path d="M54.5 35H65.5"/><path d="M98 31.5m-16.5 0a16.5 16.5 0 1 0 33 0a16.5 16.5 0 1 0 -33 0"/><path d="M106.5 43.5L114 50.5"/><path d="M128 15V49"/>
+  </g>
+    <rect x="141" y="10" width="44" height="44" rx="12" fill="#C4552F"/>
+    <g stroke="#ffffff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M154 44V20"/><path d="M154 20h7a6 6 0 1 1 0 12h-7"/><path d="M154 32h9.5a6.4 6.4 0 1 1 0 12.5h-9.5"/>
+    </g>
+  </g>
 </svg>

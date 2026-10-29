@@ -1,42 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" fill="none" role="img" aria-label="رقيب — منصة الحضور الأكاديمية">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" fill="none" role="img" aria-label="RAQIB — منصة الحضور الأكاديمية">
   <defs>
-    <linearGradient id="gt" x1="12" y1="4" x2="52" y2="60" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#243020"/>
-      <stop offset="1" stop-color="#0d1107"/>
-    </linearGradient>
-    <linearGradient id="gi" x1="26" y1="26" x2="40" y2="38" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#f4e6b6"/>
-      <stop offset=".5" stop-color="#d8b45a"/>
-      <stop offset="1" stop-color="#aa8137"/>
-    </linearGradient>
-    <radialGradient id="gs" cx="0.5" cy="0" r="1" gradientTransform="translate(32 2) scale(34 26)">
-      <stop stop-color="#ffffff" stop-opacity=".14"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="glow" cx="0.78" cy="0.16" r="0.95">
-      <stop offset="0%" stop-color="#c8a24b" stop-opacity="0.16"/>
-      <stop offset="55%" stop-color="#c8a24b" stop-opacity="0.04"/>
-      <stop offset="100%" stop-color="#c8a24b" stop-opacity="0"/>
+    <radialGradient id="glow" cx="0.16" cy="0.24" r="0.9">
+      <stop offset="0%" stop-color="#C4552F" stop-opacity="0.12"/>
+      <stop offset="55%" stop-color="#C4552F" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#C4552F" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="1200" height="630" fill="#0b0e06"/>
   <rect width="1200" height="630" fill="url(#glow)"/>
-  <g transform="translate(880,64) scale(2.3)">
-    <rect x="1.5" y="1.5" width="61" height="61" rx="20" fill="url(#gt)"/>
-    <rect x="1.5" y="1.5" width="61" height="61" rx="20" fill="url(#gs)"/>
-    <rect x="1.5" y="1.5" width="61" height="61" rx="20" stroke="rgba(200,162,75,0.30)"/>
-    <rect x="5" y="5" width="54" height="54" rx="16.5" fill="none" stroke="#c8a24b" stroke-opacity=".38" stroke-width="1" stroke-dasharray="1.5 3.5"/>
-    <path d="M32 11.5 50 18.2v14.1c0 10.6-7.5 17.4-18 20.7-10.5-3.3-18-10.1-18-20.7V18.2Z" fill="rgba(200,162,75,0.10)" stroke="#c8a24b" stroke-width="2.1" stroke-linejoin="round"/>
-    <path d="M20.6 33.2c3.2-4.4 7-6.6 11.4-6.6s8.2 2.2 11.4 6.6c-3.2 4.4-7 6.6-11.4 6.6s-8.2-2.2-11.4-6.6Z" fill="none" stroke="#c8a24b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="32" cy="33.2" r="4.35" fill="url(#gi)"/>
-    <circle cx="30.6" cy="31.9" r="1.05" fill="#fbf6e6" fill-opacity=".9"/>
-    <circle cx="32" cy="33.2" r="6.4" fill="none" stroke="#f0dfa6" stroke-opacity=".28" stroke-width=".9"/>
-    <path d="M47.4 13.4l.62 1.78 1.78.62-1.78.62-.62 1.78-.62-1.78-1.78-.62 1.78-.62Z" fill="#f4e6b6" fill-opacity=".92"/>
+  <g transform="translate(70,150) scale(2.5)">
+    <g stroke="#F7F1E3" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M8 15V49"/>
+      <path d="M8 15h14a11.5 11.5 0 1 1 0 23H8"/>
+      <path d="M22 38L32.5 49"/>
+      <path d="M50 49L60 15L70 49"/>
+      <path d="M54.5 35H65.5"/>
+      <circle cx="98" cy="31.5" r="16.5"/>
+      <path d="M106.5 43.5L114 50.5"/>
+      <path d="M128 15V49"/>
+    </g>
+    <rect x="141" y="10" width="44" height="44" rx="12" fill="#C4552F"/>
+    <g stroke="#ffffff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M154 44V20"/>
+      <path d="M154 20h7a6 6 0 1 1 0 12h-7"/>
+      <path d="M154 32h9.5a6.4 6.4 0 1 1 0 12.5h-9.5"/>
+    </g>
   </g>
-  <text x="70" y="316" font-family="Cairo, Segoe UI, Tahoma, sans-serif" font-weight="800" font-size="132" fill="#f7f1e3">رقيب</text>
-  <rect x="70" y="344" width="74" height="6" fill="#c8a24b"/>
-  <text x="152" y="352" font-family="Inter, Segoe UI, sans-serif" font-weight="700" font-size="24" fill="#c8a24b" letter-spacing="13">RAQIB</text>
-  <text x="70" y="442" font-family="Segoe UI, Tahoma, sans-serif" font-weight="600" font-size="52" fill="#d8b45a">منصة الحضور الأكاديمية</text>
-  <text x="70" y="508" font-family="Segoe UI, Tahoma, sans-serif" font-weight="400" font-size="33" fill="#938d7c">كلية العلوم · جامعة السويس</text>
-  <text x="70" y="566" font-family="Inter, Segoe UI, sans-serif" font-weight="400" font-size="26" fill="#6b6557">raqib-blue.vercel.app</text>
+  <rect x="70" y="362" width="74" height="6" fill="#C4552F"/>
+  <text x="70" y="450" font-family="Segoe UI, Tahoma, sans-serif" font-weight="600" font-size="44" fill="#C4552F">منصة الحضور الأكاديمية</text>
+  <text x="70" y="508" font-family="Segoe UI, Tahoma, sans-serif" font-weight="400" font-size="29" fill="#938d7c">كلية العلوم · جامعة السويس</text>
+  <text x="70" y="560" font-family="Inter, Segoe UI, sans-serif" font-weight="400" font-size="24" fill="#6b6557">raqib-blue.vercel.app</text>
 </svg>

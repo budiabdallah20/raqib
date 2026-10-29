@@ -1,10 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" role="img" aria-label="رقيب — أحادي داكن للطباعة">
-  <path d="M32 11.5 50 18.2v14.1c0 10.6-7.5 17.4-18 20.7-10.5-3.3-18-10.1-18-20.7V18.2Z" fill="rgba(20,18,14,0.06)" stroke="#16130e" stroke-width="2.4" stroke-linejoin="round"/>
-  <path d="M24.8 21.5h14.4" stroke="#16130e" stroke-opacity=".5" stroke-width="1.1" stroke-linecap="round"/>
-  <path d="M23.6 43.8c4.6 2.4 12.2 2.4 16.8 0" stroke="#16130e" stroke-opacity=".3" stroke-width="1.1" stroke-linecap="round"/>
-  <path d="M20.6 33.2c3.2-4.4 7-6.6 11.4-6.6s8.2 2.2 11.4 6.6c-3.2 4.4-7 6.6-11.4 6.6s-8.2-2.2-11.4-6.6Z" fill="none" stroke="#16130e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="32" cy="33.2" r="4.35" fill="#16130e"/>
-  <circle cx="30.6" cy="31.9" r="1.05" fill="#ffffff" fill-opacity=".85"/>
-  <circle cx="32" cy="33.2" r="6.4" fill="none" stroke="#16130e" stroke-opacity=".3" stroke-width=".9"/>
-  <path d="M47.4 13.4l.62 1.78 1.78.62-1.78.62-.62 1.78-.62-1.78-1.78-.62 1.78-.62Z" fill="#16130e"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" role="img" aria-label="RAQIB — أحادي داكن للطباعة">
+  <g stroke="#16130E" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M20 48V16"/>
+    <path d="M20 16h11a7.5 7.5 0 1 1 0 15h-11"/>
+    <path d="M20 31h13a7.5 7.5 0 1 1 0 17h-13"/>
+  </g>
 </svg>
