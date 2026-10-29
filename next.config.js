@@ -41,9 +41,11 @@ const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'off' },
 ];
 
-// distDir: يمكن عزل مجلد البناء محليًا عبر NEXT_DIST_DIR عند تشغيل أكثر من
-// عملية بناء على نفس المشروع (يستخدم Vercel وGitHub Actions الافتراضي .next)
-const distDir = process.env.NEXT_DIST_DIR || '.next';
+// distDir: الفصل الصريح بين الإنتاج والتطوير — الخادم الإنتاجي (server.mjs)
+// يقرأ .next من البناء، بينما يكتب Turbopack dev في .next-dev حتى لا يخربط
+// أحدهما ملفات الآخر (سبب كلاسيكي لأخطاء ENOENT أثناء البناء).
+// NEXT_DIST_DIR يظل متاحًا لعزل مسارات إضافية (CI/Vercel لا يحتاجونه).
+const distDir = process.env.NEXT_DIST_DIR || (process.env.NODE_ENV === 'development' ? '.next-dev' : '.next');
 
 const nextConfig = {
   distDir,

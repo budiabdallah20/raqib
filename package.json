@@ -4,7 +4,7 @@
   "private": true,
   "description": "منصة رقيب — نظام إدارة أكاديمية لكلية العلوم جامعة السويس",
   "scripts": {
-    "dev": "next dev --turbopack --experimental-https-key certs/localhost+2-key.pem --experimental-https-cert certs/localhost+2.pem",
+    "dev": "next dev --turbopack --experimental-https --experimental-https-key certs/localhost+2-key.pem --experimental-https-cert certs/localhost+2.pem",
     "dev:http": "next dev --turbopack",
     "dev:https": "node server.mjs --dev",
     "build": "prisma generate && next build",

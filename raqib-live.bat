@@ -3,5 +3,5 @@ rem رقيب — تشغيل الموقع الحي مع الإصلاح الفور
 rem كل تعديل تسمعه على طول في المتصفح، والأخطاء تظهر لحظيًا على الشاشة.
 title RAQiB Live Server (Turbopack)
 cd /d "%~dp0"
-start "" http://localhost:3000
+start "" https://localhost:3000
 npm run dev
