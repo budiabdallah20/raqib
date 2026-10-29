@@ -4,7 +4,6 @@
  * وعند وجود تسجيلات وهمية (Demo Mode) نوضح ذلك بوضوح على الواجهة.
  */
 import { prisma } from '@/lib/db';
-import { jsonError } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +35,13 @@ export async function GET() {
       updatedAt: new Date().toISOString(),
     }, { headers: { 'cache-control': 'no-store' } });
   } catch {
-    return jsonError('تعذر حساب الأرقام حاليًا', 500);
+    // القاعدة غير متاحة (بيئة عرض بلا DATABASE_URL) — صفر نزيهة بدل 500،
+    // والواجهة صُمّمت لتُقرأ جميلة قبل وصول الأرقام.
+    return Response.json({
+      metrics: { students: 0, lectures: 0, scans: 0, attendancePct: 0 },
+      demoMode: false,
+      dbAvailable: false,
+      updatedAt: new Date().toISOString(),
+    }, { headers: { 'cache-control': 'no-store' } });
   }
 }

@@ -39,6 +39,16 @@ function sameOrigin(request: NextRequest) {
 }
 
 export async function middleware(request: NextRequest) {
+  // ── توجيه الدومين القديم raqib-blue → raqibdev (نفس المسار، 301 دائم) ──
+  const host = trustedHost(request);
+  if (host === 'raqib-blue.vercel.app') {
+    const url = request.nextUrl.clone();
+    url.protocol = 'https:';
+    url.hostname = 'raqibdev.vercel.app';
+    url.port = '';
+    return NextResponse.redirect(url, 301);
+  }
+
   const { pathname } = request.nextUrl;
   const method = request.method.toUpperCase();
   const isApi = pathname.startsWith('/api/');
