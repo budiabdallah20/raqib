@@ -76,6 +76,26 @@ export function openSettings() {
   window.dispatchEvent(new CustomEvent(SETTINGS_EVENT));
 }
 
+/* ── تنبيه المحاضرة القادمة — كل متوفر يحدّثه والوكيل (PortalAgent) يقرؤه ── */
+
+export type LiveReminder = {
+  /** ISO timestamp للمحاضرة القادمة */
+  nextAt: string;
+  title: string;
+  course?: string;
+  room?: string | null;
+};
+
+let liveReminder: LiveReminder | null = null;
+
+export function setLiveReminder(value: LiveReminder | null) {
+  liveReminder = value;
+}
+
+export function getLiveReminder(): LiveReminder | null {
+  return liveReminder;
+}
+
 /** تطبيع عربي خفيف للبحث: حذف التشكيل وتوحيد الألف والياء والتاء المربوطة */
 export function normalizeArabic(text: string): string {
   return text

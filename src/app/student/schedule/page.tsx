@@ -1,9 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { DashboardShell } from '@/components/shared/DashboardShell';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CalendarPlus, Printer, Signal } from 'lucide-react';
+import { StudentShell } from '@/components/student/StudentShell';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { RowsSkeleton } from '@/components/student/Skeletons';
 import { api } from '@/lib/api';
+import { buildScheduleICS, downloadBlob } from '@/lib/exporters';
+import { toast } from '@/components/student/PortalAgent';
 import { SCHED_DAYS, SCHED_KIND_LABEL, SCHED_PERIODS } from '@/lib/constants';
 
 type Slot = {
@@ -75,14 +80,49 @@ export default function StudentSchedulePage() {
     return map;
   }, [slots]);
 
+  // 📅 تصدير الجدول لتقويم Google/الجوال (ICS بمدى ٨ أسابيع)
+  const exportIcs = () => {
+    if (!slots.length) return;
+    const slotsIcs = slots
+      .map((slot) => {
+        const period = SCHED_PERIODS[slot.period - 1];
+        if (!period) return null;
+        return {
+          day: slot.day,
+          from: period.from,
+          to: period.to,
+          title: slot.course.name,
+          code: slot.course.code,
+          room: slot.room,
+          teacher: slot.course.professor?.name ?? null,
+        };
+      })
+      .filter(Boolean) as Parameters<typeof buildScheduleICS>[0];
+    downloadBlob('raqib-schedule.ics', 'text/calendar;charset=utf-8', buildScheduleICS(slotsIcs, 8));
+    toast('نزّلت جدولك ICS — افتحه في Google Calendar 📆');
+  };
+
   return (
-    <DashboardShell>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <StudentShell>
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4 no-print">
         <div>
           <h1 className="font-display text-3xl font-bold text-ink-950">الجدول الأسبوعي</h1>
           <p className="mt-1 text-ink-500">
             جروب {group || '—'} · عرض فقط — التعديل للأدمن
           </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-brand-900/10 bg-white/65 px-3 py-1.5 text-xs font-bold text-ink-500">
+            {slots.length} حصة أسبوعيًا
+          </span>
+          <Button variant="outline" onClick={exportIcs} disabled={!slots.length}>
+            <CalendarPlus className="h-4 w-4" />
+            تقويم ICS
+          </Button>
+          <Button variant="outline" onClick={() => window.print()}>
+            <Printer className="h-4 w-4" />
+            اطبع الجدول
+          </Button>
         </div>
       </div>
 
@@ -96,9 +136,9 @@ export default function StudentSchedulePage() {
       ) : null}
 
       {loading ? (
-        <p className="py-16 text-center text-ink-400">جارٍ تحميل الجدول...</p>
+        <RowsSkeleton rows={5} />
       ) : (
-        <Card>
+        <Card className="print-area">
           <CardContent className="overflow-x-auto p-4 sm:p-6">
             <div className="min-w-[860px] space-y-3">
               {/* رأس الأيام */}
@@ -148,15 +188,18 @@ export default function StudentSchedulePage() {
                       );
                     }
                     const vip = slot.isVip;
+                    const isLive = todayDay === day && activePeriod === period.period - 1;
                     return (
                       <div
                         key={day}
                         className={`min-h-[96px] rounded-2xl border p-3.5 ${
-                          vip
-                            ? 'border-gold-400/45 bg-gold-400/10 shadow-gold-soft'
-                            : todayDay === day
-                              ? 'border-gold-400/30 bg-white/60'
-                              : 'border-brand-900/10 bg-white/60'
+                          isLive
+                            ? 'border-brand-500/50 bg-brand-500/[0.10] animate-pulse-ring shadow-[0_0_0_3px_rgba(44,143,132,0.12)]'
+                            : vip
+                              ? 'border-gold-400/45 bg-gold-400/10 shadow-gold-soft'
+                              : todayDay === day
+                                ? 'border-gold-400/30 bg-white/60'
+                                : 'border-brand-900/10 bg-white/60'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -179,6 +222,12 @@ export default function StudentSchedulePage() {
                         <p className="text-[11px] text-ink-400">
                           د. {slot.course.professor?.name ?? 'غير محدد'}
                         </p>
+                        {isLive ? (
+                          <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-brand-500/40 bg-white/70 px-2 py-0.5 text-[10px] font-bold text-brand-700">
+                            <Signal className="h-3 w-3" />
+                            جارية الآن
+                          </span>
+                        ) : null}
                       </div>
                     );
                   })}
@@ -191,7 +240,7 @@ export default function StudentSchedulePage() {
 
       {/* مؤشر «الآن» — نص فرعي بسيط بلا أي تخزين */}
       {!loading && !error ? (
-        <p className="mt-4 text-center text-sm text-ink-500">
+        <p className="no-print mt-4 text-center text-sm text-ink-500">
           الآن:{' '}
           {activePeriod >= 0 ? (
             <span className="font-bold text-gold-700">
@@ -202,6 +251,6 @@ export default function StudentSchedulePage() {
           )}
         </p>
       ) : null}
-    </DashboardShell>
+    </StudentShell>
   );
 }

@@ -103,3 +103,69 @@ Each course card must contain:
 - **Micro-illustrations:** Engaging SVG illustrations for empty states (e.g., "No Lectures Today").
 - **Accessibility & Contrast:** High contrast mode toggle and font size adjustment tools.
 - **Web Push Notifications:** Browser alerts 15 minutes prior to lectures and on new task assignments.
+
+---
+---
+
+# 🚀 RAQiB Implementation Blueprint v5 — تطبيق المواصفة على بوابة الطالب (25 ميزة جديدة)
+
+> هذه الفقرة هي **خارطة التنفيذ الرسمية** للمواصفة أعلاه داخل RAQiB (Next.js 15 + Prisma/SQLite + Tailwind).
+> كل الميزات تنفّذ **بدون أي اعتماديات جديدة** و**بدون تغيير مخطط قاعدة البيانات** — تفضيلات الطالب تعيش في
+> `localStorage` عبر `src/lib/portal-prefs.ts` (مفتاح `raqib_portal_prefs_v1`) والملاحظات تبقى في سيرفر الحساب.
+
+## A. Registry — سجل الـ25 ميزة وحالة تنفيذها
+
+| # | الميزة (نطاق) | التنفيذ في RAQiB |
+|---|---|---|
+| 1 | **معالج التهيئة الأولى** Onboarding wizard | `OnboardingModal` — يُعرض مرة واحدة (localStorage)، يضبط الثيم/الخط/التذكيرات في ٣ خطوات |
+| 2 | **الوضع الليلي للبوابة** Dark mode | نظام `body.portal-dark` في `globals.css` — يُرفع/يُنزع من `StudentShell` فقط (لا يؤثر على الباحث/الأدمن) |
+| 3 | **لوحة الأوامر Ctrl+K** Command palette | `CommandPalette` + سجل `src/lib/commands.ts` (`setCommands`/`useCommands`) مع تطبيع الحروف العربية |
+| 4 | **محرر تخطيط اللوحة** Widget layout editor | أسهم ترتيب + إخفاء لكل ويدجت (`moveWidget`/`toggleWidget`) وحفظ تلقائي — أزرار في رأس الداشبورد |
+| 5 | **مؤشر الصحة الأكاديمية** Academic Health Index | `HealthIndex` — دمج حضور × درجات × تسليمات في درجة 100 بطوق متدرج |
+| 6 | **رادار الحرمان** Absence/deprivation radar | `AbsenceRadar` — صفوف مقررات بأشرطة + حلقات إنذار آمنة/ذهبية/حمراء حسب سياسة الأدمن |
+| 7 | **حاسبة المعدل «لو ماذا»** Predictive GPA what-if | `GpaWhatIf` (+ `GpaWhatIf.helpers.ts`) — تحاكي درجات الفاينل/الميدترم وتتوقع المعدل والترتيب |
+| 8 | **مكتبة الملاحظات** Notes library UI | صفحة `/student/notes` — إضافة/تعديل/حذف/تثبيت/بحث/تصدير TXT عبر PATCH المضاف لـ`/api/student/notes` |
+| 9 | **مركز الملفات** Materials hub | صفحة `/student/materials` + راوت جديد `GET /api/student/materials` (ملفات مقرراته فقط) |
+| 10 | **سجل المحاضرات** Lectures log | صفحة `/student/lectures` — حالة حضور لكل محاضرة + توهج «مفتوحة الآن» `animate-pulse-ring` |
+| 11 | **تقريري الشخصي** Self-service report hub | صفحة `/student/report` — بطاقات ملخص + جدولا درجات/حضور + طباعة `print-area` |
+| 12 | **تصدير CSV** | `toCSV/csvCell/downloadBlob` في `src/lib/exporters.ts` (مع BOM يفتح في Excel) + اختبارات vitest |
+| 13 | **تقويم ICS للجدول** Schedule ICS export | زر «تقويم ICS» في الجدول — ٨ أسابيع أحداث واضحة بلا RRULE + زر اطبع الجدول |
+| 14 | **توهج الحصة الجارية** Active-lecture glow | خلية الجدول/سجل المحاضرة يتوهج بنبض teal عند المدة الزمنية للحصة |
+| 15 | **طابور الغياب أوفلاين** Offline scan queue | `queueOfflineScan/takeOfflineScan/refundOfflineScan` + معالج `PortalAgent` يعيد الإرسال تلقائيًا عند عودة الشبكة |
+| 16 | **تنبيه المحاضرة ١٠ دقائق** Lecture reminders | Notification API — `setLiveReminder` يقارن موعد التحضير كل ثانية ويطلق إشعارًا قبل ١٠ دقائق |
+| 17 | **مخطط الراجعة الأسبوعي** Study planner | `StudyPlanner` — مراجعات محسوبة (ساعات المقرر × ٢٫٥) + شرطات إنجاز + سلسلة أسابيع متواصلة (streak) |
+| 18 | **مؤقت البومودورو** Pomodoro timer | `PomodoroTimer` — طوق تدرّج ٢٥/٥ د، اختيار المادة، احتفال confetti، سجل الجلسات اليومي |
+| 19 | **فلاتر حالة المهام** Task status filters | شرائح الكل/مفتوحة/سلّمتها/فائتة في `/tasks` مع عدادات محدثة حيا |
+| 20 | **هياكل التحميل** Skeletons | `Skeletons.tsx` (Card/Rows/Grid) + `.skeleton` shimmer في CSS — للوحة وجميع الصفحات |
+| 21 | **رقصات الإظهار** Motion choreography | framer-motion — دخول متدرج للأدوات (`whileInView` + stagger)، استبيان انزلاق للفلاتر |
+| 22 | **عدّادات متحركة + ميكرو-تفاعلات** Animated counters | `AnimatedNumber` (`useCountUp`) + رفع خفيف عند التحويم (hover-lift) + نقر مضغوط `active:scale` للأزرار |
+| 23 | **رسوم مصغّرة يدوية** Hand-rolled charts | `MiniCharts.tsx`: `MiniBars` (أعمدة نسب)، `Sparkline` (خط اتجاه)، `GradientRing` (طوق تدرّج) — بلا أي مكتبة |
+| 24 | **لائحة إعلانات** Notices feed | `NoticesFeed` — إشعارات الدكاترة بتصنيف (محاضرة/تاسك/تنبيه/عام) + تعليم مقروء |
+| 25 | **مجموعة أدوات العرض والوصولية** A11y toolkit | `ThemeToolsPanel` — ثيم/حجم خط (٤ درجات على `<html>`)/تباين عالٍ/تقليل حركة + ورقة اختصارات |
+
+## B. Bonus — القطع الذهبية الإضافية
+- **شريط التركيز الذكي** `FocusBanner` — ترحيب متغير بالوقت + خلاصة يومك في سطر + إجراءان حاضران.
+- **الفاصلة العائمة** `QuickDock` — فتحة السكان/اللوحة/الأدوات من أي مكان داخل البوابة.
+- **بطاقة شخصية فاخرة** — أفاتار، كود، جروب/فرقة/قسم/موبايل، عدّاد عيد ميلاد، دورة آيات هادئة (`AyahTicker`).
+- **عدّاد تنازلي حي** لثوانٍ — المحاضرة القادمة `useCountdown` (يوم|سا|د|ث).
+- **شريط توزيع الدرجات المكدّس** — كويز/أعمال/ميدترم/فاينل بألوان الهوية لكل مقرر.
+- **منحنى تطور المعدل** SVG يدوي — نقاط الترمات بخطين مقياس 2.0/3.0.
+- **الحالة النهائية (State of the art)** — تذييل رسمي + حلقات تركيز ذهبية `:focus-visible` + سكرول بار مخصص بالوضع الليلي.
+
+## C. Prime Directive (QA Contracts)
+- `npx tsc --noEmit` — صفر أخطاء.
+- `npm run test` — كل الاختبارات خضراء (شاملة `tests/exporters.spec.ts` الجديد).
+- `NEXT_DIST_DIR=.next-prod npx next build` — بناء معزول ناجح (٣١ صفحة × ٢ فقرات).
+- CI (`.github/workflows/verify.yml`) — أخضر على الـpush.
+- **No new npm packages** — framer-motion/date-fns/canvas-confetti/lucide/html5-qrcode فقط.
+- **No Prisma schema changes** — التفضيلات الشخصية كلها localStorage (`raqib_portal_prefs_v1`).
+
+## D. Architecture Notes — ملاحظات معمارية
+1. **StudentShell** هو غلاف بوابة الطالب الوحيد (استبدال DashboardShell في صفحات الطالب فقط) → يرفع/ينزع كلاسات
+   الجسم `portal-dark | portal-hc | portal-prm` ويضبط حجم خط الجذر `FONT_SCALE_PCT` ويحمل الكروم الشامل
+   (لوحة الأوامر + الفاصلة + أدوات العرض + المعالج + المعالج الذكي PortalAgent).
+2. **Events** تربط كل شيء: `raqib:palette:open` · `raqib:settings:open` · `raqib:scan:open` — مشتركة وآمنة.
+3. **Exporters** دوال نقيّة Pure (ICS/CSV) → قابلة للاختبار في node بدون DOM؛ `downloadBlob` الجسر الوحيد للجهاز.
+4. **صفحات الطلاب الجديدة** (`notes|materials|lectures|report`) محمية تلقائيًا من middleware —
+   راوت `report` يبني الـCSV على الجهاز لأن `/api/attendance/report` للباحث/الأدمن فقط (قرار معماري واعٍ).
+5. **تصدير الجدول ICS** يكرر الأحداث ٨ أسابيع بدل RRULE حتى يظهر أي تعديل أخير بوضوح في Google Calendar.

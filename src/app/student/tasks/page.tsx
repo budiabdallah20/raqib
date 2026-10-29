@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { AlertTriangle, CheckCircle2, FileUp, FileText } from 'lucide-react';
-import { DashboardShell } from '@/components/shared/DashboardShell';
+import { StudentShell } from '@/components/student/StudentShell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,11 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { EmptyState } from '@/components/student/EmptyState';
+import { GridSkeleton } from '@/components/student/Skeletons';
+import { celebrate } from '@/lib/celebrate';
+import { toast } from '@/components/student/PortalAgent';
 
 type Submission = {
   fileUrl: string | null;
@@ -124,6 +129,8 @@ function TaskRow({
       });
       setOpen(false);
       setFile(null);
+      celebrate();
+      toast('الحل وصل للدكتور — تسليم ناجح 🎉');
       onSubmitted();
     } catch (err) {
       setRowError((err as Error).message);
@@ -266,6 +273,13 @@ function TaskRow({
   );
 }
 
+// تصنيف المهمة للفلترة: مفتوحةقة/تم التسليم/فائتة
+function taskBucket(task: TaskItem): 'OPEN' | 'DONE' | 'LATE' {
+  if (task.submission) return 'DONE';
+  if (task.status !== 'OPEN' || new Date(task.deadline).getTime() <= Date.now()) return 'LATE';
+  return 'OPEN';
+}
+
 // تجميع المهام حسب المقرر
 function groupByCourse(tasks: TaskItem[]) {
   const groups = new Map<string, { course: TaskItem['course']; tasks: TaskItem[] }>();
@@ -283,6 +297,7 @@ export default function StudentTasksPage() {
   const [error, setError] = React.useState('');
   const [loading, setLoading] = React.useState(true);
   const [tick, setTick] = React.useState(0);
+  const [statusFilter, setStatusFilter] = React.useState<'ALL' | 'OPEN' | 'DONE' | 'LATE'>('ALL');
 
   const load = React.useCallback(() => {
     return api<{ tasks: TaskItem[] }>('/api/tasks')
@@ -301,16 +316,28 @@ export default function StudentTasksPage() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const weekly = React.useMemo(() => groupByCourse(tasks.filter((t) => t.kind === 'WEEKLY')), [tasks]);
-  const monthly = React.useMemo(() => groupByCourse(tasks.filter((t) => t.kind === 'MONTHLY')), [tasks]);
+  const weekly = React.useMemo(() => {
+    const list = tasks.filter((t) => t.kind === 'WEEKLY' && (statusFilter === 'ALL' || taskBucket(t) === statusFilter));
+    return groupByCourse(list);
+  }, [tasks, statusFilter]);
+  const monthly = React.useMemo(() => {
+    const list = tasks.filter((t) => t.kind === 'MONTHLY' && (statusFilter === 'ALL' || taskBucket(t) === statusFilter));
+    return groupByCourse(list);
+  }, [tasks, statusFilter]);
 
+  const openCount = tasks.filter((t) => taskBucket(t) === 'OPEN' && t.status === 'OPEN').length;
+  const doneCount = tasks.filter((t) => taskBucket(t) === 'DONE').length;
+  const lateCount = tasks.filter((t) => taskBucket(t) === 'LATE').length;
 
   const renderGroups = (groups: ReturnType<typeof groupByCourse>) => {
     if (!groups.length) {
       return (
-        <p className="py-10 text-center text-sm text-ink-400">
-          لا توجد مهام في هذا القسم حاليًا
-        </p>
+        <EmptyState
+          kind="tasks"
+          compact
+          title={statusFilter === 'ALL' ? 'لا توجد مهام في هذا القسم حاليًا' : 'مفيش مهام مطابقة للفلتر'}
+          sub={statusFilter === 'LATE' ? 'شكلك سلّمت كل حاجة في معادها — برافو 👏' : undefined}
+        />
       );
     }
     return (
@@ -334,17 +361,45 @@ export default function StudentTasksPage() {
   };
 
   return (
-    <DashboardShell>
+    <StudentShell>
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold text-ink-950">المهام والتسليمات</h1>
           <p className="mt-1 text-ink-500">حلول أسبوعية وشهرية لمقرراتك</p>
         </div>
-        <p className="flex items-center gap-2 text-xs text-brand-700">
+        <p className="no-print flex items-center gap-2 text-xs text-brand-700">
           <CheckCircle2 className="h-4 w-4" />
           التسليم قبل الموعد يحفظ درجتك
         </p>
       </div>
+
+      {/* شرائح حالة المهام */}
+      {loading ? null : (
+        <div className="no-print mb-5 flex flex-wrap items-center gap-2">
+          {(
+            [
+              ['ALL', `الكل · ${tasks.length}`],
+              ['OPEN', `مفتوحة · ${openCount}`],
+              ['DONE', `سلّمتها · ${doneCount}`],
+              ['LATE', `فائتة · ${lateCount}`],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setStatusFilter(value)}
+              className={cn(
+                'rounded-xl border px-3 py-1.5 text-xs font-bold transition',
+                statusFilter === value
+                  ? 'border-brand-500/35 bg-brand-500/[0.10] text-brand-700'
+                  : 'border-brand-900/10 bg-white/60 text-ink-400 hover:text-ink-700',
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {error ? (
         <p
@@ -356,7 +411,9 @@ export default function StudentTasksPage() {
       ) : null}
 
       {loading ? (
-        <p className="py-16 text-center text-ink-400">جارٍ تحميل المهام...</p>
+        <div className="no-print">
+          <GridSkeleton cards={3} />
+        </div>
       ) : (
         <Tabs defaultValue="weekly">
           <TabsList>
@@ -367,6 +424,6 @@ export default function StudentTasksPage() {
           <TabsContent value="monthly">{renderGroups(monthly)}</TabsContent>
         </Tabs>
       )}
-    </DashboardShell>
+    </StudentShell>
   );
 }

@@ -5,10 +5,13 @@
  * ملخص لكل مادة + فلترة + رسم شريطي بسيط + حالة سياسة الحرمان.
  */
 import * as React from 'react';
-import { DashboardShell } from '@/components/shared/DashboardShell';
+import { StudentShell } from '@/components/student/StudentShell';
 import { Card, CardContent } from '@/components/ui/card';
 import { api } from '@/lib/api';
 import { ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
+import { MiniBars } from '@/components/student/MiniCharts';
+import { RowsSkeleton } from '@/components/student/Skeletons';
+import { motion } from 'framer-motion';
 
 type Summary = {
   policy: { attendanceThreshold: number; maxAbsence: number; lateCountsAs: number };
@@ -42,8 +45,8 @@ const STATUS_ICON = {
 };
 const STATUS_COLOR: Record<string, string> = {
   SAFE: 'text-brand-700',
-  WARNING: 'text-amber-300',
-  DENIED: 'text-rose-300',
+  WARNING: 'text-gold-800',
+  DENIED: 'text-ember-600',
 };
 
 export default function StudentAttendancePage() {
@@ -68,9 +71,12 @@ export default function StudentAttendancePage() {
 
   if (!ready) {
     return (
-      <DashboardShell>
-        <p className="text-ink-400">جارِ تحميل سجل الحضور…</p>
-      </DashboardShell>
+      <StudentShell>
+        <div className="mb-6">
+          <h1 className="font-display text-3xl font-bold text-ink-950">سجلي في الحضور</h1>
+        </div>
+        <RowsSkeleton rows={4} />
+      </StudentShell>
     );
   }
 
@@ -81,17 +87,20 @@ export default function StudentAttendancePage() {
     : 0;
   const denied = courses.filter((c) => c.status === 'DENIED').length;
   const warning = courses.filter((c) => c.status === 'WARNING').length;
+  const bars = courses
+    .filter((c) => c.totalLectures > 0)
+    .map((c) => ({ label: c.course.code, sub: c.course.name, pct: c.attendancePct }));
 
   return (
-    <DashboardShell>
+    <StudentShell>
       <div className="mb-8">
-        <h1 className="font-display text-3xl font-bold text-gold-gradient">سجلي في الحضور</h1>
+        <h1 className="font-display text-3xl font-bold text-ink-950">سجلي في الحضور</h1>
         <p className="mt-1 text-sm text-ink-500">
           الإنذار عند أقل من {summary?.policy.attendanceThreshold}% · الحرمان عند تجاوز غياب {summary?.policy.maxAbsence}% · التأخير = {summary?.policy.lateCountsAs} حاضر
         </p>
       </div>
 
-      {error && <p className="mb-4 text-rose-400">{error}</p>}
+      {error && <p className="mb-4 rounded-xl border border-ember-500/25 bg-ember-500/[0.08] px-4 py-3 text-sm text-ember-600">{error}</p>}
 
       {/* الملخص العام */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -105,13 +114,29 @@ export default function StudentAttendancePage() {
         </div>
         <div className="rounded-2xl border border-amber-500/15 bg-amber-500/[0.05] p-5">
           <p className="text-xs text-ink-400">تحت الإنذار</p>
-          <p className="font-display text-3xl font-extrabold text-amber-300">{warning}</p>
+          <p className="font-display text-3xl font-extrabold text-gold-800">{warning}</p>
         </div>
-        <div className="rounded-2xl border border-rose-500/15 bg-rose-500/[0.05] p-5">
+        <div className="rounded-2xl border border-ember-500/15 bg-ember-500/[0.05] p-5">
           <p className="text-xs text-ink-400">محروم</p>
-          <p className="font-display text-3xl font-extrabold text-rose-300">{denied}</p>
+          <p className="font-display text-3xl font-extrabold text-ember-600">{denied}</p>
         </div>
       </div>
+
+      {/* أعمدة الحضور السريعة بالمقرر */}
+      {bars.length ? (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Card className="mb-8">
+            <CardContent className="p-5">
+              <p className="mb-3 text-xs font-bold text-ink-500">نسبة حضورك بالمقرر — بنظرة واحدة</p>
+              <MiniBars items={bars} />
+            </CardContent>
+          </Card>
+        </motion.div>
+      ) : null}
 
       {/* الملخص لكل مادة */}
       <div className="mb-8 grid gap-3 md:grid-cols-2">
@@ -187,7 +212,7 @@ export default function StudentAttendancePage() {
                   <td className="px-4 py-2.5 font-semibold">{r.lecture.title}</td>
                   <td className="px-4 py-2.5 text-ink-500">{r.lecture.course.code}</td>
                   <td className="px-4 py-2.5">
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${r.status === 'PRESENT' ? 'bg-brand-500/15 text-brand-700' : 'bg-amber-500/15 text-amber-300'}`}>
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${r.status === 'PRESENT' ? 'bg-brand-500/15 text-brand-700' : 'bg-gold-400/15 text-gold-800'}`}>
                       {r.status === 'PRESENT' ? 'حاضر' : 'متأخر'}
                     </span>
                   </td>
@@ -200,6 +225,6 @@ export default function StudentAttendancePage() {
           </table>
         </CardContent>
       </Card>
-    </DashboardShell>
+    </StudentShell>
   );
 }

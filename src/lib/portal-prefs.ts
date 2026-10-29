@@ -43,6 +43,7 @@ export type PortalPrefs = {
 };
 
 export const WIDGET_DEFAULT_ORDER = [
+  'profile',
   'focus',
   'health',
   'radar',
@@ -59,6 +60,7 @@ export const WIDGET_DEFAULT_ORDER = [
 ] as const;
 
 export const WIDGET_TITLES: Record<string, string> = {
+  profile: 'بطاقتك الشخصية',
   focus: 'شريط التركيز الذكي',
   health: 'مؤشر الصحة الأكاديمية',
   radar: 'رادار الحرمان',
@@ -182,6 +184,12 @@ export function setPortalPrefs(patch: Partial<PortalPrefs>) {
 
 export function resetPortalPrefs() {
   persist({ ...DEFAULTS, onboarded: true, theme: read().theme, fontScale: read().fontScale });
+}
+
+/** مسح كل تفضيلات البوابة والعودة للوضع الافتراضي (يُحدث الصفحة) */
+export function wipePortalPrefs() {
+  persist({ ...DEFAULTS });
+  if (typeof window !== 'undefined') window.location.reload();
 }
 
 export function resetWidgets() {

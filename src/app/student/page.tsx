@@ -5,28 +5,55 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { differenceInCalendarDays } from 'date-fns';
+import { motion } from 'framer-motion';
 import {
   Award,
   BookOpen,
   Cake,
   CalendarClock,
   CalendarDays,
+  ChevronDown,
+  ChevronUp,
   ClipboardList,
+  Eye,
+  EyeOff,
   FileDown,
-  Percent,
+  FolderOpen,
+  LayoutGrid,
+  NotebookPen,
   Phone,
   QrCode,
+  RotateCcw,
+  SlidersHorizontal,
   TrendingUp,
   User,
+  Settings2,
   type LucideIcon,
 } from 'lucide-react';
-import { DashboardShell } from '@/components/shared/DashboardShell';
+import { StudentShell } from '@/components/student/StudentShell';
 import { QRScanner } from '@/components/QRScanner';
 import { AyahTicker } from '@/components/student/AyahTicker';
 import { StatsCard } from '@/components/StatsCard';
 import { RadialProgress } from '@/components/student/RadialProgress';
 import { GpaEntryModal } from '@/components/student/GpaEntryModal';
 import { ZoneBadge, zoneHint } from '@/components/student/ZoneBadge';
+import { FocusBanner } from '@/components/student/FocusBanner';
+import { HealthIndex } from '@/components/student/HealthIndex';
+import { AbsenceRadar, type RadarRow } from '@/components/student/AbsenceRadar';
+import { GpaWhatIf, type GpaCourse } from '@/components/student/GpaWhatIf';
+import { StudyPlanner } from '@/components/student/StudyPlanner';
+import { PomodoroTimer } from '@/components/student/PomodoroTimer';
+import { NoticesFeed } from '@/components/student/NoticesFeed';
+import { MiniBars } from '@/components/student/MiniCharts';
+import { GridSkeleton, Skeleton } from '@/components/student/Skeletons';
+import { setLiveReminder, SCAN_EVENT, openSettings } from '@/lib/commands';
+import {
+  moveWidget,
+  resetWidgets,
+  toggleWidget,
+  usePortalPrefs,
+  WIDGET_TITLES,
+} from '@/lib/portal-prefs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { api } from '@/lib/api';
@@ -132,6 +159,20 @@ type ProfileData = {
     rankOf: number;
   }[];
   curve: { term: string; gpa: number | null }[];
+};
+
+type SummaryData = {
+  policy: { attendanceThreshold: number; maxAbsence: number; lateCountsAs: number };
+  summary: {
+    course: { id: string; code: string; name: string };
+    present: number;
+    late: number;
+    absent?: number;
+    totalLectures: number;
+    attendancePct: number | null;
+    status: 'SAFE' | 'WARNING' | 'DENIED';
+    statusLabel: string;
+  }[];
 };
 
 const DAY_NAMES = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -259,27 +300,89 @@ function CurveChart({ points }: { points: ProfileData['curve'] }) {
   );
 }
 
+/* ── إطار الأداة: دخول متدرج + إخفاء + تحكم في وضع الترتيب ── */
+function Widget({
+  id,
+  index,
+  editing,
+  hidden,
+  children,
+}: {
+  id: string;
+  index: number;
+  editing: boolean;
+  hidden: boolean;
+  children: React.ReactNode;
+}) {
+  if (hidden && !editing) return null;
+  if (editing) {
+    return (
+      <div className="relative rounded-2xl border border-dashed border-gold-500/40 bg-gold-400/[0.04] p-2" data-widget={id}>
+        <div className="absolute -top-3 left-3 z-10 flex items-center gap-1.5 rounded-xl border border-gold-500/40 bg-white/90 px-2 py-1 shadow-gold-soft backdrop-blur">
+          <span className="text-[10px] font-bold text-gold-800">{WIDGET_TITLES[id] ?? id}</span>
+          <button type="button" onClick={() => moveWidget(id, -1)} aria-label="أعلى" className="flex h-6 w-6 items-center justify-center rounded-md border border-brand-900/10 text-ink-500 hover:text-ink-950">
+            <ChevronUp className="h-3.5 w-3.5" />
+          </button>
+          <button type="button" onClick={() => moveWidget(id, 1)} aria-label="أسفل" className="flex h-6 w-6 items-center justify-center rounded-md border border-brand-900/10 text-ink-500 hover:text-ink-950">
+            <ChevronDown className="h-3.5 w-3.5" />
+          </button>
+          <button type="button" onClick={() => toggleWidget(id)} aria-label={hidden ? 'إظهار' : 'إخفاء'} className="flex h-6 w-6 items-center justify-center rounded-md border border-brand-900/10 text-ink-500 hover:text-ember-600">
+            {hidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+          </button>
+        </div>
+        <div className={hidden ? 'pointer-events-none opacity-40' : ''}>{children}</div>
+      </div>
+    );
+  }
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.55, delay: Math.min(index * 0.05, 0.4), ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 function StudentDashboard() {
   const searchParams = useSearchParams();
+  const prefs = usePortalPrefs();
   const [data, setData] = React.useState<DashboardData | null>(null);
   const [profile, setProfile] = React.useState<ProfileData | null>(null);
+  const [summary, setSummary] = React.useState<SummaryData | null>(null);
   const [error, setError] = React.useState('');
   const [message, setMessage] = React.useState('');
   const [scanOpen, setScanOpen] = React.useState(false);
   const [gpaOpen, setGpaOpen] = React.useState(false);
   const [gpaPrompted, setGpaPrompted] = React.useState(false);
+  const [editing, setEditing] = React.useState(false);
   const handledQuery = React.useRef('');
 
-  const load = React.useCallback(() => {
-    return Promise.all([
-      api<DashboardData>('/api/student/dashboard'),
-      api<ProfileData>('/api/student/profile'),
-    ])
-      .then(([dashboard, profileData]) => {
-        setData(dashboard);
-        setProfile(profileData);
-      })
-      .catch((err) => setError((err as Error).message));
+  const load = React.useCallback(async () => {
+    try {
+      const [dashboard, profileData] = await Promise.all([
+        api<DashboardData>('/api/student/dashboard'),
+        api<ProfileData>('/api/student/profile'),
+      ]);
+      setData(dashboard);
+      setProfile(profileData);
+      setLiveReminder(
+        dashboard.upcoming
+          ? {
+              nextAt: dashboard.upcoming.nextAt,
+              title: dashboard.upcoming.title,
+              course: dashboard.upcoming.code,
+              room: dashboard.upcoming.room,
+            }
+          : null,
+      );
+      const summaryData = await api<SummaryData>('/api/attendance/summary').catch(() => null);
+      setSummary(summaryData);
+    } catch (err) {
+      setError((err as Error).message);
+    }
   }, []);
 
   React.useEffect(() => {
@@ -294,10 +397,25 @@ function StudentDashboard() {
     }
   }, [profile, gpaPrompted]);
 
+  // فتح السكانر من الفاصلة العائمة / لوحة الأوامر
+  React.useEffect(() => {
+    const openScanner = () => setScanOpen(true);
+    window.addEventListener(SCAN_EVENT, openScanner);
+    return () => window.removeEventListener(SCAN_EVENT, openScanner);
+  }, []);
+
   const submitToken = React.useCallback(
     async (value: string) => {
       setError('');
       setMessage('');
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        // لا اتصال — نحفظه في الطابور والمزامنة تتم تلقائيًا
+        const { queueOfflineScan } = await import('@/lib/portal-prefs');
+        queueOfflineScan(value);
+        setMessage('مفيش نت دلوقتي — الكود اتسجل محليًا وسيبعت أول ما ترجع 👌');
+        setScanOpen(false);
+        return;
+      }
       try {
         const result = await api<{ lecture: { title: string; course: string } }>('/api/attendance', {
           method: 'POST',
@@ -308,6 +426,14 @@ function StudentDashboard() {
         setScanOpen(false);
         await load();
       } catch (err) {
+        const offline = (err as Error).message === 'Failed to fetch' || (err as TypeError) instanceof TypeError;
+        if (offline) {
+          const { queueOfflineScan } = await import('@/lib/portal-prefs');
+          queueOfflineScan(value);
+          setMessage('الشبكة قطعت معاك — الكود محفوظ وسيتبعت تلقائيًا 📡');
+          setScanOpen(false);
+          return;
+        }
         setError((err as Error).message);
       }
     },
@@ -334,18 +460,75 @@ function StudentDashboard() {
   const upcomingCountdown = useCountdown(data?.upcoming?.nextAt ?? null);
   const threshold = data?.policy.attendanceThreshold ?? 75; // سياسة الحضور من إعدادات الأدمن
 
+  const loadingState = !data || !profile;
+
+  // بيانات مشتقة للأدوات
+  const gradesPct = React.useMemo(() => {
+    if (!profile) return null;
+    const totals = profile.courses.filter((course) => course.total !== null).map((course) => course.total as number);
+    return totals.length ? Math.round(totals.reduce((a, b) => a + b, 0) / totals.length) : null;
+  }, [profile]);
+
+  const radarRows: RadarRow[] = React.useMemo(() => {
+    if (!summary) return [];
+    return summary.summary
+      .filter((row) => row.totalLectures > 0)
+      .map((row) => ({
+        code: row.course.code,
+        name: row.course.name,
+        totalLectures: row.totalLectures,
+        present: row.present,
+        late: row.late,
+        status: row.status,
+        attendancePct: row.attendancePct,
+      }));
+  }, [summary]);
+
+  const gpaCourses: GpaCourse[] = React.useMemo(() => {
+    if (!profile) return [];
+    return profile.courses.map((course) => ({
+      code: course.code,
+      name: course.name,
+      creditHours: course.creditHours,
+      components: course.components,
+      total: course.total,
+      graded: course.graded,
+      complete: course.complete,
+    }));
+  }, [profile]);
+
+  const plannerCourses = React.useMemo(() => {
+    if (!profile) return [];
+    return profile.courses.map((course) => ({ code: course.code, name: course.name, creditHours: course.creditHours }));
+  }, [profile]);
+
+  const attBars = React.useMemo(() => {
+    if (!summary) return [];
+    return summary.summary
+      .filter((row) => row.totalLectures > 0)
+      .map((row) => ({
+        label: row.course.code,
+        sub: row.course.name,
+        pct: row.attendancePct,
+      }));
+  }, [summary]);
+
   return (
-    <DashboardShell>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <StudentShell>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold text-ink-950">لوحة الطالب</h1>
-          <p className="mt-1 text-ink-500">يومك الدراسي في مكان واحد</p>
+          <p className="mt-1 text-ink-500">يومك الدراسي كامل — مركب ومصنّف بطريقتك</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => setEditing((value) => !value)} aria-pressed={editing}>
+            <SlidersHorizontal className="h-4 w-4" />
+            {editing ? 'خلص الترتيب' : 'ترتيب اللوحة'}
+          </Button>
           <Link href="/student/report">
             <Button variant="outline">
               <FileDown className="h-4 w-4" />
-              التقرير الشامل
+              تقريري
             </Button>
           </Link>
           <Button onClick={() => setScanOpen(true)}>
@@ -354,6 +537,24 @@ function StudentDashboard() {
           </Button>
         </div>
       </div>
+
+      {editing ? (
+        <div className="mb-5 rounded-2xl border border-gold-400/35 bg-gold-400/[0.07] p-4">
+          <p className="flex items-center gap-2 text-xs font-bold text-gold-800">
+            <LayoutGrid className="h-4 w-4" />
+            رتّب أدواتك بالأسهم، خبّي اللي مش بتستخدمه — الحفظ تلقائي على جهازك
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={resetWidgets}>
+              <RotateCcw className="h-3.5 w-3.5" />
+              رجّع الترتيب الافتراضي
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+              تمام، خلصت
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       {error ? (
         <p
@@ -369,400 +570,33 @@ function StudentDashboard() {
         </p>
       ) : null}
 
-      {!data || !profile ? (
+      {loadingState ? (
         !error ? (
-          <p className="py-16 text-center text-ink-400">جارٍ تحميل بياناتك...</p>
+          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+            <div className="space-y-6">
+              <Skeleton className="h-24 w-full rounded-3xl" />
+              <GridSkeleton cards={6} />
+            </div>
+            <div className="space-y-6">
+              <CardSkeletonUsage />
+            </div>
+          </div>
         ) : null
       ) : (
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+          {/* العمود الرئيسي — أدوات مرتبة باختيار الطالب */}
           <div className="space-y-6">
-            {/* كارت البروفايل الفخم */}
-            <Card className="border-gold-400/25 shadow-gold-soft">
-              <CardContent className="space-y-5 p-6">
-                <div className="flex flex-wrap items-start gap-5">
-                  <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-gold-400/30 bg-gold-400/15 shadow-gold-soft">
-                    {data.me.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={data.me.avatarUrl} alt={data.me.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <User className="h-9 w-9 text-gold-700" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="font-display text-2xl font-bold text-ink-950">
-                      أهلًا، {data.me.name} 👋
-                    </h2>
-                    <p className="mt-1 text-sm text-ink-500">
-                      كود الطالب{' '}
-                      <span className="font-bold text-gold-700">{data.me.studentCode ?? '—'}</span>
-                      {profile.profile.studentCode && data.me.studentCode !== profile.profile.studentCode
-                        ? ` · رقم الجلوس ${profile.profile.studentCode}`
-                        : ''}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="rounded-full border border-gold-400/25 bg-gold-400/15 px-3 py-1 text-xs text-gold-800">
-                        جروب {data.me.group ?? '—'}
-                      </span>
-                      <span className="rounded-full border border-gold-400/25 bg-gold-400/15 px-3 py-1 text-xs text-gold-800">
-                        الفرقة {data.me.level ?? '—'}
-                      </span>
-                      <span className="rounded-full border border-brand-900/10 bg-white/65 px-3 py-1 text-xs text-ink-600">
-                        {profile.profile.department ?? 'قسم غير محدد'}
-                      </span>
-                      <span className="flex items-center gap-1.5 rounded-full border border-brand-900/10 bg-white/65 px-3 py-1 text-xs text-ink-600">
-                        <Phone className="h-3 w-3" />
-                        {data.me.phone ?? '—'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* مؤشرا المعدل */}
-                  <div className="flex items-center gap-4">
-                    <RadialProgress
-                      value={profile.gpa.term}
-                      valueText={profile.gpa.term === null ? '—' : profile.gpa.term.toFixed(2)}
-                      labelText="ترم الحالي"
-                      tone="gold"
-                    />
-                    <RadialProgress
-                      value={profile.gpa.cumulative}
-                      valueText={profile.gpa.cumulative === null ? '—' : profile.gpa.cumulative.toFixed(2)}
-                      labelText={profile.gpa.cumulativeIsTermOnly ? 'حتى الترم الحالي' : 'تراكمي'}
-                      tone="lime"
-                    />
-                    {profile.gpa.previousSetAt === null ? (
-                      <button
-                        type="button"
-                        onClick={() => setGpaOpen(true)}
-                        className="rounded-2xl border border-gold-400/40 bg-gold-400/10 px-3 py-2 text-xs font-bold text-gold-800 transition hover:bg-gold-400/20"
-                      >
-                        أدخل معدلك السابق
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-
-                {birthdayDays !== null ? (
-                  <div
-                    className={`inline-flex items-center gap-2.5 rounded-2xl border px-4 py-3 ${
-                      birthdayDays === 0
-                        ? 'border-gold-400/60 bg-gold-400/15 text-gold-800 shadow-gold-soft'
-                        : 'border-gold-400/25 bg-gold-400/10 text-gold-800'
-                    }`}
-                  >
-                    <Cake className="h-5 w-5 shrink-0 text-gold-700" />
-                    <span className="text-sm font-bold">
-                      {birthdayDays === 0
-                        ? 'كل عام وأنت بخير 🎉'
-                        : `عيد ميلادك بعد ${birthdayDays} يوم 🎂`}
-                    </span>
-                  </div>
-                ) : null}
-
-                <div className="border-t border-brand-900/10 pt-4">
-                  <AyahTicker />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* أزرار الوصول السريع */}
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <Link href="/student/schedule" className="group">
-                <div className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
-                  <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
-                    <CalendarDays className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-bold text-ink-900">جدول اليوم</span>
-                    <span className="block text-xs text-ink-400">
-                      {data.todayLectures.length ? `${data.todayLectures.length} حصص — ${todayName}` : 'مفيش حصص النهاردة'}
-                    </span>
-                  </span>
-                </div>
-              </Link>
-              <Link href="/student/tasks" className="group">
-                <div className="relative flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
-                  {data.stats.lateTasks > 0 ? (
-                    <span className="absolute -top-1.5 left-3 rounded-full bg-ember-500 px-2 py-0.5 text-[10px] font-bold text-white">
-                      {data.stats.lateTasks} متأخرة
-                    </span>
-                  ) : null}
-                  <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
-                    <ClipboardList className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-bold text-ink-900">التكليفات المعلقة</span>
-                    <span className="block text-xs text-ink-400">
-                      {data.stats.lateTasks > 0 ? 'عليك تسليمات فات موعدها' : 'مفيش تكليفات متأخرة'}
-                    </span>
-                  </span>
-                </div>
-              </Link>
-              <button type="button" onClick={() => setScanOpen(true)} className="text-right">
-                <div className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
-                  <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
-                    <QrCode className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-bold text-ink-900">كود حضور المحاضرة</span>
-                    <span className="block text-xs text-ink-400">سكان كود المحاضرة أو إدخال الرمز</span>
-                  </span>
-                </div>
-              </button>
-              <Link href="/student/report" className="group">
-                <div className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
-                  <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
-                    <FileDown className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-bold text-ink-900">التقرير الشامل</span>
-                    <span className="block text-xs text-ink-400">PDF أكاديمي + Excel طبقات</span>
-                  </span>
-                </div>
-              </Link>
-            </div>
-
-            {/* المحاضرة القادمة — بعدّاد تنازلي حي */}
-            {data.upcoming ? (
-              <Card className={`overflow-hidden ${data.upcoming.isVip ? 'border-gold-400/45 shadow-gold-soft' : ''}`}>
-                <CardHeader className="flex items-center justify-between">
-                  <CardTitle>المحاضرة القادمة</CardTitle>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-gold-400/30 bg-gold-400/10 px-2.5 py-1 text-[11px] font-bold text-gold-800">
-                    <CalendarClock className="h-3.5 w-3.5" />
-                    {DAY_NAMES[data.upcoming.day - 1] ?? ''} · {data.upcoming.time}
-                  </span>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="font-display text-xl font-bold text-ink-950">
-                        {data.upcoming.isVip ? '⭐ ' : ''}
-                        {data.upcoming.title}
-                      </p>
-                      <p className="mt-1 text-xs text-ink-500">
-                        {data.upcoming.code} · {SCHED_KIND_LABEL[data.upcoming.kind] ?? data.upcoming.kind} ·{' '}
-                        {data.upcoming.room ?? 'قاعة غير محددة'} · {data.upcoming.teacher}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-gold-400/30 bg-gold-400/10 px-4 py-2.5 text-center">
-                      <p className="text-[10px] font-bold text-gold-700">تبدأ بعد</p>
-                      <p className="font-display text-xl font-bold text-ink-950" dir="ltr">
-                        {upcomingCountdown}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : null}
-
-            {/* مصفوفة تحليلات المواد */}
-            <div>
-              <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-                <h2 className="font-display text-lg font-bold text-ink-950">تحليلات المواد</h2>
-                {profile.levelRank ? (
-                  <p className="text-xs text-ink-500">
-                    الترتيب التراكمي العام:{' '}
-                    <span className="font-bold text-gold-700">
-                      المركز {profile.levelRank.rank} من {profile.levelRank.of}
-                    </span>{' '}
-                    على مستوى الفرقة {data.me.level ?? ''}
-                  </p>
-                ) : null}
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {profile.courses.map((course) => {
-                  const zone = course.total === null ? null : zoneFor(course.total);
-                  return (
-                    <Card key={course.code} className="border-glow">
-                      <CardContent className="space-y-3 p-5">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-bold text-ink-950">{course.name}</p>
-                            <p className="mt-0.5 text-[11px] text-ink-400">
-                              {course.code} · {course.creditHours} ساعات
-                            </p>
-                          </div>
-                          {course.letter ? (
-                            <span className="shrink-0 rounded-xl border border-gold-400/30 bg-gold-400/10 px-2.5 py-1 font-display text-sm font-bold text-gold-800">
-                              {course.letter}
-                            </span>
-                          ) : course.graded && !course.complete ? (
-                            <span className="shrink-0 rounded-xl border border-brand-900/10 bg-white/70 px-2.5 py-1 text-[11px] font-bold text-ink-400">
-                              قيد التقييم
-                            </span>
-                          ) : null}
-                        </div>
-
-                        <DistributionBar
-                          quiz={course.components?.quiz ?? null}
-                          work={course.components?.work ?? null}
-                          midterm={course.components?.midterm ?? null}
-                          final={course.components?.final ?? null}
-                        />
-
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="font-display text-2xl font-bold text-ink-950">
-                              {course.total === null ? '—' : course.total}
-                            </span>
-                            <span className="text-[11px] text-ink-400">/ {profile.gpa.maxTotal}</span>
-                          </div>
-                          {zone ? <ZoneBadge zone={zone} /> : (
-                            <span className="rounded-full border border-brand-900/10 bg-white/65 px-2.5 py-1 text-[11px] text-ink-400">
-                              لم تُسجل درجات
-                            </span>
-                          )}
-                        </div>
-
-                        {zone && course.total !== null ? (
-                          <p
-                            className={`rounded-xl px-3 py-2 text-[11px] font-bold ${
-                              zone === 'RED'
-                                ? 'bg-ember-500/[0.08] text-ember-600'
-                                : zone === 'YELLOW'
-                                  ? 'bg-gold-400/[0.10] text-gold-800'
-                                  : 'bg-brand-500/[0.08] text-brand-700'
-                            }`}
-                          >
-                            {zoneHint(zone)}
-                          </p>
-                        ) : null}
-
-                        {course.rank !== null ? (
-                          <p className="flex items-center gap-1.5 text-[11px] text-ink-500">
-                            <Award className="h-3.5 w-3.5 text-gold-700" />
-                            المركز <span className="font-bold text-gold-700">{course.rank}</span> من {course.rankOf} في المادة
-                          </p>
-                        ) : null}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* منحنى تطور المعدل */}
-            <Card>
-              <CardHeader className="flex items-center justify-between">
-                <CardTitle>منحنى تطور معدلك</CardTitle>
-                <span className="inline-flex items-center gap-1.5 text-xs text-ink-400">
-                  <TrendingUp className="h-4 w-4 text-brand-600" />
-                  مقارنة بالترمات السابقة
-                </span>
-              </CardHeader>
-              <CardContent>
-                <CurveChart points={profile.curve} />
-              </CardContent>
-            </Card>
-
-            {/* الإحصائيات */}
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <StatsCard title="المقررات" value={data.stats.courses} icon={BookOpen} />
-              <StatsCard
-                title="نسبة الحضور"
-                value={data.stats.attendancePct === null ? '—' : `${data.stats.attendancePct}%`}
-                icon={Percent}
-              />
-              <StatsCard
-                title="مهام لم تُسلّم"
-                value={data.stats.lateTasks}
-                hint={data.stats.lateTasks > 0 ? 'فوات موعد تسليمها' : undefined}
-                icon={ClipboardList}
-              />
-              <StatsCard
-                title="متوسط الميدترم"
-                value={data.stats.midtermScores === null ? '—' : data.stats.midtermScores}
-                icon={Percent}
-              />
-            </div>
-
-            {/* محاضرات النهاردة */}
-            <Card>
-              <CardHeader className="flex items-center justify-between">
-                <CardTitle>محاضرات النهاردة · {todayName}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {data.todayLectures.length ? (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {data.todayLectures.map((lecture) => (
-                      <div
-                        key={`${lecture.period}-${lecture.code}`}
-                        className={`flex items-start gap-3 rounded-2xl border p-4 ${
-                          lecture.isVip
-                            ? 'border-gold-400/45 bg-gold-400/10 shadow-gold-soft'
-                            : 'border-brand-900/10 bg-white/65'
-                        }`}
-                      >
-                        <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
-                          <CalendarDays className="h-5 w-5" />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold leading-snug text-ink-950">
-                            {lecture.isVip ? '⭐ ' : ''}
-                            {lecture.title}
-                          </p>
-                          <p className="mt-1 text-xs text-ink-400">
-                            {lecture.code} · {SCHED_KIND_LABEL[lecture.kind] ?? lecture.kind} ·{' '}
-                            {lecture.room ?? 'قاعة غير محددة'}
-                          </p>
-                          <p className="mt-1 text-xs text-ink-500" dir="ltr">
-                            {lecture.time}
-                          </p>
-                          <p className="mt-0.5 text-xs text-ink-400">{lecture.teacher}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="py-6 text-center text-sm text-ink-400">
-                    ☕ مفيش محاضرات النهاردة — استغل يومك
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* آخر الدرجات */}
-            <Card>
-              <CardHeader>
-                <CardTitle>آخر الدرجات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {data.lastGrades.length ? (
-                  <ul className="space-y-3">
-                    {data.lastGrades.map((grade) => (
-                      <li
-                        key={grade.course.code}
-                        className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4"
-                      >
-                        <span
-                          className={`h-2.5 w-2.5 shrink-0 rounded-full ${gradeDotClass(grade.total)}`}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold text-ink-900">{grade.course.name}</p>
-                          <p className="text-xs text-ink-400">
-                            {grade.course.code} · كويز {grade.quiz ?? '—'} · أعمال {grade.work ?? '—'} ·
-                            ميدترم {grade.midterm ?? '—'} · فاينل {grade.final ?? '—'}
-                          </p>
-                        </div>
-                        <span
-                          className={`text-lg font-bold ${
-                            grade.total >= 75
-                              ? 'text-brand-700'
-                              : grade.total >= 50
-                                ? 'text-gold-700'
-                                : 'text-ember-600'
-                          }`}
-                        >
-                          {grade.total}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="py-6 text-center text-sm text-ink-400">لا توجد درجات مسجلة بعد</p>
-                )}
-              </CardContent>
-            </Card>
+            {prefs.widgetOrder.map((id, index) => (
+              <Widget
+                key={id}
+                id={id}
+                index={index}
+                editing={editing}
+                hidden={prefs.hiddenWidgets.includes(id)}
+              >
+                {renderWidget(id)}
+              </Widget>
+            ))}
           </div>
 
           {/* العمود الجانبي */}
@@ -826,6 +660,12 @@ function StudentDashboard() {
                     </p>
                   ) : null;
                 })()}
+                {attBars.length ? (
+                  <div className="border-t border-brand-900/10 pt-3">
+                    <p className="mb-2 text-[10px] font-bold text-ink-400">نسبة الحضور بالمقررات</p>
+                    <MiniBars items={attBars} />
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
 
@@ -834,51 +674,31 @@ function StudentDashboard() {
                 <CardTitle>روابط سريعة</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3">
-                <Link
-                  href="/student/tasks"
-                  className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]"
+                <QuickLink href="/student/tasks" icon={ClipboardList} title="المهام والتسليمات" sub="حلول أسبوعية وشهرية" />
+                <QuickLink href="/student/schedule" icon={CalendarDays} title="الجدول الأسبوعي" sub={`حصص جروبك · ${todayName}`} />
+                <QuickLink href="/student/notes" icon={NotebookPen} title="مذكرة الملاحظات" sub="اكتب وثبت ملاحظاتك للمواد" />
+                <QuickLink href="/student/materials" icon={FolderOpen} title="ملفات المقررات" sub="مذكرات وشرح الدكاترة" />
+                <QuickLink href="/student/lectures" icon={CalendarClock} title="سجل المحاضرات" sub="حضورك في كل محاضرة" />
+                <button
+                  type="button"
+                  onClick={openSettings}
+                  className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 text-right transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]"
                 >
                   <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
-                    <ClipboardList className="h-5 w-5" />
+                    <Settings2 className="h-5 w-5" />
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-sm font-bold text-ink-900">المهام والتسليمات</span>
-                    <span className="block truncate text-xs text-ink-400">حلول أسبوعية وشهرية</span>
+                    <span className="block text-sm font-bold text-ink-900">أدوات العرض</span>
+                    <span className="block truncate text-xs text-ink-400">الوضع الليلي · الخط · التباين · تنبيهات</span>
                   </span>
-                </Link>
-                <Link
-                  href="/student/schedule"
-                  className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]"
-                >
-                  <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
-                    <CalendarDays className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-bold text-ink-900">الجدول الأسبوعي</span>
-                    <span className="block truncate text-xs text-ink-400">حصص جروبك كاملة</span>
-                  </span>
-                </Link>
-                <Link
-                  href="/student/lectures"
-                  className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:border-gold-400/45 hover:bg-gold-400/[0.06]"
-                >
-                  <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
-                    <CalendarClock className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-bold text-ink-900">قسم المحاضرات</span>
-                    <span className="block truncate text-xs text-ink-400">ترم أول · ترم تاني · جروب أ/ب</span>
-                  </span>
-                </Link>
+                </button>
               </CardContent>
             </Card>
           </aside>
         </div>
       )}
 
-      {scanOpen ? (
-        <QRScanner onResult={handleScanResult} onClose={handleScanClose} />
-      ) : null}
+      {scanOpen ? <QRScanner onResult={handleScanResult} onClose={handleScanClose} /> : null}
 
       <GpaEntryModal
         open={gpaOpen}
@@ -887,7 +707,533 @@ function StudentDashboard() {
           void load();
         }}
       />
-    </DashboardShell>
+    </StudentShell>
+  );
+
+  /* ── بناء الأداة حسب المعرف ── */
+  function renderWidget(id: string): React.ReactNode {
+    if (loadingState || !data || !profile) return null;
+    switch (id) {
+      case 'profile':
+        return profileCard();
+      case 'focus':
+        return (
+          <FocusBanner
+            name={data.me.name}
+            upcoming={
+              data.upcoming
+                ? {
+                    title: data.upcoming.title,
+                    code: data.upcoming.code,
+                    kind: data.upcoming.kind,
+                    room: data.upcoming.room,
+                    time: data.upcoming.time,
+                    daysUntil: data.upcoming.daysUntil,
+                  }
+                : null
+            }
+            lateTasks={data.stats.lateTasks}
+          />
+        );
+      case 'health':
+        return (
+          <div className="grid gap-6 xl:grid-cols-2">
+            <HealthIndex attendancePct={data.attendance.weightedPct} gradesPct={gradesPct} />
+            <Card>
+              <CardHeader className="flex items-center justify-between">
+                <CardTitle>نبض اللوحة</CardTitle>
+                <span className="rounded-full border border-brand-500/20 bg-brand-500/[0.07] px-2.5 py-1 text-[10px] font-bold text-brand-700">
+                  Term {data.activeTerm}
+                </span>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-2">
+                <MiniStat icon={BookOpen} label="مقرراتك" value={data.stats.courses} tone="text-brand-700" />
+                <MiniStat icon={ClipboardList} label="تسليمات متأخرة" value={data.stats.lateTasks} tone={data.stats.lateTasks ? 'text-ember-600' : 'text-ink-500'} />
+                <MiniStat icon={TrendingUp} label="متوسط الميدترم" value={data.stats.midtermScores === null ? '—' : data.stats.midtermScores} tone="text-gold-700" />
+                <MiniStat
+                  icon={Award}
+                  label="ترتيبك التراكمي"
+                  value={profile.levelRank ? `${profile.levelRank.rank}/${profile.levelRank.of}` : '—'}
+                  tone="text-gold-700"
+                />
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case 'radar':
+        return <AbsenceRadar rows={radarRows} policy={data.policy} loading={!summary} />;
+      case 'upcoming':
+        if (!data.upcoming) return null;
+        return (
+          <Card className={`overflow-hidden ${data.upcoming.isVip ? 'border-gold-400/45 shadow-gold-soft' : ''}`}>
+            <CardHeader className="flex items-center justify-between">
+              <CardTitle>المحاضرة القادمة</CardTitle>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-gold-400/30 bg-gold-400/10 px-2.5 py-1 text-[11px] font-bold text-gold-800">
+                <CalendarClock className="h-3.5 w-3.5" />
+                {DAY_NAMES[data.upcoming.day - 1] ?? ''} · {data.upcoming.time}
+              </span>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="font-display text-xl font-bold text-ink-950">
+                    {data.upcoming.isVip ? '⭐ ' : ''}
+                    {data.upcoming.title}
+                  </p>
+                  <p className="mt-1 text-xs text-ink-500">
+                    {data.upcoming.code} · {SCHED_KIND_LABEL[data.upcoming.kind] ?? data.upcoming.kind} ·{' '}
+                    {data.upcoming.room ?? 'قاعة غير محددة'} · {data.upcoming.teacher}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gold-400/30 bg-gold-400/10 px-4 py-2.5 text-center">
+                  <p className="text-[10px] font-bold text-gold-700">تبدأ بعد</p>
+                  <p className="font-display text-xl font-bold text-ink-950" dir="ltr">
+                    {upcomingCountdown}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      case 'today':
+        return (
+          <Card>
+            <CardHeader className="flex items-center justify-between">
+              <CardTitle>محاضرات النهاردة · {todayName}</CardTitle>
+              <Link href="/student/schedule" className="text-[11px] font-bold text-gold-700 hover:underline">
+                الجدول كامل ←
+              </Link>
+            </CardHeader>
+            <CardContent>
+              {data.todayLectures.length ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {data.todayLectures.map((lecture) => (
+                    <div
+                      key={`${lecture.period}-${lecture.code}`}
+                      className={`flex items-start gap-3 rounded-2xl border p-4 ${
+                        lecture.isVip
+                          ? 'border-gold-400/45 bg-gold-400/10 shadow-gold-soft'
+                          : 'border-brand-900/10 bg-white/65'
+                      }`}
+                    >
+                      <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
+                        <CalendarDays className="h-5 w-5" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold leading-snug text-ink-950">
+                          {lecture.isVip ? '⭐ ' : ''}
+                          {lecture.title}
+                        </p>
+                        <p className="mt-1 text-xs text-ink-400">
+                          {lecture.code} · {SCHED_KIND_LABEL[lecture.kind] ?? lecture.kind} ·{' '}
+                          {lecture.room ?? 'قاعة غير محددة'}
+                        </p>
+                        <p className="mt-1 text-xs text-ink-500" dir="ltr">
+                          {lecture.time}
+                        </p>
+                        <p className="mt-0.5 text-xs text-ink-400">{lecture.teacher}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-4 text-center">
+                  <p className="rounded-2xl border border-dashed border-brand-500/20 bg-brand-500/[0.04] py-6 text-sm font-bold text-ink-500">
+                    ☕ مفيش محاضرات النهاردة — يوم راحة، راجع مع البومودورو
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      case 'tiles':
+        return (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Link href="/student/schedule" className="group">
+              <QuickTile icon={CalendarDays} title="جدول اليوم" sub={data.todayLectures.length ? `${data.todayLectures.length} حصص — ${todayName}` : 'مفيش حصص النهاردة'} />
+            </Link>
+            <Link href="/student/tasks" className="group">
+              <QuickTile
+                icon={ClipboardList}
+                title="التكليفات المعلقة"
+                sub={data.stats.lateTasks > 0 ? 'عليك تسليمات فات موعدها' : 'مفيش تكليفات متأخرة'}
+                badge={data.stats.lateTasks > 0 ? `${data.stats.lateTasks} متأخرة` : undefined}
+              />
+            </Link>
+            <button type="button" onClick={() => setScanOpen(true)} className="text-right">
+              <QuickTile icon={QrCode} title="كود حضور المحاضرة" sub="سكان كود أو رمز يدوي" />
+            </button>
+            <Link href="/student/report" className="group">
+              <QuickTile icon={FileDown} title="تقرير الأداء" sub="ملخص + تصدير CSV يفتح في Excel" />
+            </Link>
+          </div>
+        );
+      case 'analytics':
+        return (
+          <div>
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+              <h2 className="font-display text-lg font-bold text-ink-950">تحليلات المواد</h2>
+              {profile.levelRank ? (
+                <p className="text-xs text-ink-500">
+                  الترتيب التراكمي العام:{' '}
+                  <span className="font-bold text-gold-700">
+                    المركز {profile.levelRank.rank} من {profile.levelRank.of}
+                  </span>{' '}
+                  على مستوى الفرقة {data.me.level ?? ''}
+                </p>
+              ) : null}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {profile.courses.map((course, index) => {
+                const zone = course.total === null ? null : zoneFor(course.total);
+                return (
+                  <motion.div
+                    key={course.code}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.3) }}
+                  >
+                    <Card className="border-glow">
+                      <CardContent className="space-y-3 p-5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-bold text-ink-950">{course.name}</p>
+                            <p className="mt-0.5 text-[11px] text-ink-400">
+                              {course.code} · {course.creditHours} ساعات
+                            </p>
+                          </div>
+                          {course.letter ? (
+                            <span className="shrink-0 rounded-xl border border-gold-400/30 bg-gold-400/10 px-2.5 py-1 font-display text-sm font-bold text-gold-800">
+                              {course.letter}
+                            </span>
+                          ) : course.graded && !course.complete ? (
+                            <span className="shrink-0 rounded-xl border border-brand-900/10 bg-white/70 px-2.5 py-1 text-[11px] font-bold text-ink-400">
+                              قيد التقييم
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <DistributionBar
+                          quiz={course.components?.quiz ?? null}
+                          work={course.components?.work ?? null}
+                          midterm={course.components?.midterm ?? null}
+                          final={course.components?.final ?? null}
+                        />
+
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="font-display text-2xl font-bold text-ink-950">
+                              {course.total === null ? '—' : course.total}
+                            </span>
+                            <span className="text-[11px] text-ink-400">/ {profile.gpa.maxTotal}</span>
+                          </div>
+                          {zone ? <ZoneBadge zone={zone} /> : (
+                            <span className="rounded-full border border-brand-900/10 bg-white/65 px-2.5 py-1 text-[11px] text-ink-400">
+                              لم تُسجل درجات
+                            </span>
+                          )}
+                        </div>
+
+                        {zone && course.total !== null ? (
+                          <p
+                            className={`rounded-xl px-3 py-2 text-[11px] font-bold ${
+                              zone === 'RED'
+                                ? 'bg-ember-500/[0.08] text-ember-600'
+                                : zone === 'YELLOW'
+                                  ? 'bg-gold-400/[0.10] text-gold-800'
+                                  : 'bg-brand-500/[0.08] text-brand-700'
+                            }`}
+                          >
+                            {zoneHint(zone)}
+                          </p>
+                        ) : null}
+
+                        {course.rank !== null ? (
+                          <p className="flex items-center gap-1.5 text-[11px] text-ink-500">
+                            <Award className="h-3.5 w-3.5 text-gold-700" />
+                            المركز <span className="font-bold text-gold-700">{course.rank}</span> من {course.rankOf} في المادة
+                          </p>
+                        ) : null}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      case 'whatif':
+        return <GpaWhatIf courses={gpaCourses} currentTermGpa={profile.gpa.term} />;
+      case 'curve':
+        return (
+          <Card>
+            <CardHeader className="flex items-center justify-between">
+              <CardTitle>منحنى تطور معدلك</CardTitle>
+              <span className="inline-flex items-center gap-1.5 text-xs text-ink-400">
+                <TrendingUp className="h-4 w-4 text-brand-600" />
+                مقارنة بالترمات السابقة
+              </span>
+            </CardHeader>
+            <CardContent>
+              <CurveChart points={profile.curve} />
+            </CardContent>
+          </Card>
+        );
+      case 'planner':
+        return <StudyPlanner courses={plannerCourses} />;
+      case 'pomodoro':
+        return <PomodoroTimer courses={plannerCourses} />;
+      case 'grades':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>آخر الدرجات</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {data.lastGrades.length ? (
+                <ul className="space-y-3">
+                  {data.lastGrades.map((grade) => (
+                    <li
+                      key={grade.course.code}
+                      className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4"
+                    >
+                      <span
+                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${gradeDotClass(grade.total)}`}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-ink-900">{grade.course.name}</p>
+                        <p className="text-xs text-ink-400">
+                          {grade.course.code} · كويز {grade.quiz ?? '—'} · أعمال {grade.work ?? '—'} ·
+                          ميدترم {grade.midterm ?? '—'} · فاينل {grade.final ?? '—'}
+                        </p>
+                      </div>
+                      <span
+                        className={`text-lg font-bold ${
+                          grade.total >= 75
+                            ? 'text-brand-700'
+                            : grade.total >= 50
+                              ? 'text-gold-700'
+                              : 'text-ember-600'
+                        }`}
+                      >
+                        {grade.total}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="py-6 text-center text-sm text-ink-400">لا توجد درجات مسجلة بعد</p>
+              )}
+            </CardContent>
+          </Card>
+        );
+      case 'notices':
+        return <NoticesFeed />;
+      default:
+        return null;
+    }
+  }
+
+  /* كارت البروفايل الفخم — كجزء ثابت أعلى العمود الرئيسي */
+  function profileCard(): React.ReactNode {
+    if (!data || !profile) return null;
+    return (
+      <Card className="border-gold-400/25 shadow-gold-soft">
+        <CardContent className="space-y-5 p-6">
+          <div className="flex flex-wrap items-start gap-5">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-gold-400/30 bg-gold-400/15 shadow-gold-soft">
+              {data.me.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={data.me.avatarUrl} alt={data.me.name} className="h-full w-full object-cover" />
+              ) : (
+                <User className="h-9 w-9 text-gold-700" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-display text-2xl font-bold text-ink-950">
+                أهلًا، {data.me.name} 👋
+              </h2>
+              <p className="mt-1 text-sm text-ink-500">
+                كود الطالب{' '}
+                <span className="font-bold text-gold-700">{data.me.studentCode ?? '—'}</span>
+                {profile.profile.studentCode && data.me.studentCode !== profile.profile.studentCode
+                  ? ` · رقم الجلوس ${profile.profile.studentCode}`
+                  : ''}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="rounded-full border border-gold-400/25 bg-gold-400/15 px-3 py-1 text-xs text-gold-800">
+                  جروب {data.me.group ?? '—'}
+                </span>
+                <span className="rounded-full border border-gold-400/25 bg-gold-400/15 px-3 py-1 text-xs text-gold-800">
+                  الفرقة {data.me.level ?? '—'}
+                </span>
+                <span className="rounded-full border border-brand-900/10 bg-white/65 px-3 py-1 text-xs text-ink-600">
+                  {profile.profile.department ?? 'قسم غير محدد'}
+                </span>
+                <span className="flex items-center gap-1.5 rounded-full border border-brand-900/10 bg-white/65 px-3 py-1 text-xs text-ink-600">
+                  <Phone className="h-3 w-3" />
+                  {data.me.phone ?? '—'}
+                </span>
+              </div>
+            </div>
+
+            {/* مؤشرا المعدل */}
+            <div className="flex items-center gap-4">
+              <RadialProgress
+                value={profile.gpa.term}
+                valueText={profile.gpa.term === null ? '—' : profile.gpa.term.toFixed(2)}
+                labelText="ترم الحالي"
+                tone="gold"
+              />
+              <RadialProgress
+                value={profile.gpa.cumulative}
+                valueText={profile.gpa.cumulative === null ? '—' : profile.gpa.cumulative.toFixed(2)}
+                labelText={profile.gpa.cumulativeIsTermOnly ? 'حتى الترم الحالي' : 'تراكمي'}
+                tone="lime"
+              />
+              {profile.gpa.previousSetAt === null ? (
+                <button
+                  type="button"
+                  onClick={() => setGpaOpen(true)}
+                  className="rounded-2xl border border-gold-400/40 bg-gold-400/10 px-3 py-2 text-xs font-bold text-gold-800 transition hover:bg-gold-400/20"
+                >
+                  أدخل معدلك السابق
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          {birthdayDays !== null ? (
+            <div
+              className={`inline-flex items-center gap-2.5 rounded-2xl border px-4 py-3 ${
+                birthdayDays === 0
+                  ? 'border-gold-400/60 bg-gold-400/15 text-gold-800 shadow-gold-soft'
+                  : 'border-gold-400/25 bg-gold-400/10 text-gold-800'
+              }`}
+            >
+              <Cake className="h-5 w-5 shrink-0 text-gold-700" />
+              <span className="text-sm font-bold">
+                {birthdayDays === 0
+                  ? 'كل عام وأنت بخير 🎉'
+                  : `عيد ميلادك بعد ${birthdayDays} يوم 🎂`}
+              </span>
+            </div>
+          ) : null}
+
+          <div className="border-t border-brand-900/10 pt-4">
+            <AyahTicker />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  function CardSkeletonUsage() {
+    return (
+      <div className="space-y-6">
+        <Card className="border-gold-400/25 shadow-gold-soft">
+          <CardContent className="flex items-center gap-4 p-6">
+            <Skeleton className="h-20 w-20 rounded-3xl" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-3 w-1/3" />
+              <div className="flex gap-2 pt-1">
+                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-6 w-20" />
+              </div>
+            </div>
+            <div className="hidden gap-4 sm:flex">
+              <Skeleton className="h-16 w-16 rounded-full" />
+              <Skeleton className="h-16 w-16 rounded-full" />
+            </div>
+          </CardContent>
+        </Card>
+        <Skeleton className="h-40 w-full rounded-3xl" />
+        <Skeleton className="h-64 w-full rounded-3xl" />
+      </div>
+    );
+  }
+}
+
+function QuickTile({
+  icon: Icon,
+  title,
+  sub,
+  badge,
+}: {
+  icon: LucideIcon;
+  title: string;
+  sub: string;
+  badge?: string;
+}) {
+  return (
+    <div className="relative flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:-translate-y-0.5 hover:border-gold-400/45 hover:bg-gold-400/[0.06]">
+      {badge ? (
+        <span className="absolute -top-1.5 left-3 rounded-full bg-ember-500 px-2 py-0.5 text-[10px] font-bold text-white">
+          {badge}
+        </span>
+      ) : null}
+      <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-bold text-ink-900">{title}</span>
+        <span className="block text-xs text-ink-400">{sub}</span>
+      </span>
+    </div>
+  );
+}
+
+function QuickLink({
+  href,
+  icon: Icon,
+  title,
+  sub,
+}: {
+  href: string;
+  icon: LucideIcon;
+  title: string;
+  sub: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 rounded-2xl border border-brand-900/10 bg-white/65 p-4 transition duration-300 hover:-translate-y-0.5 hover:border-gold-400/45 hover:bg-gold-400/[0.06]"
+    >
+      <span className="rounded-xl bg-gold-400/15 p-2.5 text-gold-700">
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-bold text-ink-900">{title}</span>
+        <span className="block truncate text-xs text-ink-400">{sub}</span>
+      </span>
+    </Link>
+  );
+}
+
+function MiniStat({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string | number;
+  tone: string;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 rounded-2xl border border-brand-900/10 bg-white/65 px-3 py-2.5">
+      <span className={`shrink-0 ${tone}`}>
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="min-w-0">
+        <span className="block font-display text-base font-black text-ink-950">{value}</span>
+        <span className="block truncate text-[9.5px] text-ink-400">{label}</span>
+      </span>
+    </div>
   );
 }
 

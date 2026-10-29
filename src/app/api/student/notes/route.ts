@@ -95,6 +95,65 @@ export async function POST(request: Request) {
 }
 
 // ───────────────────────────────────────────────────────────────
+// PATCH /api/student/notes — تعديل ملاحظة (عنوان/محتوى/تثبيت/ربط)
+// ───────────────────────────────────────────────────────────────
+const notePatchSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().trim().max(120).optional().or(z.literal('')),
+  body: z.string().trim().min(1, 'المحتوى مطلوب').max(4000).optional(),
+  pinned: z.boolean().optional(),
+  courseId: z.string().min(1).optional().or(z.literal('')),
+});
+
+export async function PATCH(request: Request) {
+  try {
+    const user = await requireUser(['STUDENT']);
+    assertRateLimit(`note-update:${user.id}`, 60, 60 * 60 * 1000);
+    const body = await request.json().catch(() => null);
+    if (!body) return jsonError('بيانات غير صالحة');
+
+    const parsed = notePatchSchema.safeParse(body);
+    if (!parsed.success) return jsonError(parsed.error.issues[0]?.message || 'بيانات غير صالحة');
+
+    const { id, title, body: content, pinned, courseId } = parsed.data;
+
+    const existing = await prisma.studentNote.findFirst({
+      where: { id, studentId: user.id },
+      select: { id: true },
+    });
+    if (!existing) return jsonError('الملاحظة غير موجودة', 404);
+
+    if (courseId) {
+      const enrolled = await prisma.enrollment.findFirst({ where: { studentId: user.id, courseId } });
+      if (!enrolled) return jsonError('المقرر غير موجود في موادك المسجلة');
+    }
+
+    const updated = await prisma.studentNote.update({
+      where: { id },
+      data: {
+        ...(title !== undefined ? { title: title ? sanitizeString(title, 120) : null } : {}),
+        ...(content !== undefined ? { body: sanitizeString(content, 4000) } : {}),
+        ...(pinned !== undefined ? { pinned } : {}),
+        ...(courseId !== undefined ? { courseId: courseId || null } : {}),
+      },
+      select: { id: true, title: true, pinned: true, courseId: true, updatedAt: true },
+    });
+
+    await logAudit({
+      user: { id: user.id, role: user.role },
+      request,
+      action: 'NOTE_UPDATE',
+      entity: 'StudentNote',
+      detail: { noteId: id },
+    });
+
+    return Response.json({ ok: true, note: updated });
+  } catch (error) {
+    return handleApiError(error, 'تعذر إتمام الطلب');
+  }
+}
+
+// ───────────────────────────────────────────────────────────────
 // DELETE /api/student/notes?id=… — حذف ملاحظة يملكها الطالب فقط
 // ───────────────────────────────────────────────────────────────
 export async function DELETE(request: Request) {
