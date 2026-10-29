@@ -5,7 +5,7 @@
 **منصة إدارة الحضور والمحاضرات الأكاديمية — كلية العلوم، جامعة السويس**
 
 [![CI](https://github.com/budiabdallah20/raqib/actions/workflows/verify.yml/badge.svg)](https://github.com/budiabdallah20/raqib/actions/workflows/verify.yml)
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?logo=vercel&logoColor=white)](https://raqib-blue.vercel.app/)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?logo=vercel&logoColor=white)](https://raqibdev.vercel.app/)
 ![Next.js 15](https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)
 ![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)
@@ -47,7 +47,7 @@ page. Built with Next.js 15 + TypeScript + Prisma, deployed on Vercel with stric
 | اللغة | TypeScript 5.6 بصرامة كاملة (`tsc --noEmit` في الـ CI) |
 | قاعدة البيانات | Prisma 5 + SQLite تطويراً · PostgreSQL للإنتاج |
 | التنسيق | Tailwind CSS 3 بهوية عربية RTL مخصصة (ذهبي/فحمي) |
-| الحركة | Framer Motion · GSAP · Lenis |
+| الحركة | Framer Motion |
 | الاختبار | Vitest 5 (وحدات) · Playwright (شاملة E2E) |
 | النشر | Vercel (HTTP/3) · GitHub Actions للحماية |
 | التشغيل البديل | Docker (وفي المستودع Dockerfile و docker-compose) |
@@ -93,7 +93,7 @@ docker compose up --build
 | `DATABASE_URL` | الاتصال بالقاعدة | تطويراً: `file:./dev.db` · إنتاجاً: سلسلة Postgres مع `sslmode=require` |
 | `JWT_SECRET` | توقيع الجلسات | سر 64 حرف — ولّده: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
 | `ADMIN_ACCESS_CODE_HASH` | كود دخول الإدارة (bcrypt-12) | ولّده: `npm run admin:code` |
-| `NEXT_PUBLIC_APP_URL` | العنوان الرسمي | `https://raqib-blue.vercel.app` |
+| `NEXT_PUBLIC_APP_URL` | العنوان الرسمي | `https://raqibdev.vercel.app` |
 | `TRUST_PROXY` | ثقة رؤوس X-Forwarded خلف بروكسي | `1` على Vercel / Nginx |
 | `PASSKEY_RP_ID` | نطاق WebAuthn | نطاق الإنتاج بدون `https://` ولا مسارات |
 | `RESEND_API_KEY` | البريد لاستعادة كلمة المرور | اختياري |
@@ -135,8 +135,8 @@ docker compose up --build
 - أي branch آخر أو PR → نشر **Preview** بعنوان مؤقت.
 
 ```text
-الرابط الرسمي: https://raqib-blue.vercel.app
-صفحة الحالة:   https://raqib-blue.vercel.app/status
+الرابط الرسمي: https://raqibdev.vercel.app
+صفحة الحالة:   https://raqibdev.vercel.app/status
 ```
 
 خطوات الاعتماد الحقيقية:
@@ -179,6 +179,13 @@ scripts/         # أدوات الصيانة (نسخ احتياطي/تدقيق/�
 tests/           # Vitest + Playwright
 docs/            # توثيق موسع (هوية/هندسة/عرض/سيناريو)
 ```
+
+## 🧰 النسخ الاحتياطي والتشغيل المحلي
+
+- **الإنتاج المحلي:** `npm run build` ثم `npm start` → `https://localhost:5000` (شهادة mkcert من `certs/`).
+- **نسخة احتياطية يدوية:** `npm run db:backup` — أو مجدولة كل 6 ساعات (Task Scheduler: `RAQiB DB Backup`)، آخر 20 نسخة.
+- **Google Drive:** ثبّت Google Drive للكمبيوتر واختر مجلد `RAQiB-Backups` كمجلد مزامنة — كل نسخة جديدة ترفع للدرايف تلقائيًا بلا أي كود.
+- **التهجير إلى Postgres عند الحاجة:** `npm run db:dump` → `npm run db:push:pg` → `npm run db:restore` (البناء يختار لغة Prisma تلقائيًا من DATABASE_URL).
 
 ## 📚 توثيق إضافي
 
