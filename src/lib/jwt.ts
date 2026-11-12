@@ -28,12 +28,13 @@ function fromBase64Url(value: string) {
   return bytes;
 }
 
-function getSecret() {
+/** يقرأ السر مرة واحدة ويفشل مغلقًا لو ضعيف/بديل. مطلوب أيضًا لـQR HMAC. */
+export function getJwtSecret() {
   const secret = process.env.JWT_SECRET;
   if (!secret || secret.length < 32) {
     throw new Error('JWT_SECRET must be at least 32 characters');
   }
-  if (process.env.NODE_ENV === 'production' && WEAK_SECRETS.has(secret)) {
+  if (WEAK_SECRETS.has(secret)) {
     throw new Error('JWT_SECRET is still a placeholder — rotate it before production');
   }
   return secret;
@@ -42,14 +43,14 @@ function getSecret() {
 async function getKey() {
   return crypto.subtle.importKey(
     'raw',
-    encoder.encode(getSecret()),
+    encoder.encode(getJwtSecret()),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign', 'verify'],
   );
 }
 
-export async function signToken(payload: JwtPayload) {
+export async function signToken(payload: JwtPayload, expiresInSeconds?: number) {
   const key = await getKey();
   const header = toBase64Url(
     encoder.encode(JSON.stringify({ alg: 'HS256', typ: 'JWT' })),
@@ -62,7 +63,7 @@ export async function signToken(payload: JwtPayload) {
         iss: ISSUER,
         aud: AUDIENCE,
         iat: now,
-        exp: now + JWT_EXPIRES_IN,
+        exp: now + (expiresInSeconds ?? JWT_EXPIRES_IN),
       }),
     ),
   );

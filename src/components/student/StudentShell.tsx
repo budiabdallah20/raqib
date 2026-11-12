@@ -11,7 +11,7 @@ import { Sparkles, X } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { api } from '@/lib/api';
 import { FONT_SCALE_PCT, usePortalPrefs } from '@/lib/portal-prefs';
-import { CommandPalette } from './CommandPalette';
+import { CommandPalette } from '@/components/shared/CommandPalette';
 import { QuickDock } from './QuickDock';
 import { ThemeToolsPanel } from './ThemeToolsPanel';
 import { OnboardingModal } from './OnboardingModal';
@@ -122,7 +122,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
           </p>
         </footer>
       </div>
-      <CommandPalette />
+      <CommandPalette role="STUDENT" />
       <QuickDock />
       <ThemeToolsPanel />
       <OnboardingModal user={user} />

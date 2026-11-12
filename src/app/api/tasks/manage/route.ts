@@ -218,6 +218,16 @@ export async function PUT(request: Request) {
 
     const task = await loadOwnedTask(user.id, taskId);
 
+    // منع IDOR: لا يمكن تقييم طالب غير مسجل في مقرر المهمة حتى لو عرف الـid.
+    const studentIds = [...new Set(rows.map((row) => row.studentId))];
+    const enrolled = await prisma.enrollment.findMany({
+      where: { courseId: task.courseId, studentId: { in: studentIds } },
+      select: { studentId: true },
+    });
+    if (enrolled.length !== studentIds.length) {
+      return jsonError('بعض الطلاب غير مسجلين في مقرر هذه المهمة', 400);
+    }
+
     let graded = 0;
     for (const row of rows) {
       const feedback = row.feedback ? sanitizeString(row.feedback, 500) : null;

@@ -48,6 +48,11 @@ model User {
   passkeys            PasskeyCredential[]
   gpaSnapshots        GpaSnapshot[]
   notes               StudentNote[]
+  roleAssignments     RoleAssignment[]
+  teachingAssignments TeachingAssignment[]
+  sections            CourseSection[]   @relation("SectionProfessor")
+  examsCreated        Exam[]            @relation("ExamCreator")
+  examAttempts        ExamAttempt[]     @relation("ExamAttemptStudent")
 
   @@index([role, isActive])
   @@index([lockedUntil])
@@ -113,6 +118,8 @@ model Course {
   creditHours Int? // الساعات المعتمدة للمقرر — توزن حساب الـ GPA عند توفرها
   professorId String
   professor   User     @relation("CourseProfessor", fields: [professorId], references: [id], onDelete: Restrict)
+  semesterId  String? // PHASE 1: nullable until dual-run cutover; null = legacy course
+  semester    Semester? @relation(fields: [semesterId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -123,28 +130,41 @@ model Course {
   grades      Grade[]
   resources   Resource[]
   notes       StudentNote[]
+  sections    CourseSection[]
+  exams       Exam[]
+
+  @@index([semesterId])
 }
 
 model Enrollment {
   id        String   @id @default(cuid())
   studentId String
   courseId  String
+  semesterId String? // PHASE 1: nullable until dual-run cutover
+  sectionId String? // PHASE 1: nullable until Phase 3 roster scope lands
+  status    String   @default("ACTIVE") // ACTIVE | DROPPED | WITHDRAWN
   createdAt DateTime @default(now())
   student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  semester  Semester? @relation(fields: [semesterId], references: [id], onDelete: SetNull)
+  section   CourseSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
 
   @@unique([studentId, courseId])
+  @@index([semesterId])
+  @@index([sectionId])
 }
 
 model Lecture {
   id          String    @id @default(cuid())
   courseId    String
   professorId String
+  semesterId  String? // PHASE 1: nullable until dual-run cutover
   title       String
   location    String?
   startsAt    DateTime  @default(now())
   qrToken     String?   @unique
   qrExpiresAt DateTime?
+  geofence    String? // نطاق GPS للحضور — JSON نصي: {"lat","lng","radiusM"} · اختياري؛ فارغ = لا تحقق جغرافي
   isOpen      Boolean   @default(false)
   cancelledAt DateTime? // لو المحاضرة اتلغت — تدخل في إحصائيات «عدد المحاضرات الملغاة»
   createdAt   DateTime  @default(now())
@@ -152,9 +172,12 @@ model Lecture {
 
   course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
   professor   User         @relation("LectureProfessor", fields: [professorId], references: [id], onDelete: Restrict)
+  semester    Semester?    @relation(fields: [semesterId], references: [id], onDelete: SetNull)
   attendances Attendance[]
   resources   Resource[]
   notes       StudentNote[]
+
+  @@index([semesterId])
 }
 
 model Attendance {
@@ -189,12 +212,15 @@ model ScheduleSlot {
   updatedAt   DateTime @updatedAt
 
   courseId String
+  semesterId String? // PHASE 1: nullable until dual-run cutover
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  semester Semester? @relation(fields: [semesterId], references: [id], onDelete: SetNull)
 
   @@unique([group, day, period, term])
   @@index([group])
   @@index([courseId])
   @@index([term])
+  @@index([semesterId])
 }
 
 // إعدادات المنصة (مفتاح/قيمة) — تاريخ فتح الترم التاني وغيره
@@ -223,16 +249,19 @@ model Task {
   requiresFile Boolean  @default(false)
   status       String   @default("OPEN") // OPEN | CLOSED
   courseId     String
+  semesterId   String? // PHASE 1: nullable until dual-run cutover
   createdById  String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  semester    Semester?        @relation(fields: [semesterId], references: [id], onDelete: SetNull)
   author      User             @relation("TaskAuthor", fields: [createdById], references: [id], onDelete: Cascade)
   submissions TaskSubmission[]
 
   @@index([courseId])
   @@index([deadline])
+  @@index([semesterId])
 }
 
 // تسليم الطالب لتاسك — ملف + درجة + تعليق الدكتور
@@ -241,6 +270,7 @@ model TaskSubmission {
   taskId      String
   studentId   String
   fileUrl     String?
+  driveFileId String? // ملف Google Drive (التسليم على السحابة) — من System spec
   submittedAt DateTime @default(now())
   score       Float?
   feedback    String?
@@ -316,6 +346,8 @@ model Resource {
   storedName   String   @unique
   mimeType     String
   size         Int
+  driveFileId  String? // معرف الملف في Google Drive — عبر /api/drive/upload (System spec)
+  externalUrl  String? // رابط Drive (webViewLink) عند التخزين السحابي
   courseId     String
   lectureId    String?
   kind         String   @default("PDF")
@@ -363,4 +395,203 @@ model AuditLog {
   @@index([action])
   @@index([entity])
   @@index([userRole])
+}
+
+// ─── PHASE 1 — Time backbone (M1) ───────────────────────────────────────────
+// Academic year + semesters. Backfilled from AppSetting dates; nullable FKs on
+// Course/Enrollment/Lecture/Task/ScheduleSlot point here with SetNull so legacy
+// rows survive. DUAL-RUN: app still reads the old `term` strings until cutover.
+model AcademicYear {
+  id        String    @id @default(cuid())
+  name      String    @unique // e.g. "2026/2027"
+  startDate DateTime?
+  endDate   DateTime?
+  isCurrent Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  semesters Semester[]
+
+  @@index([isCurrent])
+}
+
+model Semester {
+  id                    String       @id @default(cuid())
+  academicYearId        String
+  code                  String // T1 | T2 (matches legacy ScheduleSlot.term)
+  name                  String // e.g. "الترم الأول"
+  startDate             DateTime?
+  endDate               DateTime?
+  registrationOpenAt    DateTime?
+  registrationCloseAt   DateTime?
+  isCurrent             Boolean      @default(false)
+  status                String       @default("OPEN") // OPEN | CLOSED | ARCHIVED
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  courses     Course[]
+  enrollments Enrollment[]
+  lectures    Lecture[]
+  tasks       Task[]
+  slots       ScheduleSlot[]
+  sections    CourseSection[]
+
+  @@unique([academicYearId, code])
+  @@index([isCurrent])
+}
+
+// ─── PHASE 1 — Identity (M2, dual-run with User.role) ───────────────────────
+model Role {
+  id          String           @id @default(cuid())
+  slug        String           @unique // STUDENT | PROFESSOR | ADMIN | TA (TA added deliberately, not mapped to User.role)
+  name        String // display Arabic name
+  description String?
+  createdAt   DateTime         @default(now())
+
+  assignments RoleAssignment[]
+}
+
+model RoleAssignment {
+  id           String    @id @default(cuid())
+  userId       String
+  roleId       String
+  scopeType    String    @default("GLOBAL") // GLOBAL | COURSE | SECTION
+  scopeId      String? // cuid of Course/CourseSection when scope != GLOBAL
+  scopeKey     String    @default("GLOBAL") // denormalized: GLOBAL or scopeId — makes the unique stable with nullable scopeId
+  effectiveFrom DateTime @default(now())
+  effectiveTo  DateTime?
+  assignedById String? // admin who granted it; null = seed/backfill
+  createdAt    DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId, scopeType, scopeKey])
+  @@index([userId])
+  @@index([roleId])
+}
+
+// ─── PHASE 1 — Academic spine (M3 early: section exists so TeachingAssignment is valid) ──
+model CourseSection {
+  id         String   @id @default(cuid())
+  courseId   String
+  semesterId String? // null = legacy/unscoped section
+  code       String // A | B | ... (matches User.group / ScheduleSlot.group)
+  capacity   Int?
+  room       String?
+  professorId String // owner mirrors Course.professorId; TAs get TeachingAssignment rows instead
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  course     Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  professor  User      @relation("SectionProfessor", fields: [professorId], references: [id], onDelete: Restrict)
+  semester   Semester? @relation(fields: [semesterId], references: [id], onDelete: SetNull)
+
+  enrollments        Enrollment[]
+  teachingAssignments TeachingAssignment[]
+
+  @@unique([courseId, code])
+  @@index([semesterId])
+  @@index([professorId])
+}
+
+model TeachingAssignment {
+  id             String   @id @default(cuid())
+  sectionId      String
+  userId         String
+  permissionMask String   @default("ATTENDANCE") // ATTENDANCE | GRADING | FULL (validated in Zod, stringly-typed for Prisma/sqlite compat)
+  assignedById   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  section CourseSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, userId])
+  @@index([userId])
+}
+
+// ─── EXAM STUDIO (additive) — 2026-11-08 ──────────────────────────────
+// Deterministic grading: MCQ/TRUE_FALSE/SHORT auto-graded at submit time;
+// ESSAY stays ungraded until the instructor approves marks (Rule 10/11).
+// exam.status: DRAFT → PUBLISHED → CLOSED. resultsVisible releases scores.
+
+model Exam {
+  id              String    @id @default(cuid())
+  courseId        String
+  title           String
+  instructions    String?
+  status          String    @default("DRAFT") // DRAFT | PUBLISHED | CLOSED
+  startsAt        DateTime?
+  endsAt          DateTime?
+  durationMinutes Int       @default(60)
+  totalMarks      Float     @default(0)
+  resultsVisible  Boolean   @default(false)
+  createdById     String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  course    Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  creator   User          @relation("ExamCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  questions Question[]
+  attempts  ExamAttempt[]
+
+  @@index([courseId, status])
+}
+
+model Question {
+  id              String  @id @default(cuid())
+  examId          String
+  ord             Int
+  kind            String // MCQ | TRUE_FALSE | SHORT | ESSAY
+  prompt          String
+  options         String? // JSON string[] — MCQ only
+  correctIndex    Int? // MCQ (0-based) / TRUE_FALSE (0=true, 1=false)
+  acceptedAnswers String? // JSON string[] — SHORT, matched after normalization
+  rubric          String? // ESSAY model answer — instructor only, never sent to students
+  marks           Float   @default(1)
+
+  exam    Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  answers StudentAnswer[]
+
+  @@index([examId, ord])
+}
+
+model ExamAttempt {
+  id          String    @id @default(cuid())
+  examId      String
+  studentId   String
+  status      String    @default("IN_PROGRESS") // IN_PROGRESS | SUBMITTED | GRADED
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+  score       Float?
+  maxScore    Float?
+  reviewerId  String?
+  gradedAt    DateTime?
+
+  exam    Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student User            @relation("ExamAttemptStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  answers StudentAnswer[]
+
+  @@unique([examId, studentId])
+  @@index([studentId])
+}
+
+model StudentAnswer {
+  id            String   @id @default(cuid())
+  attemptId     String
+  questionId    String
+  answerText    String?
+  selectedIndex Int?
+  awardedMarks  Float?
+  isCorrect     Boolean?
+  feedback      String?
+  gradedBy      String? // AUTO | INSTRUCTOR
+
+  attempt  ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
 }

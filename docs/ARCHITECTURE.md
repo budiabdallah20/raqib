@@ -1,72 +1,31 @@
-# 🏗️ معمارية رقيب RAQiB
+# PHASE 0 — Architecture (RAQEEB)
 
-## Stack
-- **Next.js 15 (App Router) + TypeScript strict** — واجهات + APIs في مشروع واحد.
-- **Tailwind** مع design tokens (ink/gold/cream/amber/orange/crimson) — الهوية الذاتية في `tailwind.config.ts`.
-- **Prisma 5** — `{ dev: SQLite }`، الإنتاج: PostgreSQL (docker-compose.yml + Dockerfile).
-- **Auth**: JWT (httpOnly/secure/sameSite=lax) + bcrypt(12) + كود أدمن مُشفّر bcrypt في `.env`.
-- **Validation**: Zod في كل route حساس + rate-limit + AuditLog.
+> Locked: **Next.js 15 + Prisma + Neon Postgres** (no Supabase). Single academic domain model shared by 3 portals (Rule 04).
 
-## خريطة المكونات
-```
-src/
-├── app/
-│   ├── (auth)/                تسجيل + دخول
-│   ├── student/               داشبورد الطالب (+ /attendance سجل الحضور WP2)
-│   ├── professor/             داشبورد الدكتور (+ /reports WP2، + /board لوحة العرض WP3)
-│   ├── admin/                 إدارة الكلية (+ /reports WP2، + أزرار ديمو WP1)
-│   ├── brand/ status/ changelog/   صفحات عامة (WP5/WP6)
-│   └── api/
-│       ├── auth/              login/register/logout/forgot/reset/me/admin
-│       ├── attendance/        scan (POST) + records + summary + report (CSV)
-│       ├── lectures/          CRUD + toggle + **board** (تدوير تلقائي WP3)
-│       ├── notifications/     جرس الإشعارات (WP4)
-│       ├── public/metrics     أرقام حقيقية لواجهة الهبوط (WP6)
-│       ├── admin/             stats/report/demo-reset/users/courses/audit
-│       └── health             فحص صحة (WP7)
-├── lib/
-│   ├── attendance-policy.ts    سياسة 75/25/0.5 + SAFE/WARNING/DENIED (WP2)
-│   ├── qr.ts                   مشتق كود يدوي 6 أرقام (WP3)
-│   ├── notify.ts               إشعارات داخلية + بريد Resend مع fallback (WP4)
-│   ├── security.ts             rate limit + logAudit + sanitize
-│   └── auth.ts                 جلسة + صلاحيات
-└── components/                 Logo / Splash / DashboardShell / Navbar(جرس)…
-```
+## 1. Runtime topology
+- `server.mjs` (HTTPS TLS 1.3, `NODE_ENV` prod → `0.0.0.0:5000`) → Next.js App Router → `src/middleware.ts` (CSRF, body limits, JWT role redirect, CSP nonce, `no-store` on API).
+- Prisma `src/lib/db.ts`: dialect-aware (SQLite local / Neon Postgres prod via `scripts/prisma-dialect.mjs`). PII transparent encryption via `$extends` (AES-256-GCM, HKDF per-field).
+- Storage: `src/lib/storage.ts` (UUID names, `safePath`, HMAC upload-binding) + `src/lib/drive.ts` (REST/rclone). Downloads always via `/api/files/*` (authenticated proxy).
+- Backups: `scripts/db-backup.mjs` (SQLite `VACUUM INTO`) + `scripts/db-backup-drive.mjs` (JSON export, hashes redacted, AES-256-GCM `.enc`, rclone to Drive).
 
-## تدفق الحضور (WP3)
-```
-الدكتور: POST /api/lectures (toggle) → token جديد 15د
-لوحة العرض: GET /api/lectures/board?lectureId=… (كل 7 ثوانٍ)
-   ├─ التوكن عمره > 20 ثانية؟ → يولد رمزًا جديدًا (صلاحية 60 ثانية) ويحفظه
-   └─ يعيد: token + manualCode + attendees + present/late + آخر 5 مسحات
-الطالب: POST /api/attendance {token|code6}
-   ├─ code6 → مطابقة manualCodeOf(lecture.qrToken) عبر المحاضرات المفتوحة
-   ├─ الحالات: OUT_OF_RANGE / EXPIRED / CLOSED / NOT_ENROLLED / duplicate
-   ├─ LATE إن تجاوز 20 دقيقة من startsAt
-   └─ AuditLog (action=ATTENDANCE_SCAN) مع IP/UA + إنذار حرمان عند هبوط تحت العتبة
-```
+## 2. Layering (preserve, don't rebuild)
+- `src/lib/*`: `auth` (cookie+session), `jwt` (HS256 WebCrypto), `session` (DB revocation), `security` (rate limit, audit, CSV guard), `crypto` (AES-GCM), `env` (fail-closed boot), `csp`, `validations` (Zod), `api` (fetch helper w/ dead-session recovery), `portal-prefs` (localStorage UI prefs ONLY — never authoritative for grades/attendance).
+- `src/app/api/*` (53 routes): thin handlers → `requireUser(roles)` → Zod → business check → Prisma → `logAudit`. No direct DB from client.
+- `src/components/*`: `ui/` primitives + `shared/` shells + `auth/` wizard + `landing/` + `student/` widgets + `admin/` charts + `professor/`. UI never queries DB directly.
 
-## قواعد أمان غير قابلة للكسر
-1. `qrToken/qrExpiresAt` لا يُسرَّبان للطالب إطلاقًا (select صريح — اختبار آلي يمنع الانتكاس).
-2. لا سر في كود العميل؛ الكوكيز httpOnly/secure/sameSite لا تُعطل.
-3. كل route حساس: `requireUser(roles)` + Zod + rate-limit + `logAudit`.
-4. `prisma/dev.db` لا يُمس دون نسخة احتياطية (`seed:demo --fresh` ينسخها تلقائيًا).
-5. CSV للتصدير مفحوص بالـBOM `\uFEFF` لعرض عربي سليم في Excel، وكل تصدير يُسجل في AuditLog.
+## 3. Data flow (Rule 06 lifecycle)
+Validate → Authenticate → Authorize → Business rules → Transaction → Mutate → Audit (same tx — currently NOT met, targets in roadmap) → Commit → Return explicit result → Invalidate client queries (poll 5-30s, no SSE) → Async notify.
 
-## نشر الإنتاج
-```
-docker compose up -d     # Postgres + التطبيق (شاهد docker-compose.yml)
-DATABASE_URL=postgres://…   في .env
-npm run backup:db        # نسخة يومية (أو cron على المضيف مع pg_dump)
-GET /api/health          # مراقبة uptime
-```
+## 4. Enrollment & attendance invariants (current vs target)
+- **Current:** Enrollment = bare `(studentId,courseId)` upsert, no credit sum, no conflict/prereq check, no tx. Attendance = check-then-act + unique backstop (`P2002` → 500 on race), no tx.
+- **Target (Phases 3-4):** Tx-enforced: credit-limit sum (key `credit_limit=17` in AppSetting allowlist), schedule-conflict vs `ScheduleSlot`, prerequisite check, `upsert skipDuplicates`, `AttendanceSession` split from `Lecture`.
 
-## الاختبارات
-- **Vitest**: سياسة الحضور + مشتق الـQR + عدم تسريب التوكن (`npm run test`).
-- **Playwright**: رحلة الطالب + سيناريو الدكتور + سيناريو الأدمن (`npm run test:e2e`).
-- **CI**: `.github/workflows/verify.yml` (tsc + vitest + build + e2e اختياري).
+## 5. QR attendance pipeline (Rule 09)
+Professor opens lecture → server mints JWT (`lec/crs/exp=15s/geo`, `qr-sign.ts`) + notifies → board rotates 5/10/15/20s (`qr_rotation_seconds` setting) → student scans → server validates auth + enrollment + session + signature + expiry (3s skew) → `$$unique([lectureId,studentId])` idempotent → audit. QR ≠ proof of physical presence (documented limitation).
 
-## قيود معروفة
-- Web Push (Service Worker) اختياري لم يُفعَّل بعد — الـCLI جاهز عبر notify.ts.
-- Sentry اختياري — متغير `SENTRY_DSN` محفوظ في `.env.example`.
-- Redis للـrate-limit عند التوزع — `REDIS_URL` محفوظ، الكود الحالي in-memory يكفي node واحد.
+## 6. Design system direction (Rule 13)
+- Tokens (locked by owner): `--background:#0B1120`, `--surface:#111C32`, `--surface-elevated:#17243B`, `--primary:#2563EB`, `--accent:#8B5CF6`, `--border:#263654`, text `#F8FAFC/#94A3B8`, success/warning/danger semantic. Arabic Cairo / Latin Inter. 8px spacing, radius 12-20px, minimal glass, 150-250ms motion, skeleton/empty/error/toast system.
+- **Owner ask "black shiny + magical touches":** interpreted as deep navy-black `#0B1120` (NOT pure `#000`), glossy layered surfaces, electric-blue/violet glow on active states, progress rings, timeline, command center. No heavy 3D (Rule 13 prohibits). Light mode via `darkMode:class` + shared tokens (currently unused, must be built in Phase 2).
+
+## 7. AI boundary (Phases 8-9, not now)
+Provider-independent server service (Gemini Flash-Lite primary, Flash secondary). Server-held keys, per-user/course quotas, caching, graceful exhaustion, no paid fallback. RAG: instructor-approved docs → extract → chunks → authorized retrieval → grounded citations. Treat docs as untrusted. **No PII to free-tier AI without approved controls. AI grades never auto-publish (Rule 11 workflow mandatory).**

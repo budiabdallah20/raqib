@@ -2,8 +2,9 @@ import { createHash } from 'node:crypto';
 import { cookies } from 'next/headers';
 import { prisma } from './db';
 import { signToken, verifyToken } from './jwt';
-import { JWT_EXPIRES_IN, COOKIE_NAME } from './constants';
+import { SESSION_REMEMBER_IN, SESSION_SHORT_IN, COOKIE_NAME } from './constants';
 import { getClientIp } from './security';
+import { hashPii } from './crypto';
 import type { AuthUser, Role } from '@/types';
 
 /**
@@ -25,12 +26,30 @@ export async function issueSession(
   request?: Request,
   remember = true,
 ) {
-  const token = await signToken({
-    sub: user.id,
-    role: user.role as Role,
-    email: user.email ?? null,
-    sid: crypto.randomUUID(),
-  });
+  // تنظيف الجلسات المنتهية/الملغاة القديمة (best effort) — يمنع نمو الجدول بلا حدود
+  void prisma.session
+    .deleteMany({
+      where: {
+        OR: [
+          { expiresAt: { lt: new Date() } },
+          { revokedAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
+        ],
+      },
+    })
+    .catch(() => undefined);
+
+  // لا نضع البريد أو أي PII داخل التوكن: التوكن قابل للقراءة من العميل.
+  // البيانات الحساسة تُقرأ من قاعدة البيانات عند كل طلب عبر getSessionUser.
+  // «تذكرني» = 30 يومًا محفوظة في القاعدة والكوكي — غير ذلك 12 ساعة.
+  const lifetime = remember ? SESSION_REMEMBER_IN : SESSION_SHORT_IN;
+  const token = await signToken(
+    {
+      sub: user.id,
+      role: user.role as Role,
+      sid: crypto.randomUUID(),
+    },
+    lifetime,
+  );
 
   const payload = await verifyToken(token);
   if (!payload?.sid) throw new Error('تعذر إنشاء الجلسة');
@@ -40,11 +59,10 @@ export async function issueSession(
       id: payload.sid,
       userId: user.id,
       tokenHash: hashToken(token),
-      expiresAt: new Date(Date.now() + JWT_EXPIRES_IN * 1000),
-      ip: request ? getClientIp(request) : null,
+      expiresAt: new Date(Date.now() + lifetime * 1000),
+      // IP يُخزَّن كبصمة HMAC غير قابلة للعكس — لا نخزن عنوانًا خامًا.
+      ip: request ? hashPii(getClientIp(request)) : null,
       userAgent: request?.headers.get('user-agent')?.slice(0, 300) ?? null,
-      // عدم "تذكرني" يعني كوكي جلسة في المتصفح، لكن السجل نفسه ينتهي بنفس المدة
-      ...(remember ? {} : {}),
     },
   });
 
@@ -85,6 +103,9 @@ export async function getSessionUser(token: string): Promise<AuthUser | null> {
           name: true,
           role: true,
           studentCode: true,
+          level: true,
+          group: true,
+          department: true,
           gender: true,
           avatarUrl: true,
           faceEnrolled: true,

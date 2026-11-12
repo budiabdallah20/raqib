@@ -10,12 +10,20 @@ build/*.js
 dist/
 
 # ---------- environment (الأسرار ممنوعة، المثال متاح) ----------
+# أي ملف بيئة أو نسخة احتياطية منه ممنوع يتتبع — إلا المثال الموثّق
 .env
-.env.local
-.env.*.local
+.env.*
+.env.*.*
 .env.bak-*
-# المثال الموثّق يبقى متتبع
+.env.sqlite-backup
+.env.*.backup
 !.env.example
+# مفاتيح/شهادات TLS محلية
+certs/
+*.pem
+*.key
+*.p12
+*.pfx
 
 # ---------- database (dev db + أي نسخ) ----------
 *.db
@@ -59,3 +67,18 @@ Thumbs.db
 .claude/
 .opencode/*
 !.opencode/wiki/
+.neon
+
+# Local review artifacts, backups and agent scratch work
+/work/
+/coverage/
+.next-*/
+*.bak
+*.backup
+*.dump
+*.sql
+# Keep reviewed SQL migrations if introduced later.
+!prisma/migrations/**/*.sql
+/hello.ts
+/neon.ts
+/image.png

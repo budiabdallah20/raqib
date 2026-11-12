@@ -1,8 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" fill="none" role="img" aria-label="RAQIB — رقيب">
-  <rect x="4" y="4" width="56" height="56" rx="15" fill="#C4552F"/>
-  <g stroke="#ffffff" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M25.5 46V18"/>
-    <path d="M25.5 18h10a7 7 0 1 1 0 14h-10"/>
-    <path d="M25.5 32h12a7 7 0 1 1 0 14h-12"/>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2B84D2"/><stop offset="100%" stop-color="#1C74BC"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#g)"/>
+  
+  <defs><clipPath id="hexf"><polygon points="32,11 50.18663,21.5 50.18663,42.5 32,53 13.813369999999999,42.5 13.813369999999999,21.5"/></clipPath></defs>
+  <g clip-path="url(#hexf)" stroke="#FFFFFF" stroke-width="3.6" stroke-linecap="butt" fill="none">
+    <line x1="4" y1="32.75" x2="60" y2="-23.25"/>
+    <line x1="4" y1="39.57" x2="60" y2="-16.43"/>
+    <line x1="4" y1="46.38" x2="60" y2="-9.619999999999997"/>
+    <line x1="4" y1="53.19" x2="60" y2="-2.8100000000000023"/>
+    <line x1="4" y1="66.81" x2="60" y2="10.810000000000002"/>
+    <line x1="4" y1="73.62" x2="60" y2="17.620000000000005"/>
+    <line x1="4" y1="80.43" x2="60" y2="24.430000000000007"/>
+    <line x1="4" y1="87.25" x2="60" y2="31.25"/>
   </g>
 </svg>

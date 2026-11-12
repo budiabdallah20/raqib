@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { handleApiError, jsonError, logAudit, sanitizeString } from '@/lib/security';
+import { normalizeRoom, roomConflictMessage } from '@/lib/rooms';
 
 const slotInclude = {
   course: {
@@ -25,6 +26,38 @@ const groupSchema = z
 
 /** الترم الدراسي — T1 (فصل خريف) و T2 (فصل ربيع) بيدخل حيز التنفيذ بتاريخه المحدد */
 const termSchema = z.enum(['T1', 'T2']).default('T1');
+
+/**
+ * كاشف تعارض القاعة (أدمن §6.7 — صف 16):
+ * حصتان بنفس القاعة + نفس الفترة + نفس الترم لجروبين مختلفين = إنذار فوري (409).
+ * المقارنة موحّدة (تجاهل الفراغات وحالة الأحرف)، والفراغ يعني بلا قاعة = لا تعارض.
+ */
+async function findRoomConflict(opts: {
+  term: string;
+  day: number;
+  period: number;
+  room: string;
+  excludeGroupId: string;
+}) {
+  const room = normalizeRoom(opts.room);
+  if (!room) return null;
+  const candidates = await prisma.scheduleSlot.findMany({
+    where: {
+      term: opts.term,
+      day: opts.day,
+      period: opts.period,
+      group: { not: opts.excludeGroupId },
+      AND: [{ room: { not: null } }, { room: { not: '' } }],
+    },
+    select: {
+      group: true,
+      room: true,
+      course: { select: { code: true, name: true } },
+    },
+    take: 40,
+  });
+  return candidates.find((slot) => normalizeRoom(slot.room) === room) ?? null;
+}
 
 // ───────────────────────────────────────────────────────────────
 // GET /api/schedule?group=B&term=T1
@@ -186,6 +219,24 @@ export async function POST(request: Request) {
       });
       if (target) return jsonError('التبديل بين كارتين يستخدم عملية swap', 409);
 
+      // كاشف تعارض القاعة — القاعة تنتقل مع الكارت إلى زمنها الجديد
+      if (slot.room) {
+        const conflict = await findRoomConflict({ term, day, period, room: slot.room, excludeGroupId: group });
+        if (conflict) {
+          return jsonError(
+            roomConflictMessage({
+              room: slot.room,
+              day,
+              period,
+              group: conflict.group,
+              courseCode: conflict.course.code,
+              courseName: conflict.course.name,
+            }),
+            409,
+          );
+        }
+      }
+
       const moved = await prisma.scheduleSlot.update({
         where: { id: slot.id },
         data: { day, period },
@@ -212,6 +263,36 @@ export async function POST(request: Request) {
       const payloadA = { courseId: sa.courseId, kind: sa.kind, room: sa.room, isVip: sa.isVip, teacherName: sa.teacherName };
       const payloadB = { courseId: sb.courseId, kind: sb.kind, room: sb.room, isVip: sb.isVip, teacherName: sb.teacherName };
 
+      // كاشف تعارض القاعة — كل كارت يفحص بهويته (قاعته) في خانته الجديدة قبل الكتابة
+      const conflictA = await findRoomConflict({ term, day: b.day, period: b.period, room: sa.room ?? '', excludeGroupId: group });
+      if (conflictA) {
+        return jsonError(
+          roomConflictMessage({
+            room: sa.room ?? '',
+            day: b.day,
+            period: b.period,
+            group: conflictA.group,
+            courseCode: conflictA.course.code,
+            courseName: conflictA.course.name,
+          }),
+          409,
+        );
+      }
+      const conflictB = await findRoomConflict({ term, day: a.day, period: a.period, room: sb.room ?? '', excludeGroupId: group });
+      if (conflictB) {
+        return jsonError(
+          roomConflictMessage({
+            room: sb.room ?? '',
+            day: a.day,
+            period: a.period,
+            group: conflictB.group,
+            courseCode: conflictB.course.code,
+            courseName: conflictB.course.name,
+          }),
+          409,
+        );
+      }
+
       await prisma.$transaction([
         prisma.scheduleSlot.delete({ where: { id: sa.id } }),
         prisma.scheduleSlot.delete({ where: { id: sb.id } }),
@@ -235,6 +316,23 @@ export async function POST(request: Request) {
       const course = await prisma.course.findUnique({ where: { id: courseId } });
       if (!course) return jsonError('المقرر غير موجود', 404);
 
+      // كاشف تعارض القاعة — نفس القاعة/الوقت لجروب آخر = رفض قبل الكتابة
+      const newRoom = room ? sanitizeString(room, 60) : null;
+      const conflict = await findRoomConflict({ term, day, period, room: newRoom ?? '', excludeGroupId: group });
+      if (conflict) {
+        return jsonError(
+          roomConflictMessage({
+            room: newRoom ?? '',
+            day,
+            period,
+            group: conflict.group,
+            courseCode: conflict.course.code,
+            courseName: conflict.course.name,
+          }),
+          409,
+        );
+      }
+
       const created = await prisma.scheduleSlot.create({
         data: {
           group,
@@ -243,7 +341,7 @@ export async function POST(request: Request) {
           term,
           courseId,
           kind,
-          room: room ? sanitizeString(room, 60) : null,
+          room: newRoom,
           isVip: !!isVip,
           teacherName: teacherName ? sanitizeString(teacherName, 80) : null,
         },
@@ -264,6 +362,24 @@ export async function POST(request: Request) {
       if (patch.courseId) {
         const course = await prisma.course.findUnique({ where: { id: patch.courseId } });
         if (!course) return jsonError('المقرر غير موجود', 404);
+      }
+
+      // كاشف تعارض القاعة — القاعة الفعلية بعد التعديل (نفس كارت الجروب محصور بـ unique فيبقى التعارض عبر الجروبات)
+      const effectiveRoom =
+        patch.room !== undefined ? (patch.room ? sanitizeString(patch.room, 60) : null) : slot.room;
+      const conflict = await findRoomConflict({ term, day, period, room: effectiveRoom ?? '', excludeGroupId: group });
+      if (conflict) {
+        return jsonError(
+          roomConflictMessage({
+            room: effectiveRoom ?? '',
+            day,
+            period,
+            group: conflict.group,
+            courseCode: conflict.course.code,
+            courseName: conflict.course.name,
+          }),
+          409,
+        );
       }
 
       const updated = await prisma.scheduleSlot.update({

@@ -12,11 +12,14 @@ import {
   Presentation,
   TimerReset,
   Users,
+  ShieldAlert,
+  BookOpenCheck,
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { DashboardShell } from '@/components/shared/DashboardShell';
+import EmergencyBanner from '@/components/shared/EmergencyBanner';
 import { StatsCard } from '@/components/StatsCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,10 +59,13 @@ type AttendanceRecord = {
 };
 
 const QUICK_ACTIONS = [
+  { label: 'مركز الحضور', icon: ClipboardCheck, href: '/professor/attendance', hint: 'كشف مباشر وتصحيح مسبب للطلاب' },
   { label: 'الدرجات', icon: ClipboardCheck, href: '/professor/grades', hint: 'إدخال كويز / أعمال / ميدترم' },
   { label: 'التاسكات', icon: ListChecks, href: '/professor/tasks', hint: 'متابعة التسليمات والتقييم' },
   { label: 'الملفات والمراجع', icon: FolderOpen, href: '/professor/resources', hint: 'رفع PDF وربطه بمحاضرة' },
   { label: 'جدولي', icon: CalendarDays, href: '/professor/schedule', hint: 'جدول الجروبين بكروت مقرراتك' },
+  { label: 'الامتحانات', icon: BookOpenCheck, href: '/professor/exams', hint: 'Exam Studio — كويز وامتحان إلكتروني' },
+  { label: 'المخاطر المبكرة', icon: ShieldAlert, href: '/professor/at-risk', hint: 'الطلاب المعرضون للتعثر — قبل الامتحان' },
 ] as const;
 
 export default function ProfessorPage() {
@@ -165,6 +171,7 @@ export default function ProfessorPage() {
 
   return (
     <DashboardShell>
+      <EmergencyBanner />
       {/* كارت الترحيب */}
       <Card className="mb-8 overflow-hidden border-gold-400/25 bg-gradient-to-l from-gold-500/[0.12] via-transparent to-transparent shadow-gold-soft">
         <CardContent className="flex flex-wrap items-center justify-between gap-4">
@@ -214,7 +221,7 @@ export default function ProfessorPage() {
         <CardHeader>
           <CardTitle>إجراءات سريعة</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {QUICK_ACTIONS.map((action) => (
             <Link
               key={action.href}

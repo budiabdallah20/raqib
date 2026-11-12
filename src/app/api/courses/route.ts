@@ -27,7 +27,7 @@ export async function GET() {
       return Response.json({ courses });
     }
     const courses = await prisma.course.findMany({
-      where: { enrollments: { some: { studentId: user.id } } },
+      where: { enrollments: { some: { studentId: user.id, status: 'ACTIVE' } } },
       include: {
         professor: { select: { name: true } },
         _count: { select: { lectures: true } },
@@ -43,7 +43,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const user = await requireUser(['ADMIN']);
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     if (body.action === 'enroll') {
       const parsed = enrollSchema.safeParse(body);
       if (!parsed.success) return jsonError(parsed.error.issues[0]?.message || 'بيانات غير صالحة');

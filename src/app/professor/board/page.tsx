@@ -2,7 +2,7 @@
 
 /**
  * 🪧 لوحة عرض المحاضرة — خلفية full-screen للدكتور
- * رمز QR تنشأ تلقائيًا متدور كل 20 ثانية + عدّاد شمال + حالة لحظية + كود يدوي.
+ * رمز QR يتدور حسب إعداد الأدمن (qr_rotation_seconds) — تُقرأ الدورة من الخادم مع كل توكِن.
  */
 import * as React from 'react';
 import { api } from '@/lib/api';
@@ -19,6 +19,7 @@ type Board = {
   };
   token?: string;
   expiresAt?: string;
+  rotationMs?: number;
   manualCode?: string;
   attendees?: number;
   present?: number;
@@ -32,6 +33,8 @@ const ROTATE_MS = 20_000;
 export default function ProfessorBoardPage() {
   // لا نقرأ window أثناء الرسم — الصفحة تُبنى على السيرفر أولًا
   const [lectureId, setLectureId] = React.useState<string | null>(null);
+  // دورة التدوير تُقرأ من الخادم (AppSetting qr_rotation_seconds) — لا ثابت مبهم
+  const rotateMsRef = React.useRef(ROTATE_MS);
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -42,6 +45,7 @@ export default function ProfessorBoardPage() {
   const [err, setErr] = React.useState<string | null>(null);
   const [qrData, setQrData] = React.useState<string>("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
   const [seconds, setSeconds] = React.useState(ROTATE_MS / 1000);
+  const [rotationSeconds, setRotationSeconds] = React.useState(Math.round(ROTATE_MS / 1000));
 
   /* التدوير: كل ثانية عدّاد + عند الصفر نجيب التوكِن الجديد */
   React.useEffect(() => {
@@ -58,12 +62,14 @@ export default function ProfessorBoardPage() {
         if (!data.closed && data.token) {
           // تحميل qrcode عند الحاجة فقط — لا يُنفَّذ على السيرفر أثناء البناء
           const { default: QRCode } = await import('qrcode');
+          rotateMsRef.current = typeof data.rotationMs === 'number' && data.rotationMs > 0 ? data.rotationMs : ROTATE_MS;
+          setRotationSeconds(Math.round(rotateMsRef.current / 1000));
           setQrData(await QRCode.toDataURL(`${window.location.origin}/student?token=${data.token}`, {
             width: 1024,
             margin: 1,
             color: { dark: '#0f1117', light: '#F7F1E3' },
           }));
-          setSeconds(ROTATE_MS / 1000);
+          setSeconds(Math.round(rotateMsRef.current / 1000));
         }
       } catch (e) {
         setErr((e as Error).message);
@@ -79,7 +85,7 @@ export default function ProfessorBoardPage() {
     const idle = board?.closed || !board?.token;
     if (idle) return;
     const tick = setInterval(() => {
-      setSeconds((s) => (s <= 1 ? ROTATE_MS / 1000 + 7 : s - 1));
+      setSeconds((s) => (s <= 1 ? Math.round(rotateMsRef.current / 1000) + 7 : s - 1));
     }, 1000);
     return () => clearInterval(tick);
   }, [board?.closed, board?.token]);
@@ -99,7 +105,7 @@ export default function ProfessorBoardPage() {
   }
 
   const pct = board?.expected ? Math.round(((board?.attendees ?? 0) / board.expected) * 100) : 0;
-  const ring = `conic-gradient(#FFD700 ${Math.max(0, Math.min(100, (1 - seconds / (ROTATE_MS / 1000 + 7))) * 100)}%, transparent 0)`;
+  const ring = `conic-gradient(#FFD700 ${Math.max(0, Math.min(100, (1 - seconds / (rotationSeconds + 7))) * 100)}%, transparent 0)`;
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-ink-900" dir="rtl">
@@ -143,7 +149,7 @@ export default function ProfessorBoardPage() {
                       style={{ backgroundImage: ring }}>
                   <span className="absolute inset-1 rounded-full bg-[#0A0A0C]" />
                 </span>
-                <p className="text-sm text-ink-500">رمز جديد كل <b className="text-gold-700">20</b> ثانية</p>
+                <p className="text-sm text-ink-500">رمز جديد كل <b className="text-gold-700">{rotationSeconds}</b> ثانية</p>
               </div>
             </div>
 

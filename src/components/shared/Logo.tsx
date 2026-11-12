@@ -3,10 +3,13 @@
 import * as React from 'react';
 
 /*
- * ماركة رقيب v3 — «RAQIB بالبلوك»:
- * كلمة RAQIB بحروف مدورة سميكة، والحرف الأخير B داخل بلوك صلب مُفرَّغ أبيض —
- * بدون أي شِعار جانبي (slogan). كحل ترابي (terracotta) هو لون العلامة الوحيد.
- * النسخة المختصرة (favicon/navbar صغير) = البلوك وحده.
+ * ماركة رقيب v5 — «السداسي المخطط»:
+ * العلامة = سداسي رأسي (رأسان أعلى/أسفل) مبني من خطوط مائلة متوازية «/»
+ * مقصوصة داخل جسم السداسي، بممرّ فارغ قطري في المنتصف يقسمه لمجموعتين
+ * (4 خطوط + 4 خطوط) — مطابقة للوجو المرجعي الجديد، بلا أي خلفية.
+ * الكلمة «RAQIB» بخط هندسي سنس-سريف عريض التباعد (Space Grotesk المحمّل).
+ * الأنبرات: ink → فحمي داكن (لون اللوجو الأصلي)، light → عاجي للخلفيات الداكنة،
+ * gold → ذهبي لللمسات.
  */
 
 type Tone = 'ink' | 'light' | 'gold';
@@ -17,77 +20,112 @@ type MarkProps = {
   framed?: boolean;
 };
 
-const TERRA = '#C4552F';
+export const BRAND_BLUE = '#1C74BC';
 
-const LETTERS: Record<Tone, string> = {
-  ink: TERRA,
-  light: '#F7F1E3',
+const TONES: Record<Tone, string> = {
+  ink: '#26251E',
+  light: '#F7F4E8',
   gold: '#C8A24B',
 };
 
-const BLOCK: Record<Tone, string> = {
-  ink: TERRA,
-  light: TERRA,
-  gold: '#C8A24B',
-};
+/* ── هندسة السداسي ──
+ * سداسي رأسي مركزه (32,32) ونصف قطره R — رأسان أعلى وأسفل:
+ *   (32, 32−R) · (32+R·sin60, 32−R/2) · (32+R·sin60, 32+R/2) · (32, 32+R) · (32−R·sin60, 32+R/2) · (32−R·sin60, 32−R/2)
+ * الخطوط المائلة «/» هي مستقيمات x+y=c مقصوصة داخل السداسي.
+ * المدى الفعلي لـ c داخل السداسي: [32−R+min… ] نحسبها لكل R.
+ * الممرّ الفارغ = إسقاط خطّين من المنتصف (فجوة ≈ ضعف سماكة الخط). */
 
-/* حرف B داخل البلوك — يُرسم بالأبيض عبر الأنساق كلها */
-const BLOCK_B = (
-  <>
-    <path d="M25.5 46V18" stroke="#ffffff" strokeWidth="6.2" strokeLinecap="round" />
-    <path
-      d="M25.5 18h10a7 7 0 1 1 0 14h-10"
-      stroke="#ffffff"
-      strokeWidth="6.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M25.5 32h12a7 7 0 1 1 0 14h-12"
-      stroke="#ffffff"
-      strokeWidth="6.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </>
-);
+const SIN60 = 0.86603;
 
-/** الحروف RAQI — خطوط سميكة بأطراف مدوّرة (لون حسب النبرة) */
-const RAQI_PATHS = [
-  'M8 15V49',
-  'M8 15h14a11.5 11.5 0 1 1 0 23H8',
-  'M22 38L32.5 49',
-  'M50 49L60 15L70 49',
-  'M54.5 35H65.5',
-] as const;
+/** يبني نقاط السداسي + خطوط المائلة المقطوعة لمركز (32,32) ونصف قطر R */
+function hexGeometry(R: number, strokeWidth: number) {
+  const dx = R * SIN60;
+  const dy = R / 2;
+  const points = [
+    [32, 32 - R],
+    [32 + dx, 32 - dy],
+    [32 + dx, 32 + dy],
+    [32, 32 + R],
+    [32 - dx, 32 + dy],
+    [32 - dx, 32 - dy],
+  ] as const;
+
+  // مدى c = x+y داخل السداسي: أدنى قيمة عند الرأس العلوي الأيسر، وأعلاها عند السفلي الأيمن
+  const cMin = Math.min(...points.map(([x, y]) => x + y)) + strokeWidth * 0.4;
+  const cMax = Math.max(...points.map(([x, y]) => x + y)) - strokeWidth * 0.4;
+  const step = (cMax - cMin) / 8; // 9 مواضع متساوية، نسقط الوضع الأوسط → 4+4 خطوط
+  const lines: number[] = [];
+  for (let i = 0; i <= 8; i += 1) {
+    const c = cMin + i * step;
+    if (i === 4) continue; // الممرّ المركزي الفارغ
+    lines.push(Math.round(c * 100) / 100);
+  }
+  return { points, lines };
+}
+
+/** عناصر العلامة الداخلية — تُركّب في أي SVG */
+function MarkInner({
+  color,
+  strokeWidth,
+  R,
+  id,
+  drawClass,
+}: {
+  color: string;
+  strokeWidth: number;
+  R: number;
+  id: string;
+  drawClass?: string;
+}) {
+  const { points, lines } = hexGeometry(R, strokeWidth);
+  return (
+    <>
+      <defs>
+        <clipPath id={`rqb-hex-${id}`}>
+          <polygon points={points.map(([x, y]) => `${x},${y}`).join(' ')} />
+        </clipPath>
+      </defs>
+      <g
+        clipPath={`url(#rqb-hex-${id})`}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="butt"
+        fill="none"
+      >
+        {lines.map((c, i) => (
+          <line
+            key={c}
+            x1={4}
+            y1={c - 4}
+            x2={60}
+            y2={c - 60}
+            pathLength={drawClass ? 1 : undefined}
+            className={drawClass}
+            style={drawClass ? { animationDelay: `${0.06 * i}s` } : undefined}
+          />
+        ))}
+      </g>
+    </>
+  );
+}
 
 /**
- * رمز رقيب المختصر: بلوك B صلب (أو B خطوط مفتوحة عند framed=false).
+ * رمز رقيب الجديد: السداسي المخطط — عاري بلا خلفية (أو داخل بلوك أزرق عند framed).
  * أبعاد ثابتة 64×64 ويُقاس بالكلاس.
  */
-export function LogoMark({ className, tone = 'ink', framed = true }: MarkProps) {
-  const blockColor = BLOCK[tone];
+export function LogoMark({ className, tone = 'ink', framed = false }: MarkProps) {
+  const uid = React.useId().replace(/[:]/g, '');
 
   if (!framed) {
     return (
       <svg
         viewBox="0 0 64 64"
         role="img"
-        aria-label="RAQIB"
+        aria-label="RAQIB — رقيب"
         className={className}
         xmlns="http://www.w3.org/2000/svg"
       >
-        <g
-          fill="none"
-          stroke={LETTERS[tone]}
-          strokeWidth="6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M20 48V16" />
-          <path d="M20 16h11a7.5 7.5 0 1 1 0 15h-11" />
-          <path d="M20 31h13a7.5 7.5 0 1 1 0 17h-13" />
-        </g>
+        <MarkInner color={TONES[tone]} strokeWidth={4.6} R={29} id={`b-${uid}`} />
       </svg>
     );
   }
@@ -96,52 +134,55 @@ export function LogoMark({ className, tone = 'ink', framed = true }: MarkProps) 
     <svg
       viewBox="0 0 64 64"
       role="img"
-      aria-label="RAQIB"
+      aria-label="RAQIB — رقيب"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
     >
-      <rect x="4" y="4" width="56" height="56" rx="15" fill={blockColor} />
-      {BLOCK_B}
+      <defs>
+        <linearGradient id={`rqb-mk-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#2B84D2" />
+          <stop offset="100%" stopColor={BRAND_BLUE} />
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="60" height="60" rx="15" fill={`url(#rqb-mk-${uid})`} />
+      <MarkInner color="#FFFFFF" strokeWidth={3.6} R={21} id={`f-${uid}`} />
     </svg>
   );
 }
 
 /** نسخة مدمجة للكروم الكثيف وحالات الأيفون/الفافيكون */
 export function LogoMarkLite({ className }: { className?: string }) {
-  return <LogoMark className={className} tone="ink" framed />;
+  return <LogoMark className={className} tone="light" framed />;
 }
 
-/** الكلمة كاملة: RAQI حروف + بلوك B — مفردة SVG واحدة */
+/**
+ * الكلمة كاملة: RAQIB بخط هندسي سنس-سريف — نفس روح اللوجو المرجعي الجديد.
+ * نستخدم <text> مع textLength لضبط العُمدة عبر الأنظمة كلها.
+ * Space Grotesk محمّل كمتغير خط على <html> — fallback هندسي أنيق بعده.
+ */
 export function LogoWordmark({ className, tone = 'ink' }: { className?: string; tone?: Tone }) {
-  const color = LETTERS[tone];
+  const color = TONES[tone];
   return (
     <svg
-      viewBox="0 0 190 64"
+      viewBox="0 0 152 44"
       role="img"
       aria-label="RAQIB"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g
-        fill="none"
-        stroke={color}
-        strokeWidth="11"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <text
+        x="0"
+        y="38"
+        textLength="150"
+        lengthAdjust="spacingAndGlyphs"
+        fontFamily="var(--font-grotesk), 'Poppins', 'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif"
+        fontWeight="600"
+        fontSize="38"
+        letterSpacing="2"
+        fill={color}
       >
-        {RAQI_PATHS.map((d, i) => (
-          <path key={i} d={d} />
-        ))}
-        <circle cx="98" cy="31.5" r="16.5" />
-        <path d="M106.5 43.5L114 50.5" />
-        <path d="M128 15V49" />
-      </g>
-      <rect x="141" y="10" width="44" height="44" rx="12" fill={BLOCK[tone]} />
-      <g stroke="#ffffff" strokeWidth="4.6" strokeLinecap="round" strokeLinejoin="round" fill="none">
-        <path d="M154 44V20" />
-        <path d="M154 20h7a6 6 0 1 1 0 12h-7" />
-        <path d="M154 32h9.5a6.4 6.4 0 1 1 0 12.5h-9.5" />
-      </g>
+        RAQIB
+      </text>
     </svg>
   );
 }

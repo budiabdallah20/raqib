@@ -2,6 +2,7 @@ import { z } from 'zod';
 import fs from 'node:fs';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
+import { driveStatus, driveUpload, driveDelete, isDriveKey } from '@/lib/drive';
 import {
   assertRateLimit,
   handleApiError,
@@ -124,6 +125,30 @@ export async function POST(request: Request) {
       return jsonError('لم يتم العثور على الملف المرفوع. ارفعه من جديد', 400);
     }
 
+    // التخزين السحابي — Source of Truth: Google Drive + رابط مسجّل في Neon
+    // فشل Drive → الملف يبقى محليًا كنظام احتياطي (مثل السلوك السابق تمامًا)
+    let driveFileId: string | null = null;
+    let externalUrl: string | null = null;
+    let driveModeUsed: string | null = null;
+    if (driveStatus().configured && fullPath) {
+      try {
+        const buffer = fs.readFileSync(fullPath);
+        const upload = await driveUpload({
+          name: storedName,
+          mime: 'application/pdf',
+          buffer,
+          folder: 'resources',
+        });
+        if (upload) {
+          driveFileId = upload.driveFileId;
+          externalUrl = upload.externalUrl;
+          driveModeUsed = upload.mode;
+        }
+      } catch {
+        /* تُترك النسخة المحلية كما هي */
+      }
+    }
+
     const resource = await prisma.resource.create({
       data: {
         originalName: sanitizeString(originalName, 200),
@@ -133,16 +158,33 @@ export async function POST(request: Request) {
         courseId,
         lectureId: lectureId || null,
         kind: 'PDF',
+        driveFileId,
+        externalUrl,
       },
       include: { lecture: { select: { id: true, title: true } } },
     });
+
+    // صرامة السياسة: بعد نجاح النقل السحابي يحُرَّر القرص المحلي
+    if (driveFileId && fullPath) {
+      try {
+        fs.unlinkSync(fullPath);
+      } catch {
+        /* محتفظة احتياطًا — لا مشكلة */
+      }
+    }
 
     await logAudit({
       user: { id: user.id, role: user.role },
       request,
       action: 'RESOURCE_CREATE',
       entity: 'Resource',
-      detail: { resourceId: resource.id, courseId, storedName },
+      detail: {
+        resourceId: resource.id,
+        courseId,
+        storedName,
+        storedOnDrive: Boolean(driveFileId),
+        driveMode: driveModeUsed,
+      },
     });
 
     return Response.json({
@@ -189,6 +231,12 @@ export async function DELETE(request: Request) {
       if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
     } catch {
       // تعذر حذف الملف من القرص (مشغول مثلاً) — نحذف السجل على أي حال
+    }
+
+    // نسخة Drive إن وُجدت — مسح يقودي ثم حذف السجل
+    const driveKey = isDriveKey(resource.driveFileId ?? null) ? (resource.driveFileId as string) : null;
+    if (driveKey) {
+      await driveDelete(driveKey);
     }
 
     await prisma.resource.delete({ where: { id: resource.id } });

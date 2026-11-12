@@ -1,0 +1,80 @@
+/* ============================================================================
+   RAQEEB — AUTH THEATRE (burgundy #641B35/#842441 · amber #FF914D/#F5B46B ·
+   ivory #F8F5F2 on near-black #180B12)
+   Note: globals.css `.auth-dark` utility flips still carry cool/lime
+   leftovers from an older theme — the high-specificity overrides at the
+   bottom warm them for auth pages only.
+   ========================================================================== */
+
+.auth-theatre { background: radial-gradient(ellipse 70% 55% at 50% 0, var(--theater-spotlight), transparent 65%), #180B12; }
+.auth-theatre-house { isolation: isolate; background-image: radial-gradient(ellipse 55% 42% at 50% 23%, rgba(255, 145, 77, .13), transparent 72%), linear-gradient(180deg, #241019, #180B12); }
+.auth-stage-decor { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.auth-stage-arch { position: absolute; top: 3.5rem; left: 5%; right: 5%; height: min(72vh, 680px); border: 1px solid rgba(255, 145, 77, .22); border-bottom: 0; border-radius: 48% 48% 0 0 / 26% 26% 0 0; box-shadow: 0 0 0 10px rgba(255, 145, 77, .025), 0 0 0 11px rgba(255, 145, 77, .12), inset 0 14px 28px -25px #F5B46B; }
+.auth-stage-arch::after { content: ''; position: absolute; inset: 12px 12px 0; border: 1px solid rgba(255, 145, 77, .1); border-bottom: 0; border-radius: inherit; }
+.auth-stage-drape { position: absolute; top: 0; bottom: 0; width: 7%; background: repeating-linear-gradient(90deg, var(--theater-curtain-deep), var(--theater-curtain-fold) 23%, var(--theater-curtain) 47%, #290d1a 72%, #170a12); opacity: .85; }
+.auth-stage-drape-start { inset-inline-start: 0; clip-path: polygon(0 0, 100% 0, 72% 100%, 0 100%); }
+.auth-stage-drape-end { inset-inline-end: 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 28% 100%); }
+.auth-stage-lights { position: absolute; left: 12%; right: 12%; bottom: 0; height: 2px; background: linear-gradient(90deg, transparent, #FF914D, #F5B46B, #FF914D, transparent); box-shadow: 0 -6px 40px 8px rgba(255, 145, 77, .16); }
+.auth-theatre-card { border-radius: 8px 38px 8px 38px !important; outline: 1px solid rgba(255, 145, 77, .2); outline-offset: -9px; background: radial-gradient(ellipse 70% 28% at 50% 0, rgba(132, 36, 65, .3), transparent 76%), var(--theater-glass) !important; box-shadow: 0 38px 105px -44px #000, 0 0 65px -35px rgba(255, 145, 77, .4) !important; }
+.auth-theatre-card::after { content: ''; position: absolute; inset: 15px; border: 1px solid rgba(255, 145, 77, .11); border-radius: 3px 24px 3px 24px; pointer-events: none; }
+.auth-act-label { color: #F5B46B; border-top: 1px solid rgba(255, 145, 77, .35); border-bottom: 1px solid rgba(255, 145, 77, .35); background: linear-gradient(90deg, rgba(132, 36, 65, .14), rgba(132, 36, 65, .28), rgba(132, 36, 65, .14)); }
+.auth-act-label span:last-child { color: #FFB45C; }
+.auth-theatre-tabs { outline: 1px solid rgba(255, 145, 77, .13); outline-offset: 3px; }
+.auth-story-stage { isolation: isolate; border-inline-end: 1px solid rgba(255, 145, 77, .22); background-image: radial-gradient(ellipse 75% 50% at 50% 30%, rgba(255, 145, 77, .08), transparent 72%); }
+.auth-story-proscenium { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.auth-story-arch { position: absolute; inset: 5% 6% auto; height: 65%; border: 1px solid rgba(255, 145, 77, .18); border-bottom: 0; border-radius: 48% 48% 0 0 / 25% 25% 0 0; }
+.auth-story-curtain { position: absolute; top: 0; bottom: 0; width: 5%; opacity: .7; background: repeating-linear-gradient(90deg, var(--theater-curtain-deep), var(--theater-curtain-fold) 24%, var(--theater-curtain) 48%, #290d1a 70%); }
+.auth-story-curtain-start { inset-inline-start: 0; }
+.auth-story-curtain-end { inset-inline-end: 0; }
+.auth-story-feature { position: relative; border-radius: 3px 17px 3px 17px !important; outline: 1px solid rgba(255, 145, 77, .1); outline-offset: -5px; box-shadow: inset 0 1px 0 rgba(255, 236, 210, .06); }
+.auth-story-feature:hover { outline-color: rgba(255, 145, 77, .28); }
+.auth-recovery-frame { max-height: min(90svh, 760px); overflow-y: auto !important; background: radial-gradient(ellipse 65% 28% at 50% 0, rgba(255, 145, 77, .12), transparent 78%), var(--theater-panel) !important; border-color: var(--theater-border) !important; color: var(--theater-ivory); }
+.auth-recovery-frame .bg-mesh-gold { opacity: .12; }
+.auth-recovery-frame .text-ink-950, .auth-recovery-frame .text-ink-700 { color: #F8F5F2; }
+.auth-recovery-frame .text-ink-600, .auth-recovery-frame .text-ink-500, .auth-recovery-frame .text-ink-400 { color: #b7a9b0; }
+.auth-recovery-frame .text-ink-300 { color: #9c8f97; }
+
+/* ---------------------------------------------------------------------------
+   Warm overrides for the shared `.auth-dark` dark-zone utility flips
+   (globals.css still maps these utilities to cool/lime/teal values).
+   Double-class specificity wins regardless of stylesheet order.
+   --------------------------------------------------------------------------- */
+.auth-dark.auth-theatre .text-ink-950, .auth-dark.auth-theatre .text-ink-900, .auth-dark.auth-theatre .text-ink-800 { color: #F8F5F2; }
+.auth-dark.auth-theatre .text-ink-700 { color: rgba(248, 245, 242, 0.88); }
+.auth-dark.auth-theatre .text-ink-600 { color: rgba(248, 245, 242, 0.74); }
+.auth-dark.auth-theatre .text-ink-500 { color: rgba(248, 245, 242, 0.6); }
+.auth-dark.auth-theatre .text-ink-400 { color: rgba(248, 245, 242, 0.48); }
+.auth-dark.auth-theatre .text-ink-300 { color: rgba(248, 245, 242, 0.38); }
+.auth-dark.auth-theatre .text-brand-600, .auth-dark.auth-theatre .text-brand-700 { color: #FF914D; }
+.auth-dark.auth-theatre .text-brand-800, .auth-dark.auth-theatre .text-brand-900 { color: #F5B46B; }
+.auth-dark.auth-theatre .text-gold-600, .auth-dark.auth-theatre .text-gold-700, .auth-dark.auth-theatre .text-gold-800 { color: #F5B46B; }
+.auth-dark.auth-theatre .border-brand-900\/8, .auth-dark.auth-theatre .border-brand-900\/10, .auth-dark.auth-theatre .border-brand-900\/18, .auth-dark.auth-theatre .border-brand-900\/20 { border-color: rgba(255, 145, 77, 0.22); }
+.auth-dark.auth-theatre .bg-brand-900\/8, .auth-dark.auth-theatre .bg-brand-900\/10, .auth-dark.auth-theatre .bg-brand-900\/18, .auth-dark.auth-theatre .bg-brand-900\/20 { background-color: rgba(255, 145, 77, 0.1); }
+.auth-dark.auth-theatre .bg-brand-50, .auth-dark.auth-theatre .bg-brand-100, .auth-dark.auth-theatre .bg-mint-50, .auth-dark.auth-theatre .bg-mint-100 { background-color: rgba(255, 145, 77, 0.07); }
+.auth-dark.auth-theatre .bg-brand-500\/5, .auth-dark.auth-theatre .bg-brand-500\/6, .auth-dark.auth-theatre .bg-brand-500\/8, .auth-dark.auth-theatre .bg-brand-500\/10 { background-color: rgba(255, 145, 77, 0.09); }
+.auth-dark.auth-theatre .bg-gold-500\/5, .auth-dark.auth-theatre .bg-gold-500\/10, .auth-dark.auth-theatre .bg-gold-500\/15 { background-color: rgba(255, 145, 77, 0.1); }
+.auth-dark.auth-theatre .bg-white { background-color: rgba(255, 255, 255, 0.04); }
+.auth-dark.auth-theatre .bg-white\/5, .auth-dark.auth-theatre .bg-white\/10, .auth-dark.auth-theatre .bg-white\/20, .auth-dark.auth-theatre .bg-white\/30 { background-color: rgba(255, 255, 255, 0.06); }
+.auth-dark.auth-theatre .bg-white\/40, .auth-dark.auth-theatre .bg-white\/50, .auth-dark.auth-theatre .bg-white\/60, .auth-dark.auth-theatre .bg-white\/70 { background-color: rgba(24, 11, 18, 0.55); }
+.auth-dark.auth-theatre .bg-white\/80, .auth-dark.auth-theatre .bg-white\/90, .auth-dark.auth-theatre .bg-white\/95 { background-color: rgba(24, 11, 18, 0.92); }
+.auth-dark.auth-theatre .hover\:bg-white\/65:hover, .auth-dark.auth-theatre .hover\:bg-white\/70:hover, .auth-dark.auth-theatre .hover\:bg-white\/72:hover, .auth-dark.auth-theatre .hover\:bg-white\/75:hover, .auth-dark.auth-theatre .hover\:bg-white\/80:hover, .auth-dark.auth-theatre .hover\:bg-white\/90:hover, .auth-dark.auth-theatre .hover\:bg-white:hover { background-color: rgba(31, 15, 21, 0.78); }
+.auth-dark.auth-theatre .group-hover\:bg-white\/80:hover { background-color: rgba(31, 15, 21, 0.78); }
+.auth-dark.auth-theatre .border-white\/60, .auth-dark.auth-theatre .border-white\/70, .auth-dark.auth-theatre .border-white\/75, .auth-dark.auth-theatre .border-white\/80, .auth-dark.auth-theatre .border-white\/85, .auth-dark.auth-theatre .border-white\/90 { border-color: rgba(255, 255, 255, 0.1); }
+.auth-dark.auth-theatre .border-ink-950\/10, .auth-dark.auth-theatre .border-ink-950\/\[0\.06\], .auth-dark.auth-theatre .border-ink-950\/\[0\.08\] { border-color: rgba(255, 145, 77, 0.12); }
+.auth-dark.auth-theatre .bg-\[\#f7faf7\] { background-color: rgba(255, 255, 255, 0.04); }
+.auth-dark.auth-theatre .border-\[\#f7faf7\] { border-color: rgba(255, 145, 77, 0.2); }
+.auth-dark.auth-theatre .bg-\[\#f7faf7\]\/95 { background-color: rgba(24, 11, 18, 0.94); }
+.auth-dark.auth-theatre .hover\:text-ink-950:hover, .auth-dark.auth-theatre .hover\:text-ink-900:hover, .auth-dark.auth-theatre .hover\:text-ink-800:hover, .auth-dark.auth-theatre .hover\:text-ink-700:hover { color: #F8F5F2; }
+.auth-dark.auth-theatre .hover\:text-ink-600:hover, .auth-dark.auth-theatre .hover\:text-ink-500:hover { color: rgba(248, 245, 242, 0.85); }
+.auth-dark.auth-theatre .glass-panel, .auth-dark.auth-theatre .glass-soft, .auth-dark.auth-theatre .glass-card { background: rgba(33, 20, 27, 0.55); border-color: rgba(255, 145, 77, 0.16); }
+.auth-dark.auth-theatre .border-gold-500\/15 { border-color: rgba(255, 145, 77, 0.28); }
+
+@media (max-width: 640px) { .auth-stage-arch { left: 4%; right: 4%; top: 4.5rem; height: 580px; } .auth-stage-drape { width: 5%; } .auth-theatre-card { border-radius: 5px 24px 5px 24px !important; } .auth-act-label { font-size: .55rem; } }
+@media (prefers-reduced-motion: reduce) { .auth-story-feature, .auth-theatre-card { transition: none !important; } }
+
+/* Short viewports (phones, compact laptops): top-align the house so the
+   card's top bar and the back-link stay reachable instead of being clipped
+   by centered overflow on short screens. */
+@media (max-height: 860px) {
+  .auth-theatre-house { align-items: flex-start !important; }
+}

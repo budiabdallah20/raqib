@@ -112,7 +112,10 @@ export function buildScheduleICS(slots: ICSInput[], weeks = 8, now = new Date())
 /* ── CSV ── */
 
 export function csvCell(value: string | number | null | undefined): string {
-  const text = value === null || value === undefined ? '' : String(value);
+  let text = value === null || value === undefined ? '' : String(value);
+  // CSV Formula Injection: Excel/Sheets ينفّذ الخلايا التي تبدأ بـ = + - @ أو tab/CR.
+  // نضع علامة اقتباس مفردة قبلها حتى تُعامل كنص.
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
   if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
   return text;
 }

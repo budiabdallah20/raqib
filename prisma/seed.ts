@@ -4,10 +4,29 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  // كلمات مرور قوية ممنوعة من الترقيع اليدوي — تأتي من البيئة فقط.
+  // إنتاج: اجبر SEED_*_PASSWORD واضبطه سريًا. غيره يولّد عشوائيًا ويطبع مرة واحدة (تطوير فقط).
+  const { randomBytes } = await import('node:crypto');
+  const gen = () => randomBytes(24).toString('base64url');
+  const isProd = process.env.NODE_ENV === 'production';
+  const adminPass = process.env.SEED_ADMIN_PASSWORD || (isProd ? '' : gen());
+  const profPass = process.env.SEED_PROFESSOR_PASSWORD || (isProd ? '' : gen());
+  const studentPass = process.env.SEED_STUDENT_PASSWORD || (isProd ? '' : gen());
+  const staffPass = process.env.SEED_STAFF_PASSWORD || profPass || (isProd ? '' : gen());
+  if (isProd && (!adminPass || !profPass || !studentPass)) {
+    throw new Error('SEED_ADMIN_PASSWORD / SEED_PROFESSOR_PASSWORD / SEED_STUDENT_PASSWORD required in production');
+  }
+  if (!isProd) {
+    console.log('\n[raqib:seed] Generated dev-only passwords (rotate or delete DB before production):');
+    console.log(`  admin:     ${adminPass}`);
+    console.log(`  professor: ${profPass}`);
+    console.log(`  staff:     ${staffPass}`);
+    console.log(`  student:   ${studentPass}\n`);
+  }
   const password = {
-    admin: await bcrypt.hash('Admin@123', 12),
-    professor: await bcrypt.hash('Prof@123', 12),
-    student: await bcrypt.hash('Student@123', 12),
+    admin: await bcrypt.hash(adminPass, 12),
+    professor: await bcrypt.hash(profPass, 12),
+    student: await bcrypt.hash(studentPass, 12),
   };
 
   const admin = await prisma.user.upsert({
@@ -68,17 +87,17 @@ async function main() {
   // دكاترة ومدرسو المستوى الثاني — من جدول.Group B الرسمي
   // ─────────────────────────────────────────────────────────
   const staff = [
-    { email: 'nogey@raqib.edu',   name: 'د. نوجي محمد',     pass: 'Prof@123' },
-    { email: 'samah@raqib.edu',   name: 'د. سماح أحمد',     pass: 'Prof@123' },
-    { email: 'bahya@raqib.edu',   name: 'د. بهة الله فتحي', pass: 'Prof@123' },
-    { email: 'smar@raqib.edu',    name: 'د. سمر محمد',      pass: 'Prof@123' },
-    { email: 'gamilia@raqib.edu', name: 'م.م جميلة السيد',  pass: 'Prof@123' },
-    { email: 'ihab@raqib.edu',    name: 'د. إيهاب راشد',    pass: 'Prof@123' },
-    { email: 'rezk@raqib.edu',    name: 'م. أحمد رزق',      pass: 'Prof@123' },
-    { email: 'imam@raqib.edu',    name: 'أ.م.د طارق إمام',  pass: 'Prof@123' },
-    { email: 'asmaa@raqib.edu',   name: 'م.م أسماء عبد العال', pass: 'Prof@123' },
-    { email: 'ramadan@raqib.edu', name: 'أ.م.د محمد رمضان',  pass: 'Prof@123' },
-    { email: 'yasmin@raqib.edu',  name: 'م.م ياسمين',        pass: 'Prof@123' },
+    { email: 'nogey@raqib.edu',   name: 'د. نوجي محمد' },
+    { email: 'samah@raqib.edu',   name: 'د. سماح أحمد' },
+    { email: 'bahya@raqib.edu',   name: 'د. بهة الله فتحي' },
+    { email: 'smar@raqib.edu',    name: 'د. سمر محمد' },
+    { email: 'gamilia@raqib.edu', name: 'م.م جميلة السيد' },
+    { email: 'ihab@raqib.edu',    name: 'د. إيهاب راشد' },
+    { email: 'rezk@raqib.edu',    name: 'م. أحمد رزق' },
+    { email: 'imam@raqib.edu',    name: 'أ.م.د طارق إمام' },
+    { email: 'asmaa@raqib.edu',   name: 'م.م أسماء عبد العال' },
+    { email: 'ramadan@raqib.edu', name: 'أ.م.د محمد رمضان' },
+    { email: 'yasmin@raqib.edu',  name: 'م.م ياسمين' },
   ];
 
   const pro = new Map<string, string>(); // name → id
@@ -90,7 +109,7 @@ async function main() {
         email: p.email,
         name: p.name,
         role: 'PROFESSOR',
-        passwordHash: await bcrypt.hash(p.pass, 12),
+        passwordHash: await bcrypt.hash(staffPass, 12),
       },
     });
     pro.set(p.name, u.id);

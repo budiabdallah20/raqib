@@ -1,4 +1,5 @@
 'use client';
+import { useAuthCopy } from './auth-copy';
 
 import * as React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -14,7 +15,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { LogoMark } from '@/components/shared/Logo';
+import { AcademicGateMark } from '@/components/stage/AcademicGateMark';
 import {
   Field,
   PasswordInput,
@@ -35,6 +36,7 @@ export function ForgotPasswordModal({
   onClose: () => void;
   initialEmail?: string;
 }) {
+  const tr = useAuthCopy();
   const [step, setStep] = React.useState<Step>('email');
   const [email, setEmail] = React.useState(initialEmail);
   const [code, setCode] = React.useState('');
@@ -45,6 +47,7 @@ export function ForgotPasswordModal({
   const [error, setError] = React.useState('');
   const [notice, setNotice] = React.useState('');
   const [seconds, setSeconds] = React.useState(600);
+  const dialogRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (!open) return;
@@ -63,14 +66,26 @@ export function ForgotPasswordModal({
   React.useEffect(() => {
     if (!open) return;
     const previous = document.body.style.overflow;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     document.body.style.overflow = 'hidden';
+    const focusTimer = window.setTimeout(() => dialogRef.current?.querySelector<HTMLInputElement>('input')?.focus(), 0);
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
+      if (event.key === 'Tab') {
+        const controls = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])') ?? []);
+        if (!controls.length) return;
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => {
+      window.clearTimeout(focusTimer);
       document.body.style.overflow = previous;
       window.removeEventListener('keydown', onKey);
+      previouslyFocused?.focus();
     };
   }, [open, onClose]);
 
@@ -86,7 +101,7 @@ export function ForgotPasswordModal({
     setError('');
     setNotice('');
     if (!EMAIL_RE.test(email.trim())) {
-      setError('أدخل بريدًا إلكترونيًا صحيحًا');
+      setError(tr("أدخل بريدًا إلكترونيًا صحيحًا"));
       return;
     }
     setLoading(true);
@@ -103,11 +118,7 @@ export function ForgotPasswordModal({
       setStep('code');
       setSeconds(result.expiresIn || 600);
       setDevCode(result.devCode || '');
-      setNotice(
-        result.delivered
-          ? 'أرسلنا كود التحقق إلى بريدك الإلكتروني.'
-          : 'تم إنشاء كود التحقق. في وضع التطوير يظهر الكود هنا.',
-      );
+      setNotice(tr("إذا كان البريد مرتبطًا بحساب نشط، ستصل رسالة التحقق إليه. راجع البريد غير المرغوب فيه أيضًا."));
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -118,15 +129,15 @@ export function ForgotPasswordModal({
   const resetPassword = async () => {
     setError('');
     if (!/^\d{6}$/.test(code.trim())) {
-      setError('كود التحقق يجب أن يكون 6 أرقام');
+      setError(tr("كود التحقق يجب أن يكون 6 أرقام"));
       return;
     }
     if (password.length < 8) {
-      setError('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+      setError(tr("كلمة المرور يجب أن تكون 8 أحرف على الأقل"));
       return;
     }
     if (password !== confirm) {
-      setError('كلمتا المرور غير متطابقتين');
+      setError(tr("كلمتا المرور غير متطابقتين"));
       return;
     }
     setLoading(true);
@@ -161,84 +172,51 @@ export function ForgotPasswordModal({
           exit={{ opacity: 0 }}
         >
           <div
-            className="absolute inset-0 bg-[#06110d]/45 backdrop-blur-md"
+            className="absolute inset-0 bg-[#0d0509]/45 backdrop-blur-md"
             onClick={onClose}
             aria-hidden="true"
           />
           <motion.div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label="استعادة كلمة المرور"
+            aria-label={tr("استعادة كلمة المرور")}
             initial={{ opacity: 0, y: 26, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-            className="card-glow relative w-full max-w-md overflow-hidden rounded-3xl border border-white/80 bg-white/90 shadow-[0_40px_120px_-24px_rgba(8,22,17,0.5)] backdrop-blur-2xl"
+            className="auth-panel auth-panel--register relative w-full max-w-md overflow-hidden rounded-3xl border border-[#F28C28]/30 bg-[#221016]/95 shadow-[0_40px_120px_-24px_rgba(0,0,0,0.95)] backdrop-blur-2xl"
           >
-            <div className="pointer-events-none absolute inset-0 bg-mesh-gold opacity-40" />
-            <div className="relative border-b border-brand-900/[0.08] px-6 py-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="absolute inset-0 rounded-2xl bg-gold-500/25 blur-xl" />
-                    <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-gold-600/25 bg-gold-500/10 text-gold-700">
-                      <KeyRound className="h-5 w-5" />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-700">
-                      RECOVERY
-                    </p>
-                    <h2 className="mt-0.5 font-display text-lg font-extrabold text-ink-950">
-                      استعادة كلمة المرور
-                    </h2>
-                  </div>
+            <span className="auth-panel-top-bar" aria-hidden />
+            <div className="auth-panel-ambient" aria-hidden />
+            <div className="auth-panel-header">
+              <div className="auth-panel-brand">
+                <span className="auth-panel-brand-badge">
+                  <KeyRound className="h-6 w-6 text-[#F28C28]" />
+                </span>
+                <div>
+                  <p className="auth-panel-brand-name">{tr("رقيب")}</p>
+                  <p className="auth-panel-brand-tagline" dir="ltr">RAQEEB · ACADEMIC THEATER</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label="إغلاق"
-                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-brand-900/10 bg-white/65 text-ink-400 transition hover:border-brand-500/30 hover:text-ink-900"
-                >
-                  <X className="h-4 w-4" />
-                </button>
               </div>
-              <div className="mt-4 flex items-center gap-2">
-                {['email', 'code', 'done'].map((item, index) => {
-                  const order = item === 'email' ? 0 : item === 'code' ? 1 : 2;
-                  const current = step === 'email' ? 0 : step === 'code' ? 1 : 2;
-                  return (
-                    <React.Fragment key={item}>
-                      <span
-                        className={cn(
-                          'flex h-6 w-6 items-center justify-center rounded-full border text-[10px] font-bold transition',
-                          order < current &&
-                            'border-brand-500/35 bg-brand-500/12 text-brand-700',
-                          order === current &&
-                            'border-gold-600/40 bg-gold-500/12 text-gold-700',
-                          order > current &&
-                            'border-brand-900/10 bg-white/60 text-ink-300',
-                        )}
-                      >
-                        {order < current ? <CheckCircle2 className="h-3 w-3" /> : index + 1}
-                      </span>
-                      {index < 2 ? (
-                        <span
-                          className={cn(
-                            'h-px flex-1',
-                            order < current
-                              ? 'bg-brand-500/30'
-                              : 'bg-brand-900/10',
-                          )}
-                        />
-                      ) : null}
-                    </React.Fragment>
-                  );
-                })}
-              </div>
+              <span className="auth-panel-security-badge">
+                <span className="auth-panel-security-dot" aria-hidden />
+                {tr("بوابة آمنة")}</span>
             </div>
+            <div className="auth-panel-act-label">
+              <span>{tr("استعادة كلمة المرور")}</span>
+              <span className="auth-panel-act-code" dir="ltr">ACT II / RECOVERY</span>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={tr("إغلاق")}
+              className="btn-ghost absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl transition hover:bg-white/[0.06] hover:text-[#F8F5F2]"
+            >
+              <X className="h-4 w-4" />
+            </button>
 
-            <div className="relative px-6 py-5">
+            <div className="auth-panel-content">
               <AnimatePresence mode="wait">
                 {step === 'email' ? (
                   <motion.div
@@ -249,10 +227,9 @@ export function ForgotPasswordModal({
                     transition={{ duration: 0.24 }}
                     className="space-y-4"
                   >
-                    <p className="text-xs leading-6 text-ink-500">
-                      اكتب البريد المسجل في حسابك، وسنرسل لك كود تحقق مكوّن من 6 أرقام.
-                    </p>
-                    <Field label="البريد الإلكتروني" htmlFor="forgot-email">
+                    <p className="text-[12px] leading-6 text-[#9CA3AF]">
+                      {tr("اكتب البريد المسجل في حسابك، وسنرسل لك كود تحقق مكوّن من 6 أرقام.")}</p>
+                    <Field label={tr("البريد الإلكتروني")} htmlFor="forgot-email">
                       <ValidatedInput
                         id="forgot-email"
                         type="email"
@@ -279,15 +256,14 @@ export function ForgotPasswordModal({
                       type="button"
                       onClick={() => void requestCode()}
                       disabled={loading}
-                      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(110deg,#8a6424,#c8a24b_45%,#e6cb78)] text-sm font-bold text-[#1c1503] shadow-[0_14px_36px_-14px_rgba(200,162,75,.6)] transition hover:-translate-y-0.5 disabled:opacity-50"
+                      className="btn-primary group flex h-11 w-full items-center justify-center gap-2 rounded-xl transition hover:-translate-y-0.5 disabled:opacity-50"
                     >
                       {loading ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          جارٍ إرسال الكود...
-                        </>
+                          {tr("جارٍ إرسال الكود...")}</>
                       ) : (
-                        'إرسال كود التحقق'
+                        tr("إرسال كود التحقق")
                       )}
                     </button>
                   </motion.div>
@@ -302,11 +278,11 @@ export function ForgotPasswordModal({
                     transition={{ duration: 0.24 }}
                     className="space-y-4"
                   >
-                    <div className="flex items-start gap-2 rounded-xl border border-brand-500/15 bg-brand-500/[0.05] px-3 py-2.5">
-                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-700" />
-                      <div className="text-[11px] leading-5 text-ink-600">
-                        {notice || 'تم إرسال الكود إلى بريدك.'}
-                        <div className="mt-1 font-latin text-[10px] text-brand-700/70" dir="ltr">
+                    <div className="flex items-start gap-2 rounded-xl border border-[#F28C28]/30 bg-[#F28C28]/[0.08] px-3 py-2.5">
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#FFB45C]" />
+                      <div className="text-[11px] leading-5 text-[#F8F5F2]">
+                        {notice || tr("تم إرسال الكود إلى بريدك.")}
+                        <div className="mt-1 font-latin text-[10px] text-[#FFB45C]/70" dir="ltr">
                           {email} · {minutes}:{remaining}
                         </div>
                       </div>
@@ -317,9 +293,9 @@ export function ForgotPasswordModal({
                         type="button"
                         onClick={() => setCode(devCode)}
                         className="flex w-full items-center justify-between rounded-xl border border-dashed border-amber-500/30 bg-amber-400/[0.08] px-3 py-2 text-[11px] text-amber-700 transition hover:bg-amber-400/[0.14]"
-                        title="اضغط لملء الكود (وضع التطوير)"
+                        title={tr("اضغط لملء الكود (وضع التطوير)")}
                       >
-                        <span>وضع التطوير — كود التحقق</span>
+                        <span>{tr("وضع التطوير — كود التحقق")}</span>
                         <span className="font-latin text-sm font-bold tracking-[0.35em]" dir="ltr">
                           {devCode}
                         </span>
@@ -327,9 +303,9 @@ export function ForgotPasswordModal({
                     ) : null}
 
                     <Field
-                      label="كود التحقق"
+                      label={tr("كود التحقق")}
                       htmlFor="forgot-code"
-                      hint="6 أرقام وصلت إلى بريدك الإلكتروني"
+                      hint={tr("6 أرقام وصلت إلى بريدك الإلكتروني")}
                     >
                       <ValidatedInput
                         id="forgot-code"
@@ -345,7 +321,7 @@ export function ForgotPasswordModal({
                       />
                     </Field>
 
-                    <Field label="كلمة المرور الجديدة" htmlFor="forgot-password">
+                    <Field label={tr("كلمة المرور الجديدة")} htmlFor="forgot-password">
                       <PasswordInput
                         id="forgot-password"
                         dir="ltr"
@@ -357,18 +333,7 @@ export function ForgotPasswordModal({
                       <PasswordStrength value={password} />
                     </Field>
 
-                    <Field
-                      label="تأكيد كلمة المرور"
-                      htmlFor="forgot-confirm"
-                      error={
-                        confirm && confirm !== password
-                          ? 'كلمتا المرور غير متطابقتين'
-                          : ''
-                      }
-                      success={
-                        confirm && confirm === password ? 'متطابقتان' : ''
-                      }
-                    >
+                    <Field label={tr("تأكيد كلمة المرور")} htmlFor="forgot-confirm">
                       <PasswordInput
                         id="forgot-confirm"
                         dir="ltr"
@@ -389,15 +354,14 @@ export function ForgotPasswordModal({
                       type="button"
                       onClick={() => void resetPassword()}
                       disabled={loading}
-                      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(110deg,#8a6424,#c8a24b_45%,#e6cb78)] text-sm font-bold text-[#1c1503] shadow-[0_14px_36px_-14px_rgba(200,162,75,.6)] transition hover:-translate-y-0.5 disabled:opacity-50"
+                      className="btn-primary flex h-11 w-full items-center justify-center gap-2 rounded-xl transition hover:-translate-y-0.5 disabled:opacity-50"
                     >
                       {loading ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          جارٍ التحقق...
-                        </>
+                          {tr("جارٍ التحقق...")}</>
                       ) : (
-                        'تعيين كلمة المرور'
+                        tr("تعيين كلمة المرور")
                       )}
                     </button>
 
@@ -408,19 +372,18 @@ export function ForgotPasswordModal({
                           setStep('email');
                           setError('');
                         }}
-                        className="flex items-center gap-1 text-ink-400 transition hover:text-ink-700"
+                        className="btn-ghost flex items-center gap-1 transition hover:text-[#F8F5F2]"
                       >
                         <ArrowLeft className="h-3 w-3 rotate-180" />
-                        تغيير البريد
-                      </button>
+                        {tr("تغيير البريد")}</button>
                       <button
                         type="button"
                         onClick={() => void requestCode()}
                         disabled={loading || seconds > 540}
-                        className="flex items-center gap-1 text-brand-700 transition hover:text-brand-800 disabled:opacity-40"
+                        className="btn-ghost flex items-center gap-1 transition hover:text-[#F8F5F2] disabled:opacity-40"
                       >
                         <RefreshCw className="h-3 w-3" />
-                        {seconds > 0 ? 'إعادة إرسال' : 'اطلب كودًا جديدًا'}
+                        {seconds > 0 ? tr("إعادة إرسال") : tr("اطلب كودًا جديدًا")}
                       </button>
                     </div>
                   </motion.div>
@@ -435,34 +398,35 @@ export function ForgotPasswordModal({
                     className="flex flex-col items-center py-6 text-center"
                   >
                     <div className="relative mb-4">
-                      <div className="absolute inset-0 animate-ping rounded-full bg-brand-500/20" />
-                      <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-brand-500/25 bg-brand-500/10 text-brand-700">
+                      <div className="absolute inset-0 animate-ping rounded-full bg-[#F5B46B]/20" />
+                      <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-[#F5B46B]/30 bg-[#F5B46B]/10 text-[#F5B46B]">
                         <CheckCircle2 className="h-8 w-8" />
                       </div>
                     </div>
-                    <h3 className="font-display text-lg font-extrabold text-ink-950">
-                      تم تحديث كلمة المرور
-                    </h3>
-                    <p className="mt-2 max-w-xs text-xs leading-6 text-ink-500">
-                      يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة. جميع الجلسات
-                      القديمة ستنتهي تلقائيًا.
-                    </p>
+                    <h3 className="font-display text-lg font-extrabold text-[#F8F5F2]">
+                      {tr("تم تحديث كلمة المرور")}</h3>
+                    <p className="mt-2 max-w-xs text-xs leading-6 text-[#9CA3AF]">
+                      {tr("يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة. جميع الجلسات\n                      القديمة ستنتهي تلقائيًا.")}</p>
                     <button
                       type="button"
                       onClick={onClose}
-                      className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(110deg,#8a6424,#c8a24b_45%,#e6cb78)] text-sm font-bold text-[#1c1503] shadow-[0_14px_36px_-14px_rgba(200,162,75,.6)] transition hover:-translate-y-0.5"
+                      className="btn-primary mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl transition hover:-translate-y-0.5"
                     >
-                      العودة لتسجيل الدخول
-                      <ArrowLeft className="h-4 w-4" />
+                      {tr("العودة لتسجيل الدخول")}<ArrowLeft className="h-4 w-4" />
                     </button>
                   </motion.div>
                 ) : null}
               </AnimatePresence>
             </div>
 
-            <div className="relative flex items-center justify-center gap-2 border-t border-brand-900/[0.08] px-6 py-3 text-[10px] text-ink-400">
-              <LogoMark className="h-4 w-4" tone="gold" />
-              اتصال آمن · لن نشارك بريدك مع أي طرف ثالث
+            <div className="auth-panel-footer">
+              <div className="auth-panel-trust-bar">
+                <span className="auth-panel-trust-item">
+                  <ShieldCheck className="h-3 w-3" />
+                  {tr("اتصال آمن")}</span>
+                <span className="auth-panel-trust-divider" aria-hidden />
+                <span className="auth-panel-trust-item font-latin tracking-wide">{tr("لا نشارك بريدك")}</span>
+              </div>
             </div>
           </motion.div>
         </motion.div>

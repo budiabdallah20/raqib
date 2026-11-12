@@ -13,18 +13,19 @@ export async function GET() {
   try {
     const user = await requireUser(['STUDENT']);
     const policy = await getPolicy();
+    const heldLecture = { startsAt: { lt: new Date() }, cancelledAt: null, isOpen: false };
 
     const [lectures, records, enrollments] = await Promise.all([
       prisma.lecture.findMany({
-        where: { course: { enrollments: { some: { studentId: user.id } } } },
+        where: { ...heldLecture, course: { enrollments: { some: { studentId: user.id, status: 'ACTIVE' } } } },
         select: { id: true, courseId: true },
       }),
       prisma.attendance.findMany({
-        where: { studentId: user.id },
+        where: { studentId: user.id, lecture: heldLecture },
         select: { lectureId: true, status: true, scannedAt: true, lecture: { select: { id: true, title: true, course: { select: { id: true, code: true } } } } },
       }),
       prisma.enrollment.findMany({
-        where: { studentId: user.id },
+        where: { studentId: user.id, status: 'ACTIVE' },
         select: { courseId: true, course: { select: { id: true, code: true, name: true, englishName: true } } },
       }),
     ]);

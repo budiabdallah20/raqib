@@ -1,17 +1,35 @@
-import { randomBytes } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { lectureSchema, lectureToggleSchema } from '@/lib/validations';
 import { handleApiError, jsonError, logAudit, sanitizeString } from '@/lib/security';
-import { QR_TTL_MS } from '@/lib/constants';
+import { QR_SESSION_TTL_MS } from '@/lib/constants';
+import { signQrToken, parseGeofence } from '@/lib/qr-sign';
 import { notifyUsers } from '@/lib/notify';
+import { z } from 'zod';
+
+/** حدود قاعة المحاضرة — إما null لتفعيلها أو إلغاءها */
+const geofenceSchema = z
+  .object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+    radiusM: z.number().int().min(20).max(2000).optional(),
+  })
+  .nullable()
+  .optional();
+
+function geofenceJsonOf(body: unknown) {
+  const parsed = geofenceSchema.safeParse((body as { geofence?: unknown })?.geofence);
+  if (!parsed.success) return undefined;
+  return parsed.data ? JSON.stringify(parsed.data) : null;
+}
 
 export async function GET() {
   try {
     const user = await requireUser();
     if (user.role === 'STUDENT') {
       const lectures = await prisma.lecture.findMany({
-        where: { course: { enrollments: { some: { studentId: user.id } } } },
+        where: { course: { enrollments: { some: { studentId: user.id, status: 'ACTIVE' } } } },
         // Explicit select: students must never receive qrToken/qrExpiresAt.
         select: {
           id: true,
@@ -52,7 +70,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const user = await requireUser(['PROFESSOR', 'ADMIN']);
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
 
     const toggleParsed = lectureToggleSchema.safeParse(body);
     if (toggleParsed.success) {
@@ -64,15 +82,34 @@ export async function POST(request: Request) {
         return jsonError('ليست لديك صلاحية', 403);
       }
       const isOpen = !lecture.isOpen;
+      // geofence: undefined = لم يتغير في الطلب، null = مسح الحدود، object = ضبط
+      const geofenceJson = geofenceJsonOf(body);
+      const effectiveGeofenceJson =
+        geofenceJson !== undefined ? geofenceJson : lecture.geofence;
+
       const updated = await prisma.lecture.update({
         where: { id: lecture.id },
         data: isOpen
           ? {
               isOpen: true,
-              qrToken: randomBytes(16).toString('hex'),
-              qrExpiresAt: new Date(Date.now() + QR_TTL_MS),
+              // رمز ديناميكي موقّع يُفتح بعمر 15s ويتدوير كل 10s عبر اللوحة
+              qrToken: signQrToken(
+                {
+                  lec: lecture.id,
+                  crs: lecture.courseId,
+                  geofence: parseGeofence(effectiveGeofenceJson),
+                },
+                QR_SESSION_TTL_MS / 1000,
+              ),
+              qrExpiresAt: new Date(Date.now() + QR_SESSION_TTL_MS),
+              ...(geofenceJson !== undefined ? { geofence: geofenceJson } : {}),
             }
-          : { isOpen: false, qrToken: null, qrExpiresAt: null },
+          : {
+              isOpen: false,
+              qrToken: null,
+              qrExpiresAt: null,
+              ...(geofenceJson !== undefined ? { geofence: geofenceJson } : {}),
+            },
       });
 
       // إشعار الطلاب المسجلين في المادة عند الفتح (WP4)
@@ -113,8 +150,12 @@ export async function POST(request: Request) {
       return jsonError('هذا المقرر ليس ضمن مقرراتك', 403);
     }
 
+    const geofenceJson = geofenceJsonOf(body);
+    // الـid يُولَّد هنا ليُوقَّع داخل JWT المحاضرة (Prisma @default(cuid()) يقبل قيمة صريحة)
+    const lectureId = randomUUID();
     const lecture = await prisma.lecture.create({
       data: {
+        id: lectureId,
         courseId: course.id,
         professorId: course.professorId,
         title: sanitizeString(parsed.data.title, 120),
@@ -122,8 +163,16 @@ export async function POST(request: Request) {
           ? sanitizeString(parsed.data.location, 80)
           : null,
         isOpen: true,
-        qrToken: randomBytes(16).toString('hex'),
-        qrExpiresAt: new Date(Date.now() + QR_TTL_MS),
+        geofence: geofenceJson ?? null,
+        qrToken: signQrToken(
+          {
+            lec: lectureId,
+            crs: course.id,
+            geofence: parseGeofence(geofenceJson),
+          },
+          QR_SESSION_TTL_MS / 1000,
+        ),
+        qrExpiresAt: new Date(Date.now() + QR_SESSION_TTL_MS),
       },
     });
     await logAudit({

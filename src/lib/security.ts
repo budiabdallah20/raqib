@@ -1,7 +1,12 @@
 import { isIP } from 'node:net';
 import { prisma } from './db';
+import { hashPii } from './crypto';
 
-type Bucket = { count: number; resetAt: number };
+/**
+ * نافذة منزلقة حقيقية: نخزّن أوقات المحاولات ونستبعد ما خرج من النافذة.
+ * هذا يمنع «انفجار الحدّ» عند حدود النوافذ الثابتة (fixed-window burst).
+ */
+type Bucket = { hits: number[]; windowMs: number };
 const attempts = new Map<string, Bucket>();
 let lastSweep = 0;
 
@@ -10,7 +15,9 @@ function sweep(now: number) {
   if (now - lastSweep < 60_000) return;
   lastSweep = now;
   for (const [key, bucket] of attempts) {
-    if (bucket.resetAt < now) attempts.delete(key);
+    const cutoff = now - bucket.windowMs;
+    while (bucket.hits.length && bucket.hits[0] <= cutoff) bucket.hits.shift();
+    if (bucket.hits.length === 0) attempts.delete(key);
   }
   // حماية قصوى من تضخم الذاكرة في حال هجوم بمفاتيح عشوائية
   if (attempts.size > 50_000) {
@@ -50,21 +57,33 @@ export function assertRateLimit(
 ) {
   const now = Date.now();
   sweep(now);
-  const current = attempts.get(key);
-  if (!current || current.resetAt < now) {
-    attempts.set(key, { count: 1, resetAt: now + windowMs });
-    return;
+
+  let bucket = attempts.get(key);
+  if (!bucket) {
+    bucket = { hits: [], windowMs };
+    attempts.set(key, bucket);
   }
-  if (current.count >= limit) {
+  bucket.windowMs = Math.max(bucket.windowMs, windowMs);
+
+  const cutoff = now - bucket.windowMs;
+  while (bucket.hits.length && bucket.hits[0] <= cutoff) bucket.hits.shift();
+
+  if (bucket.hits.length >= limit) {
+    // أقدم محاولة يجب أن تخرج من النافذة قبل السماح بمحاولة جديدة
+    const blocking = bucket.hits[bucket.hits.length - limit] ?? bucket.hits[0];
     const err = new Error(message) as Error & {
       status: number;
       retryAfter: number;
     };
     err.status = 429;
-    err.retryAfter = Math.max(1, Math.ceil((current.resetAt - now) / 1000));
+    err.retryAfter = Math.max(
+      1,
+      Math.ceil((blocking + bucket.windowMs - now) / 1000),
+    );
     throw err;
   }
-  current.count += 1;
+
+  bucket.hits.push(now);
 }
 
 export function clearRateLimit(key: string) {
@@ -84,12 +103,21 @@ export function normalizePhone(value: string) {
   return value.replace(/[\s\-()]/g, '');
 }
 
-/** يسجل الخطأ كاملًا في السيرفر، ولا يسرّب تفاصيل Prisma/قاعدة البيانات للعميل */
+/** نص خطأ آمن للسجلات: بلا PII، وبلا كائنات Prisma الخام. */
+function safeErrorText(error: unknown) {
+  if (error instanceof Error) {
+    const stack = typeof error.stack === 'string' ? error.stack : '';
+    return redactText(`${error.name}: ${error.message}\n${stack}`).slice(0, 4_000);
+  }
+  return redactText(String(error)).slice(0, 1_000);
+}
+
+/** يسجل الخطأ في السيرفر فقط، ولا يسرّب تفاصيل Prisma/قاعدة البيانات للعميل */
 export function jsonError(message: string, status = 400, code?: string) {
   const safeMessage =
     status === 500 ? 'حدث خطأ غير متوقع، حاول مرة أخرى لاحقًا' : message;
   if (status >= 500) {
-    console.error('[raqib:api:error]', status, String(message).slice(0, 800));
+    console.error('[raqib:api:error]', status, safeErrorText(message));
   }
   return Response.json(
     code ? { error: safeMessage, code } : { error: safeMessage },
@@ -108,7 +136,7 @@ export function handleApiError(
   const err = error as Error & { status?: number; retryAfter?: number };
   const status = err?.status && err.status >= 400 && err.status < 600 ? err.status : 500;
   if (status >= 500) {
-    console.error('[raqib:api:unhandled]', error);
+    console.error('[raqib:api:unhandled]', safeErrorText(error));
     return jsonError(fallback, 500);
   }
   const res = jsonError(err.message || fallback, status);
@@ -135,16 +163,48 @@ type AuditInit = {
   detail?: unknown;
 };
 
+const SENSITIVE_KEY_RE =
+  /(email|phone|mobile|identifier|national|studentcode|password|passwd|token|secret|authorization|cookie|otp|resetcode|code)/i;
+const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+
+function redactText(value: string) {
+  return value.replace(EMAIL_RE, '[redacted-email]').slice(0, 2_000);
+}
+
+/** إزالة PII/الأسرار من تفاصيل التدقيق قبل تخزينها — حتى لا يتحول السجل نفسه لتسريب. */
+export function redactDetail(value: unknown, depth = 0): unknown {
+  if (depth > 6) return '[truncated]';
+  if (value === null || value === undefined) return value;
+  if (typeof value === 'string') return redactText(value);
+  if (typeof value === 'number' || typeof value === 'boolean') return value;
+  if (Array.isArray(value)) return value.map((item) => redactDetail(item, depth + 1));
+  if (typeof value !== 'object') return '[unserializable]';
+
+  const result: Record<string, unknown> = {};
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    if (SENSITIVE_KEY_RE.test(key)) {
+      result[key] = '[redacted]';
+    } else if (key.toLowerCase() === 'ip') {
+      result[key] = hashPii(typeof child === 'string' ? child : null);
+    } else {
+      result[key] = redactDetail(child, depth + 1);
+    }
+  }
+  return result;
+}
+
 export async function logAudit({ user, request, action, entity, detail }: AuditInit) {
   try {
+    const ip = request ? getClientIp(request) : null;
     await prisma.auditLog.create({
       data: {
         userId: user?.id ?? null,
         userRole: user?.role ?? null,
         action,
         entity,
-        detail: detail === undefined ? null : safeStringify(detail),
-        ip: request ? getClientIp(request) : null,
+        detail: detail === undefined ? null : safeStringify(redactDetail(detail)),
+        // IP مخزّن كبصمة HMAC — لا عنوان خام في سجل التدقيق.
+        ip: hashPii(ip),
         userAgent: request?.headers.get('user-agent')?.slice(0, 256) ?? null,
       },
     });

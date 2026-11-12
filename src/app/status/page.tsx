@@ -7,11 +7,14 @@ export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: `حالة الخدمة — ${APP_NAME}`,
-  description: 'أرقام محسوبة مباشرة من قاعدة البيانات الفعلية للمنصة (وضع تجريبي عند وجود ديمو).',
+  description: 'حالة تشغيل المنصة — فحص اتصال قاعدة البيانات وطبقة النقل.',
 };
 
+/**
+ * صفحة عامة: لا تعرض أعداد مستخدمين/محاضرات/سجلات تدقيق ولا تفاصيل
+ * تشغيلية تساعد أي زائر على رسم خريطة النظام. فحوص عامة فقط.
+ */
 async function getHealth() {
-  const now = Date.now();
   const checks: { name: string; ok: boolean; detail: string }[] = [];
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -19,21 +22,25 @@ async function getHealth() {
   } catch {
     checks.push({ name: 'قاعدة البيانات', ok: false, detail: 'تعذر الاتصال' });
   }
-  try {
-    const stale = await prisma.lecture.count({ where: { isOpen: true, qrExpiresAt: { lt: new Date(now - 5 * 60 * 1000) } } });
-    checks.push({ name: 'رموز QR', ok: stale === 0, detail: stale === 0 ? 'كل الرموز صالحة' : `${stale} رمز ناتي يحتاج تدويرًا` });
-  } catch {
-    checks.push({ name: 'رموز QR', ok: false, detail: 'غير قابل للفحص' });
+
+  // لا نثق بـ x-forwarded-proto إلا خلف بروكسي موثوق معلن.
+  if (process.env.TRUST_PROXY === '1') {
+    const h = await headers();
+    const proto = h.get('x-forwarded-proto') ?? '';
+    const secure = proto === 'https';
+    checks.push({
+      name: 'طبقة النقل',
+      ok: secure,
+      detail: secure ? 'HTTPS عبر البروكسي' : 'تحقق من إعداد TLS',
+    });
+  } else {
+    checks.push({
+      name: 'طبقة النقل',
+      ok: true,
+      detail: 'TLS يُدار على مستوى الخادم/البروكسي',
+    });
   }
-  const h = await headers();
-  const proto = h.get('x-forwarded-proto') ?? 'http';
-  checks.push({ name: 'اتصال HTTPS', ok: proto === 'https', detail: proto === 'https' ? 'اتصال مشفر عبر البروكسي' : `غير مشفر (${proto})` });
-  try {
-    const auditCount = await prisma.auditLog.count();
-    checks.push({ name: 'سجل التدقيق', ok: auditCount > 0, detail: `${auditCount} عملية مسجلة` });
-  } catch {
-    checks.push({ name: 'سجل التدقيق', ok: false, detail: 'غير قابل للفحص' });
-  }
+
   return checks;
 }
 
@@ -51,7 +58,7 @@ export default async function StatusPage() {
       </header>
 
       <h1 className="font-display text-3xl font-extrabold text-ink-950">حالة الخدمة</h1>
-      <p className="mt-2 text-sm text-ink-500">{FACULTY} — تُحسب فحوص الصحة مباشرة عند فتح الصفحة.</p>
+      <p className="mt-2 text-sm text-ink-500">{FACULTY} — فحوص عامة دون أي بيانات تشغيلية حساسة.</p>
 
       <ul className="mt-8 space-y-3">
         {checks.map((c) => (
@@ -66,7 +73,7 @@ export default async function StatusPage() {
       </ul>
 
       <p className="mt-8 text-[11px] text-ink-400">
-        🔹 في وضع العرض التجريبي تُولَّد البيانات بسكربت الديمو — الأرقام وضعها تجريبي معلن في لوحة الأدمن.
+        🔹 الصفحة لا تعرض أعداد المستخدمين أو المحاضرات أو سجلات التدقيق.
       </p>
     </main>
   );

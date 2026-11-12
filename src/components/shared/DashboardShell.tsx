@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { api } from '@/lib/api';
 import { X, Sparkles } from 'lucide-react';
+import { CommandPalette } from '@/components/shared/CommandPalette';
 import type { AuthUser } from '@/types';
 
 const ROLE_LABEL: Record<AuthUser['role'], string> = {
@@ -94,6 +95,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           {ready && user ? <WelcomeBanner user={user} /> : null}
           {children}
         </main>
+        {user ? <CommandPalette role={user.role} /> : null}
       </div>
     </div>
   );

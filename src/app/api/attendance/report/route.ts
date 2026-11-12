@@ -28,16 +28,20 @@ export async function GET(request: Request) {
     }
 
     const policy = await getPolicy();
+    const heldLecture = { courseId, startsAt: { lt: new Date() }, cancelledAt: null, isOpen: false };
     const [enrollments, lectures, attendances] = await Promise.all([
       prisma.enrollment.findMany({
-        where: { courseId },
+        where: { courseId, status: 'ACTIVE' },
         select: {
           student: { select: { id: true, name: true, studentCode: true, group: true, level: true } },
         },
       }),
-      prisma.lecture.findMany({ where: { courseId }, select: { id: true } }),
+      prisma.lecture.findMany({ where: heldLecture, select: { id: true } }),
       prisma.attendance.findMany({
-        where: { lecture: { courseId } },
+        where: {
+          lecture: heldLecture,
+          student: { enrollments: { some: { courseId, status: 'ACTIVE' } } },
+        },
         select: { lectureId: true, studentId: true, status: true },
       }),
     ]);

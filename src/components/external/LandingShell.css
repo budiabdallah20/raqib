@@ -1,0 +1,297 @@
+.landing-shell {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.landing-shell-content {
+  position: relative;
+  z-index: 20;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hero Section within Landing Shell */
+.landing-hero {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem 5rem;
+  min-height: 100svh;
+}
+
+.landing-hero-copy {
+  position: relative;
+  z-index: 10;
+  max-width: 720px;
+  width: 100%;
+  text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .landing-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(380px, 0.85fr);
+    align-items: center;
+    column-gap: 2.5rem;
+    padding: 6rem 7% 5.5rem;
+  }
+  .landing-hero-copy {
+    text-align: start;
+    align-items: flex-start;
+  }
+  .landing-hero-copy > * {
+    text-align: start;
+  }
+}
+
+/* Theatrical Act Badge */
+.theatre-act-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  border: 1px solid rgba(242, 140, 40, 0.4);
+  border-radius: 4px;
+  background: rgba(17, 16, 20, 0.9);
+  color: #FFB45C;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  box-shadow:
+    0 0 0 5px rgba(242, 140, 40, 0.08),
+    0 6px 20px -8px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.theatre-act-diamond {
+  width: 6px;
+  height: 6px;
+  transform: rotate(45deg);
+  background: #F28C28;
+  box-shadow: 0 0 8px rgba(242, 140, 40, 0.8);
+}
+
+/* Hero Branding */
+.landing-hero-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.landing-hero-brand-mark {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(242, 140, 40, 0.5);
+  background:
+    radial-gradient(circle at 50% 30%, rgba(242, 140, 40, 0.22), transparent 70%),
+    radial-gradient(circle, rgba(101, 29, 50, 0.25), rgba(17, 16, 20, 0.96) 75%);
+  box-shadow:
+    0 0 0 8px rgba(242, 140, 40, 0.06),
+    0 0 0 9px rgba(101, 29, 50, 0.35),
+    0 0 60px 10px rgba(242, 140, 40, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.landing-hero-brand-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 130%;
+  height: 150%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(200, 162, 75, 0.38) 0%, rgba(103, 216, 234, 0.12) 48%, transparent 72%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.landing-hero-brand-wordmark {
+  font-family: var(--font-cairo), sans-serif;
+  font-size: clamp(3.5rem, 10vw, 7rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  background: linear-gradient(100deg,
+    #641B35 0%,
+    #FFB45C 28%,
+    #F8F5F2 50%,
+    #FFB45C 72%,
+    #641B35 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 14px 44px rgba(200, 162, 75, 0.38));
+}
+
+.landing-hero-brand-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(280px, 80vw);
+}
+
+.landing-hero-brand-divider::before,
+.landing-hero-brand-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(242, 140, 40, 0.7), transparent);
+}
+
+.landing-hero-brand-diamond {
+  width: 8px;
+  height: 8px;
+  transform: rotate(45deg);
+  background: #FF914D;
+  box-shadow: 0 0 12px rgba(255, 145, 77, 0.9);
+}
+
+.landing-hero-brand-subtitle {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  color: rgba(156, 163, 175, 0.7);
+  direction: ltr;
+}
+
+/* Hero Title */
+.landing-hero-title {
+  font-family: var(--font-cairo), sans-serif;
+  font-size: clamp(2.5rem, 5.5vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  color: #FFFFFF;
+  margin: 1.5rem 0 1rem;
+  text-wrap: balance;
+}
+
+.landing-hero-title-line {
+  display: block;
+}
+
+.landing-hero-title-accent {
+  background: linear-gradient(100deg, #F28C28, #FFB45C, #F8F5F2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Hero Lead */
+.landing-hero-lead {
+  max-width: 38rem;
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: rgba(194, 205, 216, 0.85);
+  margin: 1.25rem 0 2rem;
+}
+
+/* Hero Actions */
+.landing-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+@media (min-width: 1024px) {
+  .landing-hero-actions {
+    justify-content: flex-start;
+  }
+}
+
+/* Trust Badges */
+.landing-hero-trust {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 2rem;
+}
+
+.landing-hero-trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgba(156, 163, 175, 0.85);
+}
+
+.landing-hero-trust-icon {
+  color: #FFB45C;
+  flex-shrink: 0;
+}
+
+/* Section Divider */
+.section-divider {
+  position: relative;
+  width: 100%;
+  max-width: 64rem;
+  height: 1px;
+  margin: 0 auto 3rem;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(242, 140, 40, 0.55),
+    rgba(101, 29, 50, 0.4),
+    rgba(242, 140, 40, 0.55),
+    transparent
+  );
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(242, 140, 40, 0.5));
+}
+
+.section-divider::before { left: 0; }
+.section-divider::after { right: 0; }
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .landing-hero {
+    padding: 3rem 1rem 4rem;
+  }
+  .landing-hero-brand-mark {
+    width: 64px;
+    height: 64px;
+  }
+  .landing-hero-brand-wordmark {
+    font-size: clamp(2.8rem, 12vw, 4.5rem);
+  }
+  .landing-hero-title {
+    font-size: clamp(2rem, 8vw, 3.2rem);
+  }
+  .landing-hero-lead {
+    font-size: 0.95rem;
+    line-height: 1.75;
+  }
+}

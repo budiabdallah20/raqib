@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
 import { generateAuthenticationOptions } from '@simplewebauthn/server';
 import type { AuthenticatorTransport } from '@simplewebauthn/server';
+import { z } from 'zod';
 
 import { prisma } from '@/lib/db';
-import { assertRateLimit, getClientIp, jsonError, logAudit } from '@/lib/security';
+import {
+  assertRateLimit,
+  getClientIp,
+  jsonError,
+  logAudit,
+  normalizePhone,
+} from '@/lib/security';
 import {
   PK_AUTH_CHALLENGE_COOKIE,
   PASSKEY_RP_ID,
@@ -20,16 +27,26 @@ export async function POST(request: Request) {
     const ip = getClientIp(request);
     assertRateLimit(`passkey-auth-options:${ip || 'unknown'}`, 30, 15 * 60 * 1000);
 
-    const body = (await request.json().catch(() => null)) as { identifier?: string } | null;
+    const parsed = z
+      .object({ identifier: z.string().trim().max(120).optional() })
+      .strict()
+      .safeParse((await request.json().catch(() => null)) ?? {});
+    if (!parsed.success) return jsonError('بيانات غير صالحة');
 
     let allowCredentials: { id: string; transports: AuthenticatorTransport[] }[] = [];
     let targetedUserId: string | null = null;
 
-    if (body?.identifier) {
-      const identifier = String(body.identifier).trim().toLowerCase();
+    if (parsed.data.identifier) {
+      const identifier = parsed.data.identifier.toLowerCase();
+      const phone = normalizePhone(identifier);
       const user = await prisma.user.findFirst({
         where: {
-          OR: [{ email: identifier }, { phone: identifier }, { studentCode: identifier }],
+          OR: [
+            { email: identifier },
+            { phone: identifier },
+            { phone },
+            { studentCode: identifier },
+          ],
         },
         select: {
           id: true,

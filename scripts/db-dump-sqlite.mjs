@@ -10,9 +10,10 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 const chunks = {}; // اسم النموذج → صفوف
 
-// Bytes (مثل paddingLeft publicKey) تُسلسل إلى {__b64}
+// Bytes (مثل publicKey) تُسلسل إلى {__b64} — والتواريخ إلى ISO
 function encodeBytes(value) {
   if (value === null || value === undefined) return value;
+  if (value instanceof Date) return value.toISOString();
   if (value instanceof Uint8Array || (typeof Buffer !== 'undefined' && Buffer.isBuffer(value))) {
     return { __b64: Buffer.from(value).toString('base64') };
   }

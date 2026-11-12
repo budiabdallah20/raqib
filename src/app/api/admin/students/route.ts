@@ -84,10 +84,14 @@ export async function GET(request: Request) {
 
     const where: Record<string, unknown> = { role: 'STUDENT' };
     if (q) {
+      // الاسم نص عادي (بحث جزئي)، أما studentCode/phone فمشفّران حتميًا
+      // ولا يدعمان contains — نطابق القيمة كاملةً فقط.
+      const normalizedPhone = normalizePhone(q);
+      const looksLikePhone = /^\+?\d{6,15}$/.test(normalizedPhone);
       where.OR = [
         { name: { contains: q } },
-        { studentCode: { contains: q } },
-        { phone: { contains: normalizePhone(q) } },
+        { studentCode: q },
+        ...(looksLikePhone ? [{ phone: normalizedPhone }] : []),
       ];
     }
     if (level) where.level = level;
@@ -123,7 +127,7 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const user = await requireUser(['ADMIN']);
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
     const data = patchSchema.safeParse(body);
     if (!data.success) {
       return jsonError(data.error.issues[0]?.message || 'بيانات غير صالحة', 400);

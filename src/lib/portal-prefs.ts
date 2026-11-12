@@ -76,7 +76,7 @@ export const WIDGET_TITLES: Record<string, string> = {
   notices: 'لائحة الإعلانات',
 };
 
-const STREAK_WEEKS = 2;
+const MAX_OFFLINE_TRIES = 3;
 
 const DEFAULTS: PortalPrefs = {
   onboarded: false,
@@ -303,7 +303,7 @@ export function takeOfflineScan(): OfflineScan | null {
 }
 
 export function refundOfflineScan(scan: OfflineScan, fatal: boolean) {
-  if (fatal || scan.tries >= STREAK_WEEKS) return; // رمز فاسد أو تعدّى المحاولات — نسقوطه
+  if (fatal || scan.tries >= MAX_OFFLINE_TRIES) return; // رمز فاسد أو تعدّى المحاولات — نسقوطه
   const prefs = read();
   setPortalPrefs({ offlineQueue: [...prefs.offlineQueue, { ...scan, tries: scan.tries + 1 }] });
 }

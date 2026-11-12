@@ -1,0 +1,47 @@
+.stage-background {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+}
+
+.stage-background .stage-bg-base {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background-color: #111014;
+  background-image:
+    radial-gradient(ellipse 75% 45% at 50% -10%, rgba(242, 140, 40, 0.18), transparent 70%),
+    radial-gradient(ellipse 85% 55% at 50% 110%, rgba(101, 29, 50, 0.22), transparent 75%),
+    radial-gradient(ellipse 50% 40% at 0% 50%, rgba(58, 16, 32, 0.15), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 100% 50%, rgba(58, 16, 32, 0.15), transparent 60%),
+    linear-gradient(180deg, #111014 0%, #180B12 40%, #111014 100%);
+}
+
+.stage-background .stage-bg-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(ellipse 60% 80% at 50% 0%, transparent 0%, rgba(0, 0, 0, 0.4) 70%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, transparent 0%, rgba(0, 0, 0, 0.3) 65%);
+  pointer-events: none;
+}
+
+.stage-background .stage-bg-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(242, 140, 40, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 140, 40, 0.035) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: linear-gradient(180deg, transparent 0%, black 20%, black 80%, transparent 100%);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-background .stage-bg-grid {
+    opacity: 0.3;
+  }
+}

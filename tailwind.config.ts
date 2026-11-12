@@ -11,6 +11,27 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // ── OBSIDIAN GLASS (v2 identity) ─────────────────────────────
+        // Near-absolute black surfaces + one meaningful accent axis.
+        obs: {
+          bg0: '#04060A',
+          bg1: '#070A12',
+          surf: '#0B101B',
+          surf2: '#111827',
+          surf3: '#18202F',
+          line: '#1E2739',
+          primary: '#3B82F6',
+          primaryHi: '#60A5FA',
+          deep: '#1D4ED8',
+          violet: '#8B5CF6',
+          cyan: '#22D3EE',
+          text: '#F8FAFC',
+          text2: '#94A3B8',
+          text3: '#64748B',
+          ok: '#10B981',
+          warn: '#F59E0B',
+          danger: '#EF4444',
+        },
         // Calm academic teal + champagne gold on warm ink. Token names are
         // preserved so every screen inherits the refreshed identity — values moved.
         royal: {
@@ -103,6 +124,21 @@ const config: Config = {
         },
         sand: '#131808',
         cream: '#fbfdf6',
+        theater: {
+          'near-black': '#111014',
+          'deep-burgundy': '#180B12',
+          'primary-burgundy': '#641B35',
+          'rich-burgundy': '#842441',
+          'warm-burgundy': '#A83F5A',
+          spotlight: '#FF914D',
+          amber: '#F5B46B',
+          gold: '#FFB45C',
+          'gold-deep': '#F28C28',
+          'gold-muted': '#C8A24B',
+          ivory: '#F8F5F2',
+          white: '#FFFFFF',
+          ink: '#24151D',
+        },
       },
       fontFamily: {
         sans: ['var(--font-cairo)', 'system-ui', 'sans-serif'],

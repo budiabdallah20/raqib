@@ -3,10 +3,11 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut, Bell, X } from 'lucide-react';
+import { LogOut, Bell, X, Search, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ROLE_LABEL } from '@/lib/constants';
 import { api } from '@/lib/api';
+import { openPalette } from '@/lib/commands';
 import type { AuthUser } from '@/types';
 import { Logo } from '@/components/shared/Logo';
 
@@ -119,11 +120,17 @@ function NotificationsBell() {
 const NAV_LINKS: Record<string, { href: string; label: string; icon?: React.ReactNode }[]> = {
   STUDENT: [
     { href: '/student', label: 'الرئيسية' },
+    { href: '/student/compass', label: 'بوصلة المقررات' },
+    { href: '/student/registration', label: 'التسجيل' },
+    { href: '/student/exams', label: 'امتحاناتي' },
     { href: '/student/schedule', label: 'جدولي' },
     { href: '/student/tasks', label: 'تاسكاتي' },
   ],
   PROFESSOR: [
     { href: '/professor', label: 'الرئيسية' },
+    { href: '/professor/attendance', label: 'مركز الحضور' },
+    { href: '/professor/at-risk', label: 'المخاطر المبكرة' },
+    { href: '/professor/exams', label: 'الامتحانات' },
     { href: '/professor/schedule', label: 'جدولي' },
     { href: '/professor/grades', label: 'الدرجات' },
     { href: '/professor/tasks', label: 'تاسكات' },
@@ -131,6 +138,8 @@ const NAV_LINKS: Record<string, { href: string; label: string; icon?: React.Reac
   ],
   ADMIN: [
     { href: '/admin', label: 'الرئيسية' },
+    { href: '/admin/attendance', label: 'مراجعة الحضور' },
+    { href: '/admin/pulse', label: 'نبض المنصة' },
     { href: '/admin/schedule', label: 'الجداول' },
     { href: '/admin/students', label: 'الطلاب' },
     { href: '/admin/professors', label: 'الدكاترة' },
@@ -213,10 +222,25 @@ export function Navbar({ user }: { user: AuthUser | null }) {
         {user ? (
           <div className="flex items-center gap-3">
             <NotificationsBell />
+            <button
+              type="button"
+              onClick={() => openPalette()}
+              aria-label="افتح لوحة الأوامر (Ctrl+K)"
+              title="لوحة الأوامر — Ctrl + K"
+              className="flex h-9 items-center gap-2 rounded-xl border border-white/70 bg-white/60 px-2.5 text-ink-500 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] transition hover:text-ink-900"
+            >
+              <Search className="h-4 w-4" />
+              <kbd className="hidden rounded border border-brand-900/15 bg-white/70 px-1.5 py-0.5 text-[9px] font-bold text-ink-400 sm:block">
+                Ctrl K
+              </kbd>
+            </button>
             <div className="hidden text-left sm:block">
               <p className="text-sm font-semibold text-ink-800">{user.name}</p>
               <p className={`text-[10px] font-semibold ${accent.chip}`}>{ROLE_LABEL[user.role]}</p>
             </div>
+            <Link href="/sessions" aria-label="جلساتي وأجهزتي" title="جلساتي وأجهزتي" className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/70 bg-white/60 text-ink-500 hover:text-ink-950">
+              <ShieldCheck className="h-4 w-4" />
+            </Link>
             <Button variant="outline" size="sm" onClick={logout}>
               <LogOut className="h-4 w-4" />
               خروج

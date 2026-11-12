@@ -18,18 +18,54 @@ export const PK_REG_CHALLENGE_COOKIE = 'pk_reg_chal';
 export const PK_AUTH_CHALLENGE_COOKIE = 'pk_auth_chal';
 const CHALLENGE_MAX_AGE = 180; // ثلاث دقائق تسمح ببطء نافذة البصمة على الموبايل
 
-/** origins المقبولة للتحقق: ترويسة Origin الحالية + أي origin معرف بالبيئة */
+function secureCookies() {
+  return (
+    process.env.NODE_ENV === 'production' ||
+    (process.env.NEXT_PUBLIC_APP_URL || '').startsWith('https://')
+  );
+}
+
+/**
+ * origins المقبولة للتحقق: قائمة بيضاء صريحة فقط.
+ * لا نثق بترويسة Origin القادمة من الطلب — المهاجم يستطيع إرسال أي قيمة.
+ * في التطوير فقط نسمح بـlocalhost حتى تعمل البيئة المحلية.
+ */
 export function passkeyExpectedOrigins(request: Request): string[] {
   const origins = new Set<string>();
-  const headerOrigin = request.headers.get('origin');
-  if (headerOrigin) origins.add(headerOrigin.split(',')[0].trim());
-  try {
-    origins.add(new URL(request.url).origin);
-  } catch {
-    /* تجاهل */
+
+  const configured = (process.env.PASSKEY_ORIGIN || '').trim();
+  if (configured) {
+    try {
+      origins.add(new URL(configured).origin);
+    } catch {
+      /* يُترك للتحقق من env */
+    }
   }
-  const envOrigin = process.env.PASSKEY_ORIGIN;
-  if (envOrigin) origins.add(envOrigin.trim());
+
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim();
+  if (appUrl) {
+    try {
+      origins.add(new URL(appUrl).origin);
+    } catch {
+      /* تجاهل */
+    }
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      const devOrigin = new URL(request.url).origin;
+      const host = new URL(devOrigin).hostname;
+      if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
+        origins.add(devOrigin);
+      }
+    } catch {
+      /* تجاهل */
+    }
+  }
+
+  if (origins.size === 0) {
+    throw new Error('PASSKEY_ORIGIN or NEXT_PUBLIC_APP_URL must be configured');
+  }
   return [...origins];
 }
 
@@ -40,7 +76,7 @@ export function setChallengeCookie(response: NextResponse, name: string, challen
     value: challenge,
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: secureCookies(),
     path: '/',
     maxAge: CHALLENGE_MAX_AGE,
   });
@@ -65,7 +101,7 @@ export function clearChallengeCookie(response: NextResponse, name: string) {
     value: '',
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: secureCookies(),
     path: '/',
     maxAge: 0,
   });

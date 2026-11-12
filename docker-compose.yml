@@ -27,8 +27,9 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://raqib:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@db:5432/raqib
-      JWT_SECRET: ${JWT_SECRET}
-      ADMIN_ACCESS_CODE_HASH: ${ADMIN_ACCESS_CODE_HASH}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      PII_ENCRYPTION_KEY: ${PII_ENCRYPTION_KEY:?PII_ENCRYPTION_KEY is required}
+      ADMIN_ACCESS_CODE_HASH: ${ADMIN_ACCESS_CODE_HASH:?ADMIN_ACCESS_CODE_HASH is required}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-Raqib <no-reply@raqib.app>}
       NODE_ENV: production

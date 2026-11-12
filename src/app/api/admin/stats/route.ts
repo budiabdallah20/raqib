@@ -23,6 +23,10 @@ export async function GET(request: Request) {
     const seriesStart = new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000);
     seriesStart.setHours(0, 0, 0, 0);
 
+    // نافذة «المحاضرة الحية»: انطلقت قبل ساعتين كحد أقصى أو ستطلع خلال 10 دقائق
+    const liveWindowStart = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+    const liveWindowEnd = new Date(now.getTime() + 10 * 60 * 1000);
+
     const [
       students,
       professors,
@@ -34,7 +38,6 @@ export async function GET(request: Request) {
       enrollGroups,
       levelGroups,
       activities,
-      demoModeSetting,
     ] = await Promise.all([
       prisma.user.count({ where: { role: 'STUDENT' } }),
       prisma.user.count({ where: { role: 'PROFESSOR' } }),
@@ -59,8 +62,47 @@ export async function GET(request: Request) {
         take: 12,
         select: { id: true, action: true, entity: true, detail: true, userRole: true, createdAt: true },
       }),
-      prisma.appSetting.findUnique({ where: { key: 'demoMode' } }),
     ]);
+
+    // ── الموجة الحية الإضافية: ملفات · تفكيك محاضرات · «حية الآن» · آخر الجلسات ──
+    const [filesByKind, resourceTotal, lectureOpen, lectureCancelled, liveRows, recentLectures] =
+      await Promise.all([
+        prisma.resource.groupBy({ by: ['kind'], _count: { _all: true } }),
+        prisma.resource.count(),
+        prisma.lecture.count({ where: { isOpen: true, cancelledAt: null } }),
+        prisma.lecture.count({ where: { cancelledAt: { not: null } } }),
+        prisma.lecture.findMany({
+          where: {
+            isOpen: true,
+            cancelledAt: null,
+            startsAt: { gte: liveWindowStart, lte: liveWindowEnd },
+          },
+          orderBy: { startsAt: 'asc' },
+          select: {
+            id: true,
+            title: true,
+            location: true,
+            startsAt: true,
+            course: { select: { code: true, name: true } },
+            _count: { select: { attendances: true } },
+          },
+        }),
+        prisma.lecture.findMany({
+          orderBy: { startsAt: 'desc' },
+          take: 6,
+          select: {
+            id: true,
+            courseId: true,
+            title: true,
+            location: true,
+            startsAt: true,
+            isOpen: true,
+            cancelledAt: true,
+            course: { select: { code: true, name: true } },
+            _count: { select: { attendances: true } },
+          },
+        }),
+      ]);
 
     // ── تجهيز خرائط: عدد المحاضرات والطلاب المسجلين لكل مقرر ──
     const lecturesByCourse = new Map<string, number>();
@@ -144,6 +186,52 @@ export async function GET(request: Request) {
       bottom: canSplit ? ranked.slice(-3).reverse() : [],
     };
 
+    // ── عدّاد الملفات الكلي بتوزيع الأنواع (Resource) ──
+    const files = {
+      total: resourceTotal,
+      byKind: filesByKind
+        .map((row) => ({ kind: row.kind, count: row._count._all }))
+        .sort((a, b) => b.count - a.count),
+    };
+
+    // ── تفكيك المحاضرات: مفتوحة / مغلقة / ملغاة ──
+    const lectureTotal = lecturesWithCourse.length;
+    const lectures = {
+      total: lectureTotal,
+      open: lectureOpen,
+      cancelled: lectureCancelled,
+      closed: Math.max(lectureTotal - lectureOpen - lectureCancelled, 0),
+    };
+
+    // ── أكثر الجلسات الأخيرة مع توزيع المسجلين المتاحين لكل مقرر ──
+    const recentSessions = recentLectures.map((lecture) => {
+      const enrolled = enrolledByCourse.get(lecture.courseId) ?? 0;
+      const attended = lecture._count.attendances;
+      return {
+        id: lecture.id,
+        title: lecture.title,
+        location: lecture.location,
+        startsAt: lecture.startsAt.toISOString(),
+        isOpen: lecture.isOpen,
+        cancelled: lecture.cancelledAt !== null,
+        courseCode: lecture.course.code,
+        courseName: lecture.course.name,
+        enrolled,
+        attended,
+        absent: Math.max(enrolled - attended, 0),
+      };
+    });
+
+    // ── جلسات حية الآن ──
+    const liveNow = liveRows.map((lecture) => ({
+      id: lecture.id,
+      title: lecture.title,
+      location: lecture.location,
+      startsAt: lecture.startsAt.toISOString(),
+      courseCode: lecture.course.code,
+      present: lecture._count.attendances,
+    }));
+
     return Response.json({
       totals: { students, professors, courses, slots, taskCount },
       attendance: { presentCount, totalPossible, attendancePct },
@@ -151,7 +239,10 @@ export async function GET(request: Request) {
       levelDist,
       courseRank,
       activities,
-      demoMode: demoModeSetting?.value === '1',
+      files,
+      lectures,
+      liveNow,
+      recentSessions,
     });
   } catch (err) {
     const status = (err as { status?: number }).status || 500;

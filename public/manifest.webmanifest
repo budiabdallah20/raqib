@@ -4,6 +4,7 @@
   "description": "منصة رقيب لإدارة الحضور والمحاضرات بتقنية QR لكلية العلوم — جامعة السويس.",
   "lang": "ar",
   "dir": "rtl",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -22,10 +23,44 @@
       "purpose": "any"
     },
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "تسجيل الدخول",
+      "short_name": "دخول",
+      "description": "افتح شاشة تسجيل الدخول إلى منصة رقيب",
+      "url": "/login",
+      "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "حالة المنصة",
+      "short_name": "الحالة",
+      "description": "تأكد من صحة الاتصال بالقاعدة والخدمات",
+      "url": "/status",
+      "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

@@ -1,31 +1,25 @@
 /**
- * GET /api/health — فحص صحة التشغيل (لا يمس بيانات حساسة)
- * يعيد 200 فقط عند نجاح الاتصال بالقاعدة + إحصاءات تشغيلية عامة.
+ * GET /api/health — فحص صحة التشغيل.
+ * لا يعيد أي إحصاءات عن المستخدمين أو المحاضرات: كانت تكشف حجم القاعدة
+ * ونشاط المنصة لأي زائر (reconnaissance). يكفي 200/503.
  */
 import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const started = Date.now();
   try {
     await prisma.$queryRaw`SELECT 1`;
-    const [users, openLectures] = await Promise.all([
-      prisma.user.count({ where: { isActive: true } }),
-      prisma.lecture.count({ where: { isOpen: true } }),
-    ]);
-    return Response.json({
-      status: 'ok',
-      db: 'up',
-      users,
-      openLectures,
-      ms: Date.now() - started,
-      time: new Date().toISOString(),
-    });
-  } catch (error) {
     return Response.json(
-      { status: 'degraded', db: 'down', error: (error as Error).message.slice(0, 120), time: new Date().toISOString() },
-      { status: 503 },
+      { status: 'ok', db: 'up' },
+      { headers: { 'cache-control': 'no-store' } },
+    );
+  } catch (error) {
+    // تفاصيل الخطأ تُسجَّل على السيرفر فقط — لا تحدث النص الخام لمتصفح مجهول
+    console.error('[raqib:health] db check failed', error);
+    return Response.json(
+      { status: 'degraded', db: 'down' },
+      { status: 503, headers: { 'cache-control': 'no-store' } },
     );
   }
 }

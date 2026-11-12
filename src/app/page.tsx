@@ -3,6 +3,8 @@ import { LandingPage } from '@/components/landing/LandingPage';
 import { getCurrentUser } from '@/lib/auth';
 import { ROLE_HOME } from '@/lib/constants';
 
+export const metadata = { icons: { icon: '/brand/stage-mark.svg' } };
+
 export default async function RootPage() {
   const user = await getCurrentUser();
   if (user) redirect(ROLE_HOME[user.role] || '/login');

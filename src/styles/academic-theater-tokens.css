@@ -1,0 +1,363 @@
+/* ============================================================================
+   RAQEEB — ACADEMIC THEATRE DESIGN SYSTEM (PHASE ONE)
+   Grand Entrance, Theatrical Velvet, Warm Golden Footlights, Architectural Frames.
+   Scoped to Phase One public/external pages: .raqib-theatre, .auth-theatre, .splash-theatre.
+   ========================================================================== */
+
+:root {
+  /* Public theatre baseline variables - Burgundy/Orange/White/Black Theme */
+  --theater-ink: #111014;
+  --theater-ink-deep: #0a080c;
+  --theater-panel: #211B20;
+  --theater-panel-elevated: #2a2328;
+  --theater-panel-subtle: #181418;
+  
+  /* Burgundy Velvet / Curtain Spectrum */
+  --theater-curtain-deep: #1a0a10;
+  --theater-curtain-shadow: #250a14;
+  --theater-curtain: #3A1020;
+  --theater-curtain-fold: #4a1528;
+  --theater-curtain-light: #651D32;
+  --theater-curtain-sheen: #7a233d;
+  --theater-curtain-highlight: rgba(242, 140, 40, 0.15);
+
+  /* Warm Orange / Burgundy Illumination */
+  --theater-brass: #F28C28;
+  --theater-brass-deep: #d97706;
+  --theater-brass-light: #FFB45C;
+  --theater-brass-gleam: #ffd4a3;
+  --theater-spotlight: rgba(242, 140, 40, 0.25);
+  --theater-spotlight-intense: rgba(242, 140, 40, 0.45);
+  --theater-footlight-glow: rgba(242, 140, 40, 0.38);
+  --theater-glow: rgba(242, 140, 40, 0.22);
+  --theater-glow-intense: rgba(242, 140, 40, 0.42);
+
+  /* Surfaces & Glass */
+  --theater-glass: rgba(33, 27, 32, 0.85);
+  --theater-glass-heavy: rgba(17, 16, 20, 0.96);
+  --theater-glass-card: rgba(42, 35, 40, 0.78);
+  --theater-glass-elevated: rgba(58, 16, 32, 0.92);
+  --theater-raised: #2a2328;
+
+  /* Typography / Silks */
+  --theater-ivory: #FFFFFF;
+  --theater-ivory-soft: #FFF8F0;
+  --theater-muted: #e5e7eb;
+  --theater-muted-dim: #9ca3af;
+  --theater-dark-ink: #111014;
+
+  /* Jewel Accents for Roles & Gates */
+  --theater-cyan: #FFB45C;
+  --theater-cyan-glow: rgba(255, 180, 92, 0.32);
+  --theater-violet: #F28C28;
+  --theater-violet-glow: rgba(242, 140, 40, 0.32);
+  --theater-success: #22c55e;
+  --theater-danger: #ef4444;
+  --theater-focus: #FFB45C;
+
+  /* Borders & Dividers */
+  --theater-border: rgba(101, 29, 50, 0.45);
+  --theater-border-light: rgba(242, 140, 40, 0.55);
+  --theater-inner-border: rgba(255, 180, 92, 0.18);
+  --theater-border-velvet: rgba(101, 29, 50, 0.55);
+
+  /* Spacing Scale */
+  --theater-space-1: 0.5rem;
+  --theater-space-2: 1rem;
+  --theater-space-3: 1.5rem;
+  --theater-space-4: 2rem;
+  --theater-space-6: 3rem;
+  --theater-space-8: 4rem;
+
+  /* Semantic Aliases from RAQEEB Design Master */
+  --bg-stage: var(--theater-ink);
+  --bg-curtain: var(--theater-curtain);
+  --bg-panel: var(--theater-panel);
+  --surface-glass: var(--theater-glass);
+  --surface-elevated: var(--theater-panel-elevated);
+  --accent-gold: var(--theater-brass);
+  --accent-burgundy: var(--theater-curtain-fold);
+  --accent-ivory: var(--theater-ivory);
+  --text-primary: var(--theater-ivory);
+  --text-muted: var(--theater-muted);
+  --border-ornament: var(--theater-border);
+  --shadow-stage: var(--theater-shadow-stage);
+  --glow-spotlight: var(--theater-spotlight);
+  --motion-fast: 180ms;
+  --motion-medium: 380ms;
+  --motion-cinematic: 750ms;
+
+  /* Shadows & Depth */
+  --theater-shadow-stage: 0 32px 90px -40px rgba(0, 0, 0, 0.95);
+  --theater-shadow-elevated: 0 24px 60px -24px rgba(0, 0, 0, 0.85), 0 0 40px -15px rgba(200, 169, 107, 0.15);
+  --theater-shadow-floating: 0 40px 100px -30px rgba(0, 0, 0, 0.9), 0 0 50px -10px rgba(200, 169, 107, 0.22);
+  --theater-shadow-glow: 0 0 35px -5px rgba(200, 169, 107, 0.4);
+
+  /* Motion & Durations */
+  --theater-hover-ms: 220ms;
+  --theater-reveal-ms: 600ms;
+  --theater-motion-fast: 180ms;
+  --theater-motion-medium: 380ms;
+  --theater-motion-cinematic: 750ms;
+  --theater-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --theater-ease-curtain: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.raqib-theatre,
+.auth-theatre,
+.splash-theatre {
+  color: var(--theater-ivory);
+  background-color: var(--theater-ink);
+  color-scheme: dark;
+}
+
+/* ============================================================================
+   ARCHITECTURAL FRAMING & STAGE MOTIFS
+   ========================================================================== */
+
+/* Theatrical Stage Frame with Gold Filigree Corners */
+.stage-frame {
+  position: relative;
+  border: 1px solid var(--theater-border);
+  border-radius: 6px 24px 6px 24px;
+  background:
+    radial-gradient(ellipse 65% 50% at 50% 0%, rgba(200, 169, 107, 0.08), transparent 70%),
+    linear-gradient(155deg, rgba(238, 211, 155, 0.06), transparent 45%),
+    var(--theater-panel);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 20px rgba(0, 0, 0, 0.4),
+    0 22px 50px -25px rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(16px);
+}
+
+.stage-frame::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px solid var(--theater-inner-border);
+  border-radius: 3px 18px 3px 18px;
+  pointer-events: none;
+}
+
+.stage-frame--gateway {
+  --theater-border: color-mix(in srgb, var(--gateway-light, var(--theater-brass)) 48%, transparent);
+}
+
+.stage-frame--credential {
+  border-radius: 8px 32px 8px 32px;
+}
+
+.stage-frame--plaque {
+  background: linear-gradient(135deg, rgba(200, 169, 107, 0.12), rgba(13, 20, 31, 0.96) 60%);
+  border-color: rgba(200, 169, 107, 0.35);
+}
+
+.stage-frame--interactive {
+  transition:
+    border-color var(--theater-hover-ms) ease,
+    box-shadow var(--theater-hover-ms) ease,
+    transform var(--theater-hover-ms) var(--theater-ease);
+}
+
+.stage-frame--interactive:is(:hover, :focus-within) {
+  border-color: var(--theater-brass-light);
+  box-shadow:
+    0 24px 60px -25px var(--theater-glow-intense),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 30px -8px var(--theater-glow);
+  transform: translateY(-3px);
+}
+
+/* Red Velvet Curtains Generator */
+.theatre-curtain-fabric {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      var(--theater-curtain-deep) 0px,
+      var(--theater-curtain-shadow) 12px,
+      var(--theater-curtain-fold) 24px,
+      var(--theater-curtain) 36px,
+      var(--theater-curtain-light) 48px,
+      var(--theater-curtain) 60px,
+      var(--theater-curtain-shadow) 72px,
+      var(--theater-curtain-deep) 84px
+    );
+  box-shadow:
+    inset 0 0 45px rgba(0, 0, 0, 0.85),
+    0 10px 40px rgba(0, 0, 0, 0.65);
+}
+
+/* Gold Gradient Text */
+.text-gold-theatre {
+  background: linear-gradient(110deg, #d8b45a 0%, #fae8b8 32%, #c8a96b 55%, #fff5db 78%, #d8b45a 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 24px rgba(200, 169, 107, 0.35);
+}
+
+/* Theatrical Button Foundations */
+.theatre-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  font-family: inherit;
+  font-weight: 700;
+  border-radius: 9999px;
+  cursor: pointer;
+  text-decoration: none;
+  isolation: isolate;
+  overflow: hidden;
+  transition: all var(--theater-hover-ms) var(--theater-ease);
+}
+
+.theatre-btn-primary {
+  background: linear-gradient(110deg, #916927 0%, #c8a96b 35%, #ead29c 65%, #fae8b8 85%, #c8a96b 100%);
+  color: #140e02;
+  border: 1px solid rgba(255, 235, 185, 0.5);
+  box-shadow:
+    0 16px 38px -12px rgba(200, 169, 107, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.theatre-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 22px 50px -10px rgba(200, 169, 107, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 25px rgba(234, 210, 156, 0.5);
+  filter: brightness(1.06);
+}
+
+.theatre-btn-primary:active {
+  transform: translateY(0);
+}
+
+.theatre-btn-secondary {
+  background: rgba(16, 24, 38, 0.75);
+  color: var(--theater-ivory);
+  border: 1px solid var(--theater-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 30px -15px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+}
+
+.theatre-btn-secondary:hover {
+  transform: translateY(-2px);
+  border-color: var(--theater-brass-light);
+  background: rgba(24, 35, 54, 0.88);
+  color: #ffffff;
+  box-shadow:
+    0 18px 40px -15px rgba(200, 169, 107, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.theatre-btn-velvet {
+  background: linear-gradient(135deg, #471323 0%, #692338 50%, #260c18 100%);
+  color: #fae8b8;
+  border: 1px solid rgba(200, 169, 107, 0.35);
+  box-shadow:
+    0 16px 38px -14px rgba(105, 35, 56, 0.7),
+    inset 0 1px 0 rgba(250, 232, 184, 0.25);
+}
+
+.theatre-btn-velvet:hover {
+  transform: translateY(-2px);
+  border-color: var(--theater-brass);
+  box-shadow:
+    0 20px 45px -12px rgba(148, 37, 68, 0.85),
+    0 0 25px rgba(200, 169, 107, 0.3);
+}
+
+/* Theatrical Inputs & Fields */
+.theatre-input {
+  display: flex;
+  height: 3rem;
+  width: 100%;
+  align-items: center;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(200, 169, 107, 0.24);
+  background: rgba(13, 20, 31, 0.85);
+  padding-inline: 1rem;
+  font-size: 0.875rem;
+  color: var(--theater-ivory);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.04);
+  outline: none;
+  transition: all var(--theater-hover-ms) ease;
+}
+
+.theatre-input::placeholder {
+  color: rgba(181, 194, 209, 0.5);
+}
+
+.theatre-input:hover {
+  border-color: rgba(200, 169, 107, 0.42);
+  background: rgba(18, 28, 43, 0.9);
+}
+
+.theatre-input:focus {
+  border-color: var(--theater-brass-light);
+  background: rgba(20, 31, 48, 0.95);
+  box-shadow:
+    0 0 0 3px rgba(200, 169, 107, 0.22),
+    0 0 20px -3px rgba(200, 169, 107, 0.35),
+    inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Ornamental Corners and Medallions */
+.theatre-corner-ornament {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--theater-brass);
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+.theatre-corner-tl { top: 6px; left: 6px; border-top: 1.5px solid; border-left: 1.5px solid; }
+.theatre-corner-tr { top: 6px; right: 6px; border-top: 1.5px solid; border-right: 1.5px solid; }
+.theatre-corner-bl { bottom: 6px; left: 6px; border-bottom: 1.5px solid; border-left: 1.5px solid; }
+.theatre-corner-br { bottom: 6px; right: 6px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
+
+/* Footlights Glow Strip */
+.theatre-footlights-strip {
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #c8a96b 25%, #fff1d0 50%, #c8a96b 75%, transparent 100%);
+  box-shadow:
+    0 -8px 30px 4px rgba(200, 169, 107, 0.4),
+    0 -16px 60px 10px rgba(243, 195, 112, 0.25);
+}
+
+/* Focus Visibility & Accessibility */
+.raqib-theatre :focus-visible,
+.auth-theatre :focus-visible,
+.splash-theatre :focus-visible {
+  outline: 2px solid var(--theater-focus);
+  outline-offset: 3px;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .stage-frame--interactive:is(:hover, :focus-within) {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-frame--interactive {
+    transition: none;
+  }
+  .stage-frame--interactive:is(:hover, :focus-within) {
+    transform: none;
+  }
+  .theatre-btn {
+    transition: none;
+  }
+  .theatre-btn:hover {
+    transform: none;
+  }
+}

@@ -101,9 +101,13 @@ export async function PATCH(request: Request) {
     }
 
     if (parsed.data.avatarUrl !== undefined) {
+      // نسمح فقط بملف رفعناه نحن: UUID + امتداد صورة معروف.
+      // startsWith وحدها كانت تسمح بمسار عشوائي/حقن لاحقة.
       if (
         parsed.data.avatarUrl &&
-        !parsed.data.avatarUrl.startsWith('/uploads/avatars/')
+        !/^\/uploads\/avatars\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpe?g|webp)$/i.test(
+          parsed.data.avatarUrl,
+        )
       ) {
         return jsonError('رابط الصورة غير صالح');
       }
@@ -146,7 +150,7 @@ export async function PATCH(request: Request) {
     });
 
     const response = NextResponse.json({ ok: true });
-    return newToken ? applyAuthCookie(response, newToken, true) : response;
+    return newToken ? applyAuthCookie(response, newToken, true, request) : response;
   } catch (error) {
     return handleApiError(error, 'تعذر تحديث البيانات');
   }

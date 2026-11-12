@@ -1,15 +1,16 @@
 /**
  * لوحة عرض المحاضرة (WP3) — للأدمن/الدكتور فقط
  * GET /api/lectures/board?lectureId=…
- * يدوّر QR تلقائيًا: إذا صار التوكن أقدم من 20 ثانية نولد رمز جديد + عمر قصير.
+ * يدوّر QR تلقائيًا: إذا صار التوكن أقدم من مدة الدوران المضبوطة من الإعدادات
+ * (qr_rotation_seconds — 5/10/15/20 ثانية، الافتراضي 10) نولد JWT جديد + exp=15s.
  * يعيد: التوكن الحالي + الكود اليدوي + عدد الحاضرين لحظيًا + آخر 5 مسحات.
  * لا يُعاد أي شيء للطالب — هذه لوحة الدكتور وحده.
  */
-import { randomBytes } from 'node:crypto';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { handleApiError, jsonError, logAudit } from '@/lib/security';
-import { QR_ROTATE_MS, QR_SESSION_TTL_MS } from '@/lib/constants';
+import { QR_ROTATE_PRESETS, QR_SESSION_TTL_MS, qrRotationMs } from '@/lib/constants';
+import { parseGeofence, signQrToken } from '@/lib/qr-sign';
 import { manualCodeOf } from '@/lib/qr';
 import { z } from 'zod';
 
@@ -43,17 +44,31 @@ export async function GET(request: Request) {
       });
     }
 
-    // ── التدوير التلقائي: التوكن أقدم من 20 ثانية؟ ──
+    // ── مدة دوران QR من إعدادات الأدمن (5/10/15/20 ثانية) — الافتراضي 10 ──
+    // معها: شريط البث الطارئ يظهر على سبورة العرض أثناء إدارة الجلسة
+    const [rotationSetting, bannerRow] = await Promise.all([
+      prisma.appSetting.findUnique({ where: { key: 'qr_rotation_seconds' }, select: { value: true } }),
+      prisma.appSetting.findUnique({ where: { key: 'emergency_banner' }, select: { value: true } }),
+    ]);
+    const rotationMs = qrRotationMs(rotationSetting?.value);
+
     const issuedAt = lecture.qrExpiresAt
       ? lecture.qrExpiresAt.getTime() - QR_SESSION_TTL_MS
       : 0;
-    const needsRotation = !lecture.qrToken || Date.now() - issuedAt >= QR_ROTATE_MS;
+    const needsRotation = !lecture.qrToken || Date.now() - issuedAt >= rotationMs;
 
     let token = lecture.qrToken ?? '';
     let expiresAt = lecture.qrExpiresAt ?? new Date();
 
     if (needsRotation) {
-      token = randomBytes(16).toString('hex');
+      token = signQrToken(
+        {
+          lec: lecture.id,
+          crs: lecture.courseId,
+          geofence: parseGeofence(lecture.geofence),
+        },
+        QR_SESSION_TTL_MS / 1000,
+      );
       expiresAt = new Date(Date.now() + QR_SESSION_TTL_MS);
       await prisma.lecture.update({
         where: { id: lecture.id },
@@ -91,6 +106,8 @@ export async function GET(request: Request) {
       token,
       expiresAt: expiresAt.toISOString(),
       manualCode: manualCodeOf(token),
+      rotationMs,
+      banner: bannerRow?.value?.trim() || null,
       attendees,
       present: current,
       late: lateCount,

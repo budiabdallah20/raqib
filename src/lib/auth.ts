@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { COOKIE_NAME, JWT_EXPIRES_IN } from './constants';
+import { COOKIE_NAME, SESSION_REMEMBER_IN, SESSION_SHORT_IN } from './constants';
 import { getCurrentSession, revokeCurrentSession } from './session';
 import { logAudit } from './security';
 import type { AuthUser, Role } from '@/types';
@@ -20,22 +20,69 @@ export function applyAuthCookie(
   response: NextResponse,
   token: string,
   remember = true,
+  request?: Request,
 ) {
+  /**
+   * secure يُستنتج من بروتوكول الطلب نفسه:
+   * — HTTPS (إنتاج/تطوير الشهادات) → secure=true (إجباري للأمان).
+   * — HTTP محلي أو شبكة داخلية (localhost / 192.168.x.x) → secure=false
+   *   وإلا المتصفح يرفض تخزين الكوكي والدخول يبدو مكسورًا.
+   */
+  let secure = process.env.NODE_ENV === 'production';
+  if (request) {
+    const trustedProxy = process.env.TRUST_PROXY === '1';
+    const forwardedProto =
+      trustedProxy
+        ? request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim()
+        : undefined;
+    const proto =
+      forwardedProto ||
+      (() => {
+        try {
+          return new URL(request.url).protocol.replace(':', '');
+        } catch {
+          return undefined;
+        }
+      })();
+    if (proto) secure = proto === 'https';
+  }
+
   response.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: true,
+    secure,
     sameSite: 'lax',
     path: '/',
     priority: 'high',
-    ...(remember ? { maxAge: JWT_EXPIRES_IN } : {}),
+    // «تذكرني» = كوكي محفوظ 30 يومًا على الجهاز — غير ذلك كوكي جلسة يموت بالإغلاق
+    ...(remember ? { maxAge: SESSION_REMEMBER_IN } : {}),
   });
   return response;
 }
 
-export function clearAuthCookie(response: NextResponse) {
+export function clearAuthCookie(response: NextResponse, request?: Request) {
+  // يجب أن تطابق سمات الحذف سمات الإنشاء حتى يلغي المتصفح الكوكي فعلًا
+  // على HTTP (localhost/LAN) — وإلا يبقى المستخدم مسجلًا بعد تسجيل الخروج.
+  let secure = process.env.NODE_ENV === 'production';
+  if (request) {
+    const trustedProxy = process.env.TRUST_PROXY === '1';
+    const forwardedProto =
+      trustedProxy
+        ? request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim()
+        : undefined;
+    const proto =
+      forwardedProto ||
+      (() => {
+        try {
+          return new URL(request.url).protocol.replace(':', '');
+        } catch {
+          return undefined;
+        }
+      })();
+    if (proto) secure = proto === 'https';
+  }
   response.cookies.set(COOKIE_NAME, '', {
     httpOnly: true,
-    secure: true,
+    secure,
     sameSite: 'lax',
     path: '/',
     priority: 'high',
@@ -56,7 +103,7 @@ export async function logoutCurrentSession(response: NextResponse, request?: Req
       detail: { sessionId: session.sessionId },
     });
   }
-  return clearAuthCookie(response);
+  return clearAuthCookie(response, request);
 }
 
 /**

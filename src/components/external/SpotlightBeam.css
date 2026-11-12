@@ -1,0 +1,56 @@
+.spotlight-beam {
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+  width: 60vw;
+  height: 60vw;
+  max-width: 700px;
+  max-height: 700px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.spotlight-beam--left {
+  top: 15%;
+  left: 8%;
+  background: radial-gradient(ellipse at center, #FF914D 0%, rgba(242, 140, 40, 0.25) 40%, transparent 75%);
+}
+
+.spotlight-beam--right {
+  top: 12%;
+  right: 10%;
+  background: radial-gradient(ellipse at center, #F5B46B 0%, rgba(245, 180, 107, 0.22) 40%, transparent 75%);
+}
+
+@media (max-width: 768px) {
+  .spotlight-beam {
+    width: 90vw;
+    height: 90vw;
+    filter: blur(80px) !important;
+    opacity: 0.22;
+  }
+  .spotlight-beam--left {
+    top: 8%;
+    left: 5%;
+  }
+  .spotlight-beam--right {
+    top: 6%;
+    right: 5%;
+  }
+}
+
+@media (max-width: 480px) {
+  .spotlight-beam {
+    width: 100vw;
+    height: 100vw;
+    filter: blur(60px) !important;
+    opacity: 0.18;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-beam {
+    animation: none !important;
+    opacity: 0.12;
+  }
+}

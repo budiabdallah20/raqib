@@ -2,6 +2,24 @@ import { APP_NAME, APP_NAME_EN } from './constants';
 
 type MailResult = { delivered: boolean; reason?: string };
 
+/** ترميز HTML لمحتوى المستخدم — يمنع حقن HTML في رسائل البريد. */
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** يخفي معظم البريد في السجلات — لا نكتب PII خامًا. */
+function maskEmail(email: string) {
+  const [local, domain] = email.split('@');
+  if (!domain) return '***';
+  const visible = local.slice(0, 1);
+  return `${visible}***@${domain}`;
+}
+
 function resetEmailHtml(name: string, code: string) {
   return `
   <div dir="rtl" style="background:#07060a;padding:40px 18px;font-family:Tahoma,Arial,sans-serif;color:#f7f1e3">
@@ -10,12 +28,12 @@ function resetEmailHtml(name: string, code: string) {
         <div style="display:inline-block;padding:8px 16px;border:1px solid rgba(232,174,46,.35);border-radius:999px;color:#f8c64b;font-size:12px;letter-spacing:3px">${APP_NAME_EN}</div>
       </div>
       <div style="padding:10px 30px 34px;text-align:center">
-        <h1 style="margin:18px 0 10px;font-size:24px;color:#fff">أهلًا ${name || 'بك'} 👋</h1>
+        <h1 style="margin:18px 0 10px;font-size:24px;color:#fff">أهلًا ${escapeHtml(name || 'بك')} 👋</h1>
         <p style="margin:0 0 22px;color:#b9b2a4;font-size:14px;line-height:1.9">
           وصلنا طلب لإعادة تعيين كلمة المرور على ${APP_NAME}. استخدم الكود التالي خلال 10 دقائق.
         </p>
         <div style="margin:0 auto 22px;max-width:280px;padding:18px;border-radius:18px;background:rgba(232,174,46,.09);border:1px solid rgba(232,174,46,.3);letter-spacing:10px;font-size:30px;font-weight:bold;color:#f8c64b">
-          ${code}
+          ${escapeHtml(code)}
         </div>
         <p style="margin:0;color:#7f7869;font-size:12px;line-height:1.9">
           إذا لم تطلب هذا التغيير، تجاهل الرسالة ولن يحدث أي شيء.<br/>
@@ -37,9 +55,20 @@ export async function sendPasswordResetEmail(
   const apiKey = process.env.RESEND_API_KEY;
 
   if (!apiKey) {
-    console.log(
-      `\n[RAQIB MAIL] ${new Date().toISOString()} → ${email}\n[RAQIB MAIL] Password reset code: ${code} (valid 10 minutes)\n`,
-    );
+    // ممنوع تسجيل كود إعادة التعيين في الإنتاج: أي شخص يقرأ السجلات يستطيع
+    // الاستيلاء على الحساب. في التطوير فقط، وبطلب صريح، نطبعه للمساعدة.
+    if (
+      process.env.NODE_ENV === 'development' &&
+      process.env.SHOW_DEV_RESET_CODE === '1'
+    ) {
+      console.log(
+        `\n[RAQIB MAIL] ${new Date().toISOString()} → ${maskEmail(email)}\n[RAQIB MAIL] Password reset code: ${code} (valid 10 minutes)\n`,
+      );
+    } else {
+      console.warn(
+        `[RAQIB MAIL] RESEND_API_KEY is not configured — reset email to ${maskEmail(email)} was not sent.`,
+      );
+    }
     return { delivered: false, reason: 'RESEND_API_KEY is not configured' };
   }
 
@@ -60,13 +89,12 @@ export async function sendPasswordResetEmail(
     });
 
     if (!response.ok) {
-      const detail = await response.text().catch(() => '');
-      console.error('[RAQIB MAIL] Resend error:', response.status, detail);
+      console.error('[RAQIB MAIL] Resend error:', response.status);
       return { delivered: false, reason: 'mail provider rejected the request' };
     }
     return { delivered: true };
-  } catch (error) {
-    console.error('[RAQIB MAIL] Failed to send:', error);
+  } catch {
+    console.error('[RAQIB MAIL] Failed to send reset email');
     return { delivered: false, reason: 'mail provider is unreachable' };
   }
 }

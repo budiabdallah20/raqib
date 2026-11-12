@@ -38,7 +38,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const user = await requireUser(['ADMIN']);
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
     const data = schema.safeParse(body);
     if (!data.success) {
       return jsonError(data.error.issues[0]?.message || 'بيانات غير صالحة', 400);
@@ -87,7 +87,7 @@ const patchSchema = z.object({
 export async function PATCH(request: Request) {
   try {
     const user = await requireUser(['ADMIN']);
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
     const data = patchSchema.safeParse(body);
     if (!data.success) return jsonError('بيانات غير صالحة', 400);
     const { id, professorId, ...rest } = data.data;
@@ -131,7 +131,7 @@ const deleteSchema = z.object({ id: z.string().min(1) });
 export async function DELETE(request: Request) {
   try {
     const user = await requireUser(['ADMIN']);
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
     const data = deleteSchema.safeParse(body);
     if (!data.success) return jsonError('معرف المقرر مطلوب', 400);
 

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import sharp from 'sharp';
 import {
   assertRateLimit,
   getClientIp,
@@ -11,6 +12,8 @@ import {
 export const runtime = 'nodejs';
 
 const MAX_BYTES = 3 * 1024 * 1024;
+const MAX_INPUT_PIXELS = 4096 * 4096;
+const AVATAR_SIZE = 512;
 
 function detectType(bytes: Uint8Array) {
   if (
@@ -35,8 +38,8 @@ function detectType(bytes: Uint8Array) {
 
 /**
  * رفع الصورة متاح أثناء التسجيل (قبل وجود حساب)، لذلك لا نطلب جلسة.
- * لكنه محمي بـ: same-origin من الـ middleware + حد IP + فحص magic bytes.
- * ملفات الصور فقط في مجلد public/uploads/avatars.
+ * لكنه محمي بـ: same-origin من الـ middleware + حد IP + فحص magic bytes
+ * + إعادة ترميز كاملة عبر sharp (إزالة EXIF/الأكواد المخفية وتوحيد الصيغة).
  */
 export async function POST(request: Request) {
   try {
@@ -59,22 +62,40 @@ export async function POST(request: Request) {
     }
     if (file.name.length > 200) return jsonError('اسم الملف طويل جدًا');
 
-    const buffer = new Uint8Array(await file.arrayBuffer());
-    const type = detectType(buffer);
-    if (!type) {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    if (!detectType(buffer)) {
       return jsonError('الصيغة غير مدعومة. استخدم PNG أو JPG أو WEBP');
+    }
+
+    // إعادة الترميز تمنع polyglot/EXIF/GPS وتضمن أن الملف صورة فعلية.
+    let output: Buffer;
+    try {
+      output = await sharp(buffer, {
+        failOn: 'error',
+        limitInputPixels: MAX_INPUT_PIXELS,
+        animated: false,
+      })
+        .rotate()
+        .resize(AVATAR_SIZE, AVATAR_SIZE, { fit: 'cover', withoutEnlargement: true })
+        .webp({ quality: 82, effort: 4 })
+        .toBuffer();
+    } catch {
+      return jsonError('ملف الصورة تالف أو غير صالح');
+    }
+    if (output.length === 0 || output.length > MAX_BYTES) {
+      return jsonError('حجم الصورة بعد المعالجة غير مناسب');
     }
 
     const dir = path.join(process.cwd(), 'public', 'uploads', 'avatars');
     await mkdir(dir, { recursive: true });
-    const filename = `${randomUUID()}.${type.ext}`;
-    await writeFile(path.join(dir, filename), buffer, { mode: 0o644 });
+    const filename = `${randomUUID()}.webp`;
+    await writeFile(path.join(dir, filename), output, { mode: 0o644 });
 
     return Response.json(
       {
         url: `/uploads/avatars/${filename}`,
-        size: file.size,
-        mime: type.mime,
+        size: output.length,
+        mime: 'image/webp',
       },
       { headers: { 'cache-control': 'no-store' } },
     );

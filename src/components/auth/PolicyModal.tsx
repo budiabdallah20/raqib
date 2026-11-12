@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { LogoMark } from '@/components/shared/Logo';
+import Image from 'next/image';
 
 export type PolicyTab = 'privacy' | 'terms' | 'rights';
 
@@ -30,6 +30,7 @@ const SECTIONS: Record<
   { title: string; body: string[] }[]
 > = {
   privacy: [
+    { title: 'التشغيل ومقدمو الخدمة', body: ['يستخدم المشروع PostgreSQL على Neon للبيانات وإعدادات نشر Vercel. قد يستخدم Resend لإرسال رسائل استعادة الحساب وGoogle Drive للملفات عند تهيئتهما. لا يعني وجود التكامل أنه مفعل لكل حساب.', 'بيانات التسجيل قد تشمل الهوية الأكاديمية والمقررات، ومع استخدام المنصة تُسجَّل بيانات الحضور والمهام والنتائج. تُحفظ تفضيلات اللغة وبعض تفضيلات الواجهة محليًا في المتصفح.', 'للاستفسار أو طلب تصحيح البيانات: budiabdallah922@gmail.com. تفاصيل المسؤول القانوني ومواقع المعالجة ومدد الاحتفاظ تحتاج مراجعة واعتماد مالك المنصة.'] },
     {
       title: 'البيانات التي نجمعها',
       body: [
@@ -49,9 +50,9 @@ const SECTIONS: Record<
     {
       title: 'التخزين والأمان',
       body: [
-        'كلمات المرور تُخزَّن مشفّرة باستخدام bcrypt، والجلسات محمية برموز JWT موقّعة ومشفّرة، والاتصال مؤمَّن عبر HTTPS.',
-        'نحتفظ بالبيانات طوال فترة نشاط الحساب، ويمكن حذفها بناءً على طلبك وفق سياسة الاحتفاظ المعتمدة بالجامعة.',
-        'الوصول إلى البيانات مقصور على صاحب الحساب والإدارة المصرح لها، مع تسجيل للعمليات الحساسة.',
+        'تُخزَّن كلمات المرور كقيم تجزئة باستخدام bcrypt. تُوقَّع رموز الجلسة ويراجع الخادم صلاحيتها وصلاحيات الحساب. استخدم عنوان HTTPS المنشور؛ المعاينة المحلية قد تعمل عبر HTTP.',
+        'لم تُحدَّد مدة احتفاظ موحدة في هذه النسخة. تحتاج مدد الاحتفاظ وطلبات الحذف ومواعيد الرد إلى اعتماد مسؤول التشغيل؛ لا نَعِد بحذف تلقائي أو فوري للسجلات الأكاديمية.',
+        'يتحدد الوصول بحسب الدور: الطالب لسجلاته، وعضو هيئة التدريس للمقررات المصرح بها، والإدارة للمهام الإدارية. تُسجَّل عمليات حساسة لأغراض المراجعة.',
       ],
     },
     {
@@ -67,7 +68,7 @@ const SECTIONS: Record<
       title: 'قبول الشروط',
       body: [
         'باستخدامك منصة رقيب فإنك توافق على هذه الشروط وسياسة الخصوصية. إذا لم تكن موافقًا، يُرجى عدم استخدام المنصة.',
-        'المنصة مخصصة لطلاب وأعضاء هيئة التدريس وإدارة كلية العلوم — جامعة السويس.',
+        'المنصة مخصصة للطلاب وأعضاء هيئة التدريس والإدارة ممن لديهم حسابات وصلاحيات معتمدة.',
       ],
     },
     {
@@ -94,6 +95,7 @@ const SECTIONS: Record<
     },
   ],
   rights: [
+    { title: 'الملكية الفكرية والعلامات', body: ['حقوق البرمجيات والمحتوى لأصحابها. تُعرض علامات التقنيات والجامعة والكلية للتعريف ولا تعني رعاية أو اعتمادًا رسميًا.', 'صور المسرح أصول قدمها مالك المشروع؛ حقوقها الأصلية تبقى لأصحابها. صورة المطور وهوية BUDI مستمدتان من بورتفوليو المطور بإذنه لهذه الواجهة.'] },
     {
       title: 'حق الوصول',
       body: [
@@ -115,8 +117,8 @@ const SECTIONS: Record<
     {
       title: 'حق الاعتراض وسحب الموافقة',
       body: [
-        'يمكنك سحب موافقتك على البيانات الاختيارية (مثل تاريخ الميلاد وبصمة الوجه) في أي وقت دون التأثير على استخدامك الأساسي للمنصة.',
-        'لأي استفسار أو شكوى، تواصل مع إدارة المنصة عبر البريد الرسمي لكلية العلوم — جامعة السويس.',
+        'يمكنك سحب موافقتك على البيانات الاختيارية (مثل تاريخ الميلاد) في أي وقت دون التأثير على استخدامك الأساسي للمنصة.',
+        'لأي استفسار أو شكوى، تواصل مع إدارة المنصة عبر قنوات الدعم المتاحة.',
       ],
     },
   ],
@@ -132,18 +134,29 @@ export function PolicyModal({
   initialTab?: PolicyTab;
 }) {
   const [tab, setTab] = React.useState<PolicyTab>(initialTab);
+  const dialogRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (!open) return;
     setTab(initialTab);
     const previous = document.body.style.overflow;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const focusTimer = window.setTimeout(() => dialogRef.current?.querySelector<HTMLButtonElement>('button')?.focus(), 0);
     document.body.style.overflow = 'hidden';
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
+      if (event.key === 'Tab' && dialogRef.current) {
+        const items = Array.from(dialogRef.current.querySelectorAll<HTMLElement>('button, a[href], [tabindex="0"]'));
+        const first = items[0]; const last = items[items.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = previous;
+      window.clearTimeout(focusTimer);
+      previousFocus?.focus();
       window.removeEventListener('keydown', onKey);
     };
   }, [open, initialTab, onClose]);
@@ -164,24 +177,25 @@ export function PolicyModal({
           />
           <motion.div
             role="dialog"
+            ref={dialogRef}
             aria-modal="true"
             aria-label="السياسات والحقوق"
             initial={{ opacity: 0, y: 30, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.98 }}
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="card-glow relative flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-white/80 bg-white/90 shadow-[0_40px_120px_-24px_rgba(8,22,17,0.5)] backdrop-blur-2xl"
+            className="card-glow relative flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-[#F28C28]/35 bg-[#221016]/95 text-[#F8F5F2] shadow-[0_40px_120px_-24px_rgba(0,0,0,0.95)] backdrop-blur-2xl"
           >
-            <div className="pointer-events-none absolute inset-0 bg-mesh-gold opacity-40" />
-            <div className="relative flex items-start justify-between gap-4 border-b border-brand-900/[0.08] px-6 py-5">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(255,145,77,0.12),transparent_70%)] opacity-80" />
+            <div className="relative flex items-start justify-between gap-4 border-b border-white/10 px-6 py-5">
               <div className="flex items-center gap-3">
-                <LogoMark className="h-10 w-10" />
+                <Image src="/brand/stage-mark.svg" width={40} height={40} alt="" />
                 <div>
-                  <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.3em] text-gold-700">
+                  <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.3em] text-[#FFB45C]">
                     <Sparkles className="h-3 w-3" />
                     RAQIB LEGAL
                   </p>
-                  <h2 className="mt-1 font-display text-xl font-extrabold text-ink-950">
+                  <h2 className="mt-1 font-display text-xl font-extrabold text-[#FAF6EE]">
                     الخصوصية والحقوق
                   </h2>
                 </div>
@@ -190,13 +204,13 @@ export function PolicyModal({
                 type="button"
                 onClick={onClose}
                 aria-label="إغلاق"
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-brand-900/10 bg-white/65 text-ink-400 transition hover:border-brand-500/30 hover:text-ink-900"
+                className="btn-ghost flex h-9 w-9 items-center justify-center rounded-xl transition hover:bg-white/[0.06] hover:text-[#FAF6EE]"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="relative flex gap-1 overflow-x-auto border-b border-brand-900/[0.08] px-4 py-2 no-scrollbar">
+            <div className="relative flex gap-1 overflow-x-auto border-b border-white/10 px-4 py-2 no-scrollbar">
               {TABS.map((item) => {
                 const Icon = item.icon;
                 const active = tab === item.id;
@@ -208,8 +222,8 @@ export function PolicyModal({
                     className={cn(
                       'flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs font-bold transition',
                       active
-                        ? 'bg-brand-500/10 text-brand-700'
-                        : 'text-ink-400 hover:bg-brand-500/[0.05] hover:text-ink-800',
+                        ? 'border border-[#F28C28]/40 bg-[#F28C28]/[0.14] text-[#FFB45C]'
+                        : 'text-[#a89aa2] hover:bg-white/[0.05] hover:text-[#FAF6EE]',
                     )}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -231,15 +245,15 @@ export function PolicyModal({
                 >
                   {SECTIONS[tab].map((section) => (
                     <section key={section.title}>
-                      <h3 className="mb-2 flex items-center gap-2 font-display text-sm font-bold text-brand-800">
-                        <span className="h-1.5 w-1.5 rounded-full bg-gold-500" />
+                      <h3 className="mb-2 flex items-center gap-2 font-display text-sm font-bold text-[#FFB45C]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#FFB45C]" />
                         {section.title}
                       </h3>
-                      <div className="space-y-2 border-r border-gold-500/25 pr-4">
+                      <div className="space-y-2 border-r border-[#F28C28]/30 pr-4">
                         {section.body.map((paragraph, index) => (
                           <p
                             key={index}
-                            className="text-[12.5px] leading-7 text-ink-500"
+                            className="text-[12.5px] leading-7 text-[#a89aa2]"
                           >
                             {paragraph}
                           </p>
@@ -251,14 +265,14 @@ export function PolicyModal({
               </AnimatePresence>
             </div>
 
-            <div className="relative flex flex-wrap items-center justify-between gap-3 border-t border-brand-900/[0.08] px-6 py-4">
-              <p className="text-[10.5px] text-ink-400">
-                آخر تحديث: أكتوبر 2026 · منصة رقيب — جامعة السويس
+            <div className="relative flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-6 py-4">
+              <p className="text-[10.5px] text-[#a89aa2]">
+                آخر تحديث: أكتوبر 2026 · منصة رقيب
               </p>
               <button
                 type="button"
                 onClick={onClose}
-                className="flex items-center gap-2 rounded-xl bg-[linear-gradient(110deg,#8a6424,#c8a24b_45%,#e6cb78)] px-4 py-2 text-xs font-bold text-[#1c1503] shadow-[0_10px_28px_-12px_rgba(200,162,75,.6)] transition hover:-translate-y-0.5"
+                className="btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold text-[#1a0c10] transition hover:-translate-y-0.5"
               >
                 فهمت
                 <ArrowLeft className="h-3.5 w-3.5" />

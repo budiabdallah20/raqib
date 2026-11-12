@@ -1,0 +1,56 @@
+# RAQiB — Docker build context hardening
+# Never ship local secrets, databases, certificates or uploaded user files into an image.
+
+node_modules
+.next
+.next-*
+out
+dist
+coverage
+
+.git
+.gitignore
+.github
+.vercel
+.neon
+.opencode
+.claude
+
+# Secrets & local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+certs
+
+# Databases, dumps & backups
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.db.bak*
+*.sql
+*.dump
+prisma/backups
+prisma/*.db.*
+
+# User uploads / runtime storage
+storage
+public/uploads
+data
+
+# Tests, reports & local tooling
+tests
+playwright-report
+test-results
+.playwright-cli
+*.log
+npm-debug.log*
+.eslintcache
+*.tsbuildinfo
+Ultimate_Raqib_Master_Prompt.md
+SECURITY_INSTRUCTIONS.md
+README.md

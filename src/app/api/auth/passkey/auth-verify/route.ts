@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyAuthenticationResponse } from '@simplewebauthn/server';
 import type { AuthenticationResponseJSON, AuthenticatorTransport } from '@simplewebauthn/server';
+import { z } from 'zod';
 
 import { prisma } from '@/lib/db';
 import { applyAuthCookie, issueSession } from '@/lib/auth';
@@ -20,6 +21,26 @@ import {
  * 3. التوقيع + عداد التوقيع (كشف الاستنساخ) + التحقق بالمستخدم إلزامي.
  * 4. جلسة JWT بنفس آلية الدخول بكلمة السر + كوكي httpOnly + سجل تدقيق.
  */
+const bodySchema = z
+  .object({
+    response: z
+      .object({
+        id: z.string().min(1).max(1024),
+        rawId: z.string().min(1).max(4096),
+        type: z.literal('public-key'),
+        response: z
+          .object({
+            clientDataJSON: z.string().min(1).max(16_384),
+            authenticatorData: z.string().min(1).max(16_384),
+            signature: z.string().min(1).max(16_384),
+            userHandle: z.string().max(4096).optional(),
+          })
+          .passthrough(),
+      })
+      .passthrough(),
+  })
+  .strict();
+
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
@@ -30,11 +51,12 @@ export async function POST(request: Request) {
       return jsonError('انتهت صلاحية جلسة الدخول بالبصمة — جرّب من الأساس', 400);
     }
 
-    const body = (await request.json().catch(() => null)) as { response?: AuthenticationResponseJSON } | null;
-    if (!body?.response?.id) return jsonError('بيانات البصمة غير مكتملة', 400);
+    const parsed = bodySchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) return jsonError('بيانات البصمة غير مكتملة', 400);
+    const authResponse = parsed.data.response as unknown as AuthenticationResponseJSON;
 
     const record = await prisma.passkeyCredential.findUnique({
-      where: { id: body.response.id },
+      where: { id: authResponse.id },
       select: {
         id: true,
         publicKey: true,
@@ -56,7 +78,7 @@ export async function POST(request: Request) {
     let verification;
     try {
       verification = await verifyAuthenticationResponse({
-        response: body.response,
+        response: authResponse,
         credential: {
           id: record.id,
           publicKey: new Uint8Array(record.publicKey),
@@ -125,7 +147,7 @@ export async function POST(request: Request) {
       user: { id: record.user.id, name: record.user.name, role: record.user.role },
       message: 'دخلت باللمسة ✌️',
     });
-    applyAuthCookie(response, token, true);
+    applyAuthCookie(response, token, true, request);
     clearChallengeCookie(response, PK_AUTH_CHALLENGE_COOKIE);
 
     await logAudit({

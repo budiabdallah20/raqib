@@ -9,6 +9,10 @@ export type AuthUser = {
   name: string;
   role: Role;
   studentCode?: string | null;
+  /** الفرقة (1..4) والجروب (A/B) والقسم — تُستخدم في الترحيب المخصص وفلاتر العرض */
+  level?: string | null;
+  group?: string | null;
+  department?: string | null;
   gender?: Gender | string | null;
   avatarUrl?: string | null;
   faceEnrolled?: boolean;

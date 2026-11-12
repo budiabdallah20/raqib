@@ -1,0 +1,267 @@
+.auth-panel {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  border-radius: 24px 48px 24px 48px !important;
+  border: 1.5px solid rgba(242, 140, 40, 0.3) !important;
+  outline: 1px solid rgba(101, 29, 50, 0.25);
+  outline-offset: -12px;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 0%, rgba(242, 140, 40, 0.1), transparent 75%),
+    linear-gradient(155deg, rgba(248, 245, 242, 0.08), rgba(24, 11, 18, 0.92), rgba(17, 16, 20, 0.98)) !important;
+  box-shadow:
+    0 48px 120px -40px rgba(0, 0, 0, 0.95),
+    0 0 60px -20px rgba(242, 140, 40, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px) saturate(1.1);
+  overflow: hidden;
+}
+
+.auth-panel::after {
+  content: '';
+  position: absolute;
+  inset: 16px;
+  border: 1px solid rgba(242, 140, 40, 0.1);
+  border-radius: 12px 36px 12px 36px;
+  pointer-events: none;
+}
+
+.auth-panel::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  border-top: 2px solid rgba(242, 140, 40, 0.45);
+  border-right: 2px solid rgba(242, 140, 40, 0.45);
+  border-radius: 0 8px 0 0;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.auth-panel-top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: linear-gradient(to left, transparent, #F5B46B 30%, #FF914D 70%, transparent);
+  pointer-events: none;
+}
+
+.auth-panel-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 50% -6%, rgba(255, 145, 77, 0.14), transparent 62%),
+    radial-gradient(ellipse 40% 32% at 90% 102%, rgba(245, 180, 107, 0.08), transparent 60%);
+}
+
+.auth-panel-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 1.75rem 1rem;
+}
+
+.auth-panel-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.auth-panel-brand-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(255, 145, 77, 0.35);
+  background: rgba(24, 11, 18, 0.9);
+  box-shadow: 0 12px 30px -12px rgba(255, 145, 77, 0.6);
+}
+
+.auth-panel-brand-name {
+  font-family: var(--font-cairo), sans-serif;
+  font-size: 1.125rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #F8F5F2;
+}
+
+.auth-panel-brand-tagline {
+  margin-top: 0.375rem;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 0.46875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(245, 180, 107, 0.7);
+  line-height: 1;
+}
+
+.auth-panel-security-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(245, 180, 107, 0.25);
+  background: rgba(245, 180, 107, 0.08);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #F5B46B;
+}
+
+.auth-panel-security-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #F5B46B;
+  box-shadow: 0 0 8px rgba(245, 180, 107, 0.6);
+  animation: security-pulse 2s ease-in-out infinite;
+}
+
+@keyframes security-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.9); }
+}
+
+.auth-panel-act-label {
+  position: relative;
+  z-index: 1;
+  margin: 0 1.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(196, 179, 188, 0.7);
+}
+
+.auth-panel-act-code {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  color: rgba(245, 180, 107, 0.6);
+}
+
+.auth-panel-subtitle {
+  position: relative;
+  z-index: 1;
+  margin: 0 1.75rem 0.5rem;
+  font-size: 0.625rem;
+  line-height: 1.6;
+  color: rgba(196, 179, 188, 0.6);
+}
+
+.auth-panel-content {
+  position: relative;
+  z-index: 1;
+  padding: 1rem 1.75rem 1.5rem;
+}
+
+.auth-panel-footer {
+  position: relative;
+  z-index: 1;
+  margin-top: 1rem;
+  padding: 1rem 1.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.auth-panel-trust-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  padding: 1rem 1.75rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 0.59375rem;
+  color: rgba(168, 154, 162, 0.7);
+}
+
+.auth-panel-trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.auth-panel-trust-icon {
+  font-size: 0.625rem;
+}
+
+.auth-panel-trust-divider {
+  width: 12px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 480px) {
+  .auth-panel {
+    border-radius: 20px 40px 20px 40px !important;
+    max-width: 100%;
+  }
+  .auth-panel::after {
+    inset: 12px;
+    border-radius: 10px 30px 10px 30px;
+  }
+  .auth-panel-header {
+    padding: 1.25rem 1.25rem 0.75rem;
+  }
+  .auth-panel-content {
+    padding: 0.75rem 1.25rem 1.25rem;
+  }
+  .auth-panel-footer {
+    padding: 0.75rem 1.25rem;
+  }
+  .auth-panel-trust-bar {
+    padding: 0.75rem 1.25rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-panel-security-dot {
+    animation: none;
+  }
+}
+
+/* SSR-visible entrance — no inline opacity, no JS dependency. Starts from 55%
+   opacity so the panel stays readable even if animations never run; under
+   prefers-reduced-motion the keyframes simply never apply. transform/opacity
+   only, single short run. */
+@media (prefers-reduced-motion: no-preference) {
+  .auth-panel-enter {
+    animation: auth-panel-enter 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes auth-panel-enter {
+    from {
+      opacity: 0.55;
+      transform: translateY(14px) scale(0.995);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}

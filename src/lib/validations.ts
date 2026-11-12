@@ -28,12 +28,22 @@ const passwordRule = z
     'كلمة المرور شائعة جدًا — اختر كلمة أقوى',
   );
 
+/**
+ * موبايل مصري من 11 رقمًا حرفيًا — يبدأ بـ 01 (010/011/012/015).
+ * نسمح بالمُعرّف الدولي +20 فيُسقَط قبل التحقق ليبقى الإدخال رشيقًا.
+ */
+export const normalizeMobile = (value: string) =>
+  value.trim().replace(/[\s\-()]/g, '').replace(/^\+?20(?=1[0125])/, '');
+
 const phoneRule = z
   .string()
-  .trim()
-  .min(8, 'رقم الهاتف غير صحيح')
-  .max(20, 'رقم الهاتف طويل جدًا')
-  .regex(/^\+?[0-9][0-9\s\-()]{7,18}$/, 'أدخل رقم هاتف صحيح');
+  .transform((value) => normalizeMobile(value))
+  .pipe(
+    z
+      .string()
+      .length(11, 'رقم الموبايل يجب أن يكون 11 رقمًا')
+      .regex(/^01[0125][0-9]{8}$/, 'رقم الموبايل يجب أن يبدأ بـ 01 — مثل 01012345678'),
+  );
 
 const emailRule = z
   .string()
@@ -45,7 +55,7 @@ export const loginSchema = z.object({
   identifier: z
     .string()
     .trim()
-    .min(3, 'أدخل البريد أو رقم الهاتف أو الاسم الكامل')
+    .min(3, 'أدخل البريد أو رقم الهاتف أو الرقم الجامعي')
     .max(120, 'البيانات طويلة جدًا'),
   password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
   remember: z.boolean().optional(),
@@ -70,11 +80,36 @@ export const registerSchema = z
     }),
     birthDate: z.string().trim().optional().or(z.literal('')),
     studentCode: z.string().trim().max(20).optional().or(z.literal('')),
+    /** الفرقة 1..4 — قيمة نصية متسقة مع تخطيط الجداول الرسمي */
+    level: z
+      .string()
+      .trim()
+      .regex(/^[1-4]$/, 'اختر الفرقة الصحيحة (من 1 إلى 4)')
+      .optional()
+      .or(z.literal('')),
+    /** جروب الطالب A / B */
+    group: z
+      .string()
+      .trim()
+      .max(1)
+      .regex(/^[AB]$/, 'اختر الجروب: A أو B')
+      .optional()
+      .or(z.literal('')),
+    /** القسم الأكاديمي — يُلصق من أقسام حقيقية من القاعدة */
+    department: z
+      .string()
+      .trim()
+      .max(80, 'اسم القسم طويل جدًا')
+      .optional()
+      .or(z.literal('')),
     avatarUrl: z
       .string()
       .trim()
       .max(400)
-      .regex(/^\/uploads\/avatars\/[a-f0-9-]+\.(png|jpg|jpeg|webp)$/i, 'رابط الصورة غير صالح')
+      .regex(
+        /^\/uploads\/avatars\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpe?g|webp)$/i,
+        'رابط الصورة غير صالح',
+      )
       .optional()
       .or(z.literal('')),
     faceEnrolled: z.boolean().optional(),
@@ -160,11 +195,16 @@ export const lectureSchema = z.object({
 });
 
 export const attendanceSchema = z.object({
-  // توكِن QR (32 hex) أو الرمز اليدوي 6 أرقام الظاهر على لوحة الأستاذ
+  // رمز QR الديناميكي (JWT HS256 بثلاث أجزاء base64url) أو
+  // توكِن قاعدة قديم (32 hex) أو الكود اليدوي 6 أرقام الظاهر على لوحة الأستاذ
   token: z
     .string()
     .trim()
-    .regex(/^(\d{6}|[a-f0-9]{16,})$/i, 'رمز الحضور غير صالح'),
+    .max(600, 'رمز الحضور غير صالح')
+    .regex(
+      /^(\d{6}|[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|[A-Za-z0-9_-]{16,})$/,
+      'رمز الحضور غير صالح',
+    ),
 });
 
 export const lectureToggleSchema = z.object({

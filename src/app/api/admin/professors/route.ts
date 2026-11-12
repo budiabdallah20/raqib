@@ -60,10 +60,14 @@ export async function GET(request: Request) {
 
     // ── قائمة الدكاترة مع بحث ──
     const q = (url.searchParams.get('q') ?? '').trim().slice(0, 80);
+    // البريد مشفّر حتميًا: مطابقة كاملة فقط (بعد lowercase كما في التسجيل).
+    const emailQuery = q.includes('@') ? q.toLowerCase() : null;
     const professors = await prisma.user.findMany({
       where: {
         role: 'PROFESSOR',
-        ...(q ? { OR: [{ name: { contains: q } }, { email: { contains: q } }] } : {}),
+        ...(q
+          ? { OR: [{ name: { contains: q } }, ...(emailQuery ? [{ email: emailQuery }] : [])] }
+          : {}),
       },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -94,7 +98,7 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const user = await requireUser(['ADMIN']);
-    const data = patchSchema.safeParse(await request.json());
+    const data = patchSchema.safeParse(await request.json().catch(() => null));
     if (!data.success) {
       return jsonError(data.error.issues[0]?.message || 'بيانات غير صالحة', 400);
     }

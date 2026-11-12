@@ -36,11 +36,15 @@ export async function POST(request: Request) {
       .trim()
       .replace(/^["']|["']$/g, '')
       .replace(/\\\$/g, '$');
+
     if (!hash) {
       return jsonError('لم يتم إعداد كود الإدارة على السيرفر', 503);
     }
 
-    const valid = await bcrypt.compare(parsed.data.code.replace(/\D/g, ''), hash);
+    const code = parsed.data.code.replace(/\D/g, '');
+    // المسار الوحيد: bcrypt hash. لا يوجد أي كود صريح في البيئة.
+    const valid = await bcrypt.compare(code, hash);
+    const method = 'vault-code';
     if (!valid) {
       await logAudit({
         user: null,
@@ -72,7 +76,7 @@ export async function POST(request: Request) {
       request,
       action: 'ADMIN_LOGIN_OK',
       entity: 'User',
-      detail: { method: 'vault-code' },
+      detail: { method },
     });
 
     const response = NextResponse.json({
@@ -83,7 +87,7 @@ export async function POST(request: Request) {
         role: admin.role,
       },
     });
-    return applyAuthCookie(response, token, true);
+    return applyAuthCookie(response, token, true, request);
   } catch (error) {
     const status = (error as Error & { status?: number }).status || 500;
     return jsonError((error as Error).message || 'تعذر التحقق من الكود', status);

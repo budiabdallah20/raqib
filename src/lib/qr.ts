@@ -1,11 +1,15 @@
 /**
  * أدوات QR الحضور — رمز يدوي من 6 أرقام مشتق من التوكن (بدون تخزين إضافي)
- * إذ كود الـQR يدوّر كل 20 ثانية، فاليدوي يدوّر معه — بإذن الله.
+ * إذ رمز الـQR ديناميكي وJWT موقّع يدوّر كل 10 ثوانٍ، فالكود اليدوي يتغير معه —
+ * والمشتق HMAC يعمل مع أي صيغة توكن (JWT الجديد أو hex القديم في التقلي).
  */
+import { createHmac } from 'node:crypto';
+import { getJwtSecret } from './jwt';
 
-/** كود 6 أرقام مشتق من آخر 8 خانات hex من التوكن */
+/** كود 6 أرقام من HMAC-SHA256 على التوكن كاملًا — بلا أي سر احتياطي */
 export function manualCodeOf(token: string) {
-  const n = parseInt(token.slice(-8), 16) % 1000000;
+  const digest = createHmac('sha256', getJwtSecret()).update(token).digest('hex');
+  const n = parseInt(digest.slice(-8), 16) % 1000000;
   return n.toString().padStart(6, '0');
 }
 

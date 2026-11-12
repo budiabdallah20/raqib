@@ -1,4 +1,5 @@
 'use client';
+import { useAuthCopy } from './auth-copy';
 
 import * as React from 'react';
 import {
@@ -11,7 +12,7 @@ import {
 import { cn } from '@/lib/utils';
 
 const BASE_INPUT =
-  'flex h-12 w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 text-sm text-[#f2f8e8] shadow-[0_1px_0_rgba(255,255,255,.06)_inset] placeholder:text-ink-400/60 outline-none transition duration-300 hover:border-white/20 focus:border-brand-400/60 focus:bg-white/[0.08] focus:ring-2 focus:ring-brand-400/20 disabled:opacity-50';
+  'theater-input flex h-12 w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 text-sm text-[#F8F5F2] shadow-[0_1px_0_rgba(255,255,255,.06)_inset] placeholder:text-[#a89aa2]/60 outline-none transition duration-300 hover:border-white/20 focus:border-[#F28C28]/60 focus:bg-white/[0.08] focus:ring-2 focus:ring-[#F28C28]/25 disabled:opacity-50 min-h-[44px]';
 
 export function Field({
   label,
@@ -32,38 +33,38 @@ export function Field({
   children: React.ReactNode;
   className?: string;
 }) {
+  const tr = useAuthCopy();
   return (
     <div className={cn('space-y-1.5', className)}>
       <div className="flex items-center justify-between gap-2">
         <label
           htmlFor={htmlFor}
-          className="text-[13px] font-semibold text-ink-700"
+          className="text-[13px] font-semibold text-[#F8F5F2]"
         >
-          {label}
+          {tr(label)}
         </label>
         {optional ? (
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-ink-400">
-            اختياري
-          </span>
+          <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-[#a89aa2]">
+            {tr("اختياري")}</span>
         ) : null}
       </div>
       {children}
       {error ? (
         <p
           id={htmlFor ? `${htmlFor}-error` : undefined}
-          className="flex items-start gap-1.5 text-[11.5px] leading-5 text-ember-400"
+          className="flex items-start gap-1.5 text-[11.5px] leading-5 text-red-300"
           role="alert"
         >
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          {error}
+          {tr(error)}
         </p>
       ) : success ? (
-        <p className="flex items-center gap-1.5 text-[11.5px] text-brand-600">
+        <p className="flex items-center gap-1.5 text-[11.5px] text-[#F5B46B]">
           <Check className="h-3.5 w-3.5" />
-          {success}
+          {tr(success)}
         </p>
       ) : hint ? (
-        <p className="text-[11px] leading-5 text-ink-400">{hint}</p>
+        <p className="text-[11px] leading-5 text-[#a89aa2]">{tr(hint)}</p>
       ) : null}
     </div>
   );
@@ -81,9 +82,9 @@ export const ValidatedInput = React.forwardRef<
   HTMLInputElement,
   ValidatedInputProps
 >(({ icon: Icon, invalid, valid, trailing, className, ...props }, ref) => (
-  <div className="relative" dir={props.dir}>
+  <div className="relative input-wrapper" dir={props.dir}>
     {Icon ? (
-      <Icon className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-400/60" />
+      <Icon className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F5B46B]/60 input-icon" />
     ) : null}
     <input
       ref={ref}
@@ -92,16 +93,17 @@ export const ValidatedInput = React.forwardRef<
         Icon && 'pr-11',
         trailing && 'pl-12',
         invalid &&
-          'border-ember-500/60 bg-ember-500/[0.08] focus:border-ember-500 focus:ring-ember-500/20',
+          'border-red-400/60 bg-red-400/[0.08] focus:border-red-400 focus:ring-red-400/20',
         valid &&
-          'border-brand-400/50 focus:border-brand-400/70 focus:ring-brand-400/15',
+          'border-[#F5B46B]/50 focus:border-[#F5B46B]/70 focus:ring-[#F5B46B]/15',
         !invalid &&
           !valid &&
-          'focus:border-brand-400/60 focus:ring-brand-400/20',
+          'focus:border-[#F28C28]/60 focus:ring-[#F28C28]/20',
         className,
       )}
       aria-invalid={invalid || undefined}
       {...props}
+      aria-describedby={props['aria-describedby'] ?? (invalid && props.id ? `${props.id}-error` : undefined)}
     />
     {trailing ? (
       <div className="absolute left-1.5 top-1/2 -translate-y-1/2">{trailing}</div>
@@ -114,6 +116,7 @@ export const PasswordInput = React.forwardRef<
   HTMLInputElement,
   Omit<ValidatedInputProps, 'type' | 'trailing'>
 >((props, ref) => {
+  const tr = useAuthCopy();
   const [visible, setVisible] = React.useState(false);
   return (
     <ValidatedInput
@@ -123,9 +126,8 @@ export const PasswordInput = React.forwardRef<
         <button
           type="button"
           onClick={() => setVisible((current) => !current)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-400 transition hover:bg-brand-400/[0.1] hover:text-brand-300"
-          aria-label={visible ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
-          tabIndex={-1}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-[#a89aa2] transition hover:bg-[#F5B46B]/[0.10] hover:text-[#F5B46B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F28C28]/50"
+          aria-label={visible ? tr('إخفاء كلمة المرور') : tr('إظهار كلمة المرور')}
         >
           {visible ? (
             <EyeOff className="h-4 w-4" />
@@ -153,14 +155,15 @@ export function passwordScore(password: string) {
 }
 
 const STRENGTH = [
-  { label: 'ضعيفة جدًا', color: 'bg-ember-500', text: 'text-ember-400' },
-  { label: 'ضعيفة', color: 'bg-ember-500', text: 'text-ember-400' },
-  { label: 'متوسطة', color: 'bg-gold-400', text: 'text-gold-600' },
-  { label: 'قوية', color: 'bg-brand-400', text: 'text-brand-600' },
-  { label: 'أسطورية', color: 'bg-[linear-gradient(90deg,#4db8ae,#c8a24b)]', text: 'text-gold-600' },
+  { label: 'ضعيفة جدًا', color: 'bg-red-400', text: 'text-red-300' },
+  { label: 'ضعيفة', color: 'bg-red-400', text: 'text-red-300' },
+  { label: 'متوسطة', color: 'bg-[#F5B46B]', text: 'text-[#F5B46B]' },
+  { label: 'قوية', color: 'bg-[#F5B46B]', text: 'text-[#F5B46B]' },
+  { label: 'أسطورية', color: 'bg-[linear-gradient(90deg,#F5B46B,#F5B46B)]', text: 'text-[#F5B46B]' },
 ];
 
 export function PasswordStrength({ value }: { value: string }) {
+  const tr = useAuthCopy();
   if (!value) return null;
   const score = passwordScore(value);
   const meta = STRENGTH[score - 1] || STRENGTH[0];
@@ -179,8 +182,8 @@ export function PasswordStrength({ value }: { value: string }) {
         ))}
       </div>
       <div className="flex items-center justify-between text-[10.5px]">
-        <span className={meta.text}>قوة كلمة المرور: {meta.label}</span>
-        <span className="text-ink-400">10+ أحرف، رقم، وحرف كبير</span>
+        <span className={meta.text}>{tr("قوة كلمة المرور:")}{tr(meta.label)}</span>
+        <span className="text-[#a89aa2]">{tr("10+ أحرف، رقم، وحرف كبير")}</span>
       </div>
     </div>
   );

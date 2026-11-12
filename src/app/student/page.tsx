@@ -7,9 +7,11 @@ import { useSearchParams } from 'next/navigation';
 import { differenceInCalendarDays } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
+  BookOpenCheck,
   Award,
   BookOpen,
   Cake,
+  Compass,
   CalendarClock,
   CalendarDays,
   ChevronDown,
@@ -57,6 +59,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { api } from '@/lib/api';
+import EmergencyBanner from '@/components/shared/EmergencyBanner';
 import { GRADE_MAX } from '@/lib/grades';
 import { zoneFor } from '@/lib/grades';
 import { SCHED_KIND_LABEL } from '@/lib/constants';
@@ -515,6 +518,7 @@ function StudentDashboard() {
 
   return (
     <StudentShell>
+      <EmergencyBanner />
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold text-ink-950">لوحة الطالب</h1>
@@ -525,6 +529,18 @@ function StudentDashboard() {
             <SlidersHorizontal className="h-4 w-4" />
             {editing ? 'خلص الترتيب' : 'ترتيب اللوحة'}
           </Button>
+          <Link href="/student/exams">
+            <Button variant="outline">
+              <BookOpenCheck className="h-4 w-4" />
+              امتحاناتي
+            </Button>
+          </Link>
+          <Link href="/student/compass">
+            <Button variant="outline">
+              <Compass className="h-4 w-4" />
+              بوصلة المقررات
+            </Button>
+          </Link>
           <Link href="/student/report">
             <Button variant="outline">
               <FileDown className="h-4 w-4" />

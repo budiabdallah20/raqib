@@ -1,0 +1,491 @@
+/* ============================================================================
+   RAQEEB — OBSIDIAN GLASS
+   Design system v1 · scoped to `.obsidian` so it never bleeds into legacy pages.
+   Rules: 8px spacing · 12–20px radii · 150–250ms motion · contrast >= 4.5:1.
+   ========================================================================== */
+
+.obsidian {
+  /* --- surfaces: near-absolute black, cool undertone ---------------------- */
+  --o-bg0: #04060a;
+  --o-bg1: #070a12;
+  --o-surf: #0b101b;
+  --o-surf2: #111827;
+  --o-surf3: #18202f;
+  --o-line: rgba(255, 255, 255, 0.06);
+  --o-line2: rgba(255, 255, 255, 0.13);
+
+  /* --- light ------------------------------------------------------------- */
+  --o-primary: #3b82f6;
+  --o-primary-hi: #60a5fa;
+  --o-primary-deep: #1d4ed8;
+  --o-violet: #8b5cf6;
+  --o-cyan: #22d3ee;
+
+  /* --- meaning only ------------------------------------------------------ */
+  --o-ok: #10b981;
+  --o-warn: #f59e0b;
+  --o-danger: #ef4444;
+
+  /* --- type ------------------------------------------------------------- */
+  --o-text: #f8fafc;
+  --o-text2: #94a3b8;
+  --o-text3: #64748b;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  color: var(--o-text);
+  color-scheme: dark;
+  font-family: var(--font-cairo), var(--font-inter), system-ui, sans-serif;
+  background:
+    radial-gradient(1100px 560px at 50% -12%, rgba(37, 99, 235, 0.16), transparent 62%),
+    radial-gradient(900px 480px at 100% 2%, rgba(139, 92, 246, 0.10), transparent 58%),
+    linear-gradient(180deg, #05070d 0%, var(--o-bg1) 42%, var(--o-bg0) 100%);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.obsidian ::selection {
+  background: rgba(59, 130, 246, 0.35);
+  color: #fff;
+}
+
+.obsidian ::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+.obsidian ::-webkit-scrollbar-track {
+  background: #070a12;
+}
+.obsidian ::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid #070a12;
+  background: linear-gradient(180deg, #24324a, #131b2a);
+}
+.obsidian ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+}
+
+/* ---------- aurora field (magic, but calm) -------------------------------- */
+.o-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.o-aurora i {
+  position: absolute;
+  display: block;
+  border-radius: 9999px;
+  filter: blur(110px);
+  opacity: 0.34;
+  will-change: transform;
+}
+.o-aurora i:nth-child(1) {
+  width: 560px;
+  height: 560px;
+  inset-inline-start: -140px;
+  top: -180px;
+  background: radial-gradient(circle, #1d4ed8, transparent 66%);
+  animation: o-drift-a 72s ease-in-out infinite;
+}
+.o-aurora i:nth-child(2) {
+  width: 480px;
+  height: 480px;
+  inset-inline-end: -120px;
+  top: 6%;
+  background: radial-gradient(circle, #7c3aed, transparent 68%);
+  animation: o-drift-b 88s ease-in-out infinite;
+}
+.o-aurora i:nth-child(3) {
+  width: 620px;
+  height: 620px;
+  inset-inline-start: 32%;
+  bottom: -320px;
+  background: radial-gradient(circle, #0891b2, transparent 70%);
+  animation: o-drift-c 96s ease-in-out infinite;
+}
+
+/* fine film grain — kills flat-gradient banding on cheap screens */
+.o-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- glass card --------------------------------------------------- */
+.o-card {
+  position: relative;
+  border-radius: 16px;
+  border: 1px solid var(--o-line);
+  background:
+    radial-gradient(130% 100% at 50% 0%, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 58%),
+    linear-gradient(180deg, var(--o-surf2), var(--o-surf));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 26px 60px -42px rgba(0, 0, 0, 0.95);
+  transition:
+    border-color 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+.o-card--hover:hover {
+  transform: translateY(-2px);
+  border-color: var(--o-line2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    0 34px 72px -42px rgba(0, 0, 0, 1),
+    0 0 0 1px rgba(59, 130, 246, 0.1);
+}
+.o-card--glow {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 26px 64px -40px rgba(0, 0, 0, 0.95),
+    0 0 60px -28px rgba(59, 130, 246, 0.32);
+}
+
+/* cursor spotlight — set --mx / --my from JS */
+.o-spot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  background: radial-gradient(
+    320px circle at var(--mx, 50%) var(--my, 0%),
+    rgba(96, 165, 250, 0.16),
+    transparent 64%
+  );
+}
+.o-spot:hover::after {
+  opacity: 1;
+}
+
+/* travelling sheen — once every 9s, never on text */
+.o-shine {
+  position: relative;
+  overflow: hidden;
+}
+.o-shine::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 32%,
+    rgba(255, 255, 255, 0.1) 46%,
+    rgba(255, 255, 255, 0.02) 55%,
+    transparent 70%
+  );
+  background-size: 240% 100%;
+  animation: o-sheen 9s ease-in-out infinite;
+}
+
+/* ---------- navigation --------------------------------------------------- */
+.o-glass {
+  border: 1px solid var(--o-line);
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.82), rgba(7, 10, 18, 0.9));
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+}
+
+.o-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 12px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--o-text2);
+  transition: color 0.18s ease, background 0.18s ease;
+}
+.o-nav-item:hover {
+  color: var(--o-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+.o-nav-item[data-active='true'] {
+  color: #fff;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.18), rgba(139, 92, 246, 0.07));
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.16);
+}
+.o-nav-item[data-active='true']::before {
+  content: '';
+  position: absolute;
+  inset-inline-end: -9px;
+  top: 22%;
+  bottom: 22%;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--o-primary-hi), var(--o-violet));
+  box-shadow: 0 0 12px rgba(96, 165, 250, 0.85);
+}
+.o-nav-item[data-active='true'] .o-nav-icon {
+  color: var(--o-primary-hi);
+}
+
+/* conic light ring around the active pill */
+.o-ring {
+  position: relative;
+}
+.o-ring::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--o-angle, 0deg),
+    transparent 0deg,
+    rgba(96, 165, 250, 0.9) 40deg,
+    rgba(139, 92, 246, 0.5) 90deg,
+    transparent 140deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: o-spin-angle 6s linear infinite;
+  pointer-events: none;
+}
+
+/* ---------- controls ----------------------------------------------------- */
+.o-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--o-line2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--o-text);
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+.o-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+}
+.o-btn:active {
+  transform: translateY(0);
+}
+.o-btn:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.7);
+  outline-offset: 2px;
+}
+
+.o-btn-primary {
+  border-color: rgba(96, 165, 250, 0.45);
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+  color: #fff;
+  box-shadow: 0 12px 34px -16px rgba(37, 99, 235, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+.o-btn-primary:hover {
+  border-color: rgba(147, 197, 253, 0.7);
+  background: linear-gradient(180deg, #4f8ff8, #1e40af);
+}
+
+.o-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--o-line2);
+  padding: 3px 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--o-text2);
+  background: rgba(255, 255, 255, 0.035);
+}
+.o-chip--ok {
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.32);
+  background: rgba(16, 185, 129, 0.1);
+}
+.o-chip--warn {
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.32);
+  background: rgba(245, 158, 11, 0.1);
+}
+.o-chip--danger {
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.32);
+  background: rgba(239, 68, 68, 0.1);
+}
+.o-chip--info {
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.34);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* ---------- data table --------------------------------------------------- */
+.o-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+}
+.o-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 10px 14px;
+  text-align: start;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--o-text3);
+  background: rgba(7, 10, 18, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--o-line);
+}
+.o-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--o-text2);
+}
+.o-table tbody tr {
+  transition: background 0.16s ease;
+}
+.o-table tbody tr:hover {
+  background: rgba(59, 130, 246, 0.055);
+}
+.o-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ---------- skeleton ----------------------------------------------------- */
+.o-skel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.o-skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.09), transparent);
+  animation: o-sheen 1.5s ease-in-out infinite;
+  background-size: 220% 100%;
+}
+
+/* ---------- headings ----------------------------------------------------- */
+.o-eyebrow {
+  font-family: var(--font-coded), var(--font-inter), monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--o-text3);
+}
+.o-heading {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--o-text);
+}
+.o-text-gradient {
+  background: linear-gradient(100deg, #dbeafe 0%, #93c5fd 38%, #c4b5fd 72%, #e9d5ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- motion ------------------------------------------------------- */
+.o-rise {
+  animation: o-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.o-fade {
+  animation: o-fade 0.3s ease both;
+}
+
+@keyframes o-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes o-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes o-sheen {
+  0%,
+  100% {
+    background-position: 180% 0;
+  }
+  55% {
+    background-position: -60% 0;
+  }
+}
+@keyframes o-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(90px, 60px, 0) scale(1.12);
+  }
+}
+@keyframes o-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  50% {
+    transform: translate3d(-70px, 90px, 0) scale(0.92);
+  }
+}
+@keyframes o-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(60px, -80px, 0) scale(1.1);
+  }
+}
+@keyframes o-spin-angle {
+  to {
+    --o-angle: 360deg;
+  }
+}
+@property --o-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .obsidian *,
+  .obsidian *::before,
+  .obsidian *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

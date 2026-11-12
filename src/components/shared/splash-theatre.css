@@ -1,0 +1,204 @@
+/* ============================================================================
+   RAQEEB — THE GRAND CURTAIN OPENING (splash theatre)
+   Scene styles for the first-visit loader. Transform/opacity only, no
+   infinite loops. Colors follow the Illuminated Academic Theater tokens.
+   ========================================================================== */
+
+.splash-theatre {
+  color: #FFFFFF;
+  background: transparent;
+  isolation: isolate;
+  font-family: var(--font-cairo), system-ui, sans-serif;
+}
+
+/* Scrim — the dark house before the overture. Fades out with the curtains. */
+.splash-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: #180B12;
+  background-image:
+    radial-gradient(ellipse 46% 34% at 50% 44%, rgba(255, 217, 160, 0.10), transparent 68%),
+    radial-gradient(ellipse 70% 40% at 50% 112%, rgba(100, 27, 53, 0.35), transparent 72%),
+    radial-gradient(ellipse 42% 34% at 0% 50%, rgba(65, 13, 34, 0.30), transparent 62%),
+    radial-gradient(ellipse 42% 34% at 100% 50%, rgba(65, 13, 34, 0.30), transparent 62%);
+  pointer-events: none;
+}
+
+/* Center Stage Container */
+.splash-center-stage {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4.5rem 1.5rem 5rem;
+  text-align: center;
+}
+
+/* Eyebrow / Overture Tag */
+.splash-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 1rem;
+  border: 1px solid rgba(255, 155, 69, 0.32);
+  border-radius: 9999px;
+  background: rgba(24, 11, 18, 0.72);
+  color: #FFD9A0;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  box-shadow:
+    0 8px 24px -10px rgba(0, 0, 0, 0.8),
+    0 0 18px -6px rgba(255, 155, 69, 0.28);
+}
+
+.splash-eyebrow svg {
+  color: #FFD9A0;
+}
+
+/* Emblem Container — champagne bloom behind the real RAQIB mark */
+.splash-emblem {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 148px;
+  height: 148px;
+  margin-top: 1.8rem;
+  border: 1.5px solid rgba(255, 155, 69, 0.45);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255, 217, 160, 0.16), transparent 70%),
+    radial-gradient(circle, rgba(101, 20, 47, 0.30), rgba(24, 11, 18, 0.94) 76%);
+  box-shadow:
+    0 0 0 8px rgba(255, 155, 69, 0.05),
+    0 0 0 9px rgba(101, 20, 47, 0.4),
+    0 0 64px 8px rgba(255, 155, 69, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+/* Soft ivory/champagne light bloom — static (no pulse loop). */
+.splash-emblem-glow {
+  position: absolute;
+  inset: -26px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 217, 160, 0.30) 0%, rgba(255, 155, 69, 0.10) 45%, transparent 72%);
+  filter: blur(38px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Wordmark — static champagne gradient, no shimmer loop. */
+.splash-wordmark {
+  margin-top: 1.5rem;
+  font-size: clamp(4rem, 11vw, 7rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  background: linear-gradient(100deg,
+    #65142F 0%,
+    #FFD9A0 30%,
+    #FFF8EE 50%,
+    #FFD9A0 70%,
+    #65142F 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 14px 40px rgba(255, 155, 69, 0.3));
+}
+
+/* Divider */
+.splash-divider {
+  display: flex;
+  align-items: center;
+  width: min(280px, 78vw);
+  margin-top: 0.85rem;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(101, 20, 47, 0.55),
+    rgba(255, 155, 69, 0.85),
+    #FFD9A0,
+    rgba(255, 155, 69, 0.85),
+    rgba(101, 20, 47, 0.55),
+    transparent
+  );
+}
+
+.splash-divider span {
+  width: 9px;
+  height: 9px;
+  margin-inline: auto;
+  transform: rotate(45deg);
+  background: #FF9B45;
+  box-shadow: 0 0 12px rgba(255, 155, 69, 0.85);
+}
+
+/* Skip Button */
+.splash-skip {
+  position: absolute;
+  z-index: 30;
+  right: 1.75rem;
+  bottom: 1.75rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border: 1px solid rgba(255, 155, 69, 0.4);
+  border-radius: 4px 16px 4px 16px;
+  background: rgba(24, 11, 18, 0.9);
+  color: #FFF8EE;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.splash-skip:is(:hover, :focus-visible) {
+  border-color: #FF9B45;
+  background: rgba(65, 13, 34, 0.95);
+  color: #FFF8EE;
+  box-shadow: 0 0 24px -6px rgba(255, 155, 69, 0.4);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  .splash-emblem {
+    width: 122px;
+    height: 122px;
+    margin-top: 1.4rem;
+  }
+  .splash-eyebrow {
+    font-size: 0.56rem;
+    letter-spacing: 0.18em;
+  }
+  .splash-skip {
+    right: 1rem;
+    bottom: 1rem;
+    font-size: 0.75rem;
+    padding: 0.5rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-skip {
+    transition: none;
+  }
+  .splash-skip:hover {
+    transform: none;
+  }
+}
+
+/* Landing-only opening follows the approved five-color identity. */
+.splash-theatre { color: #F5EBDD; }
+.splash-theatre .splash-scrim { background: #101016; }
+.splash-theatre .velvet-curtain { background: repeating-linear-gradient(90deg,#101016 0px,#390F20 25px,#682537 45px,#390F20 65px,#101016 90px); }
+.splash-theatre .splash-wordmark { color: #D6A35B; background-image: none; -webkit-text-fill-color: #D6A35B; }
+.splash-theatre .splash-eyebrow { color: #D6A35B; border-color: #d6a35b40; box-shadow: none; }

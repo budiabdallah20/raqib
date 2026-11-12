@@ -45,10 +45,11 @@ async function main() {
     process.exit(1);
   }
 
-  const order = ['User', 'Session', 'PasswordResetToken', 'PasskeyCredential', 'Course', 'Enrollment', 'Lecture', 'Attendance', 'ScheduleSlot', 'AppSetting', 'Quote', 'Task', 'TaskSubmission', 'Grade', 'GpaSnapshot', 'StudentNote', 'Resource', 'Notification', 'AuditLog'];
+  const order = ['User', 'AcademicYear', 'Semester', 'Role', 'RoleAssignment', 'Course', 'CourseSection', 'TeachingAssignment', 'Session', 'PasswordResetToken', 'PasskeyCredential', 'Enrollment', 'Lecture', 'Attendance', 'ScheduleSlot', 'AppSetting', 'Quote', 'Task', 'TaskSubmission', 'Grade', 'GpaSnapshot', 'StudentNote', 'Resource', 'Notification', 'AuditLog'];
   const keys = {
-    User: 'user', Session: 'session', PasswordResetToken: 'passwordResetToken', PasskeyCredential: 'passkeyCredential',
-    Course: 'course', Enrollment: 'enrollment', Lecture: 'lecture', Attendance: 'attendance', ScheduleSlot: 'scheduleSlot',
+    User: 'user', AcademicYear: 'academicYear', Semester: 'semester', Role: 'role', RoleAssignment: 'roleAssignment',
+    Course: 'course', CourseSection: 'courseSection', TeachingAssignment: 'teachingAssignment',
+    Session: 'session', PasswordResetToken: 'passwordResetToken', PasskeyCredential: 'passkeyCredential', Enrollment: 'enrollment', Lecture: 'lecture', Attendance: 'attendance', ScheduleSlot: 'scheduleSlot',
     AppSetting: 'appSetting', Quote: 'quote', Task: 'task', TaskSubmission: 'taskSubmission', Grade: 'grade',
     GpaSnapshot: 'gpaSnapshot', StudentNote: 'studentNote', Resource: 'resource', Notification: 'notification', AuditLog: 'auditLog',
   };

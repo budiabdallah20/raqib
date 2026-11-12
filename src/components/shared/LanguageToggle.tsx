@@ -99,7 +99,7 @@ export function LanguageToggle({ className }: { className?: string }) {
               'flex h-7 items-center gap-2 rounded-full px-2 transition',
               active
                 ? 'bg-[linear-gradient(135deg,#c8a24b,#e6cb78)] text-[#1c1503] shadow-[0_6px_18px_-8px_rgba(200,162,75,.55)]'
-                : 'text-[#6b6042] hover:bg-gold-500/12 hover:text-ink-900',
+                : 'text-[#b5c2d1] hover:bg-white/[0.08] hover:text-[#ead29c]',
             )}
           >
             {entry.flag === 'eg' ? (

@@ -1,6 +1,8 @@
 import { z } from 'zod';
+import fs from 'node:fs';
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
+import { driveStatus, driveUpload } from '@/lib/drive';
 import {
   assertRateLimit,
   handleApiError,
@@ -12,6 +14,7 @@ import {
   TASK_NAME_RE,
   fileExists,
   safePath,
+  taskMimeOf,
   verifyUploadSignature,
 } from '@/lib/storage';
 
@@ -120,9 +123,10 @@ export async function POST(request: Request) {
     // لا نقبل أي رابط إلا ملفًا رفعه هذا الطالب عبر /api/upload/task،
     // وإلا أمكن تسليم ملف شخص آخر أو رابط خارجي.
     let fileUrl: string | null = null;
+    let storedName: string | null = null;
     const incomingUrl = parsed.data.fileUrl || '';
     if (incomingUrl) {
-      const storedName = storedNameFromUrl(incomingUrl);
+      storedName = storedNameFromUrl(incomingUrl);
       if (!storedName) return jsonError('رابط الملف غير صالح', 400);
       if (
         !verifyUploadSignature(
@@ -194,12 +198,56 @@ export async function POST(request: Request) {
       },
     });
 
+    // التخزين السحابي: نقل نسخة التسليم إلى Google Drive وتحرير القرص المحلي
+    // (فشل Drive لا يفشل التسليم — الملف يبقى محليًا كنسخة احتياطية)
+    let storedOnDrive: boolean = false;
+    if (hasNewFile && storedName) {
+      const localPath = safePath(TASK_DIR, storedName, TASK_NAME_RE);
+      if (driveStatus().configured && localPath && fs.existsSync(localPath)) {
+        const buffer = fs.readFileSync(localPath);
+        const upload = await driveUpload({
+          name: storedName,
+          mime: taskMimeOf(storedName),
+          buffer,
+          folder: 'tasks',
+        });
+        if (upload) {
+          const updated = await prisma.taskSubmission.update({
+            where: { taskId_studentId: { taskId, studentId: user.id } },
+            data: { driveFileId: upload.driveFileId },
+            select: { id: true },
+          });
+          storedOnDrive = true;
+          try {
+            fs.unlinkSync(localPath);
+          } catch {
+            /* القرص محتفظ بالنسخة — لا مشكلة */
+          }
+          await logAudit({
+            user: { id: user.id, role: user.role },
+            request,
+            action: 'TASK_FILE_DRIVE_UPLOAD',
+            entity: 'TaskSubmission',
+            detail: { taskSubmissionId: updated.id, driveMode: upload.mode, driveFileId: upload.driveFileId },
+          });
+        } else {
+          await logAudit({
+            user: { id: user.id, role: user.role },
+            request,
+            action: 'TASK_FILE_DRIVE_UPLOAD_FAILED',
+            entity: 'TaskSubmission',
+            detail: { taskId, storedName: storedName ?? null },
+          });
+        }
+      }
+    }
+
     await logAudit({
       user: { id: user.id, role: user.role },
       request,
       action: 'TASK_SUBMIT',
       entity: 'TaskSubmission',
-      detail: { taskId, fileUrl },
+      detail: { taskId, fileUrl, storedOnDrive },
     });
 
     return Response.json({

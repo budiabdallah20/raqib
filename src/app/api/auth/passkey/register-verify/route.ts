@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyRegistrationResponse } from '@simplewebauthn/server';
 import type { RegistrationResponseJSON } from '@simplewebauthn/server';
+import { z } from 'zod';
 
 import { prisma } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
@@ -17,6 +18,24 @@ import {
  * التحقق من تسجيل Passkey — يتطلب جلسة + تحدي صادر من السيرفر.
  * يُخزن المفتاح العام فقط (لا سر مشترك)، مع عداد التوقيع لكشف الاستنساخ.
  */
+const bodySchema = z
+  .object({
+    response: z
+      .object({
+        id: z.string().min(1).max(1024),
+        rawId: z.string().min(1).max(4096),
+        type: z.literal('public-key'),
+        response: z
+          .object({
+            clientDataJSON: z.string().min(1).max(16_384),
+            attestationObject: z.string().min(1).max(131_072),
+          })
+          .passthrough(),
+      })
+      .passthrough(),
+  })
+  .strict();
+
 export async function POST(request: Request) {
   try {
     const user = await requireUser();
@@ -28,12 +47,13 @@ export async function POST(request: Request) {
       return jsonError('انتهت صلاحية جلسة تسجيل البصمة — ابدأ من الأساس', 400);
     }
 
-    const body = (await request.json().catch(() => null)) as { response?: RegistrationResponseJSON } | null;
-    if (!body?.response) return jsonError('بيانات البصمة غير مكتملة', 400);
+    const parsed = bodySchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) return jsonError('بيانات البصمة غير مكتملة', 400);
+    const registrationResponse = parsed.data.response as unknown as RegistrationResponseJSON;
 
     // لو التوقيع غير متطابق أو التحدي متشاك — الاستثناء يتصرف كتوصيف 400 بالأسفل
     const verification = await verifyRegistrationResponse({
-      response: body.response,
+      response: registrationResponse,
       expectedChallenge,
       expectedOrigin: passkeyExpectedOrigins(request),
       expectedRPID: [PASSKEY_RP_ID],
@@ -46,6 +66,23 @@ export async function POST(request: Request) {
 
     const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
     const transports = credential.transports?.join(',') ?? null;
+
+    // حماية من إعادة ربط بصمة مسجلة لحساب آخر (نفس الجهاز المستخدم سابقًا):
+    // نرفض الطلب ونسجل المحاولة في سجل التدقيق حتى لو نجح التوثيق نفسه
+    const existing = await prisma.passkeyCredential.findUnique({
+      where: { id: credential.id },
+      select: { userId: true },
+    });
+    if (existing && existing.userId !== user.id) {
+      await logAudit({
+        user: { id: user.id, role: user.role },
+        request,
+        action: 'PASSKEY_REBIND_BLOCKED',
+        entity: 'PasskeyCredential',
+        detail: { passkeyId: credential.id.slice(0, 12), ownerId: existing.userId.slice(0, 8) },
+      });
+      return jsonError('البصمة دي مسجَّلة على حساب آخر — استخدم بصمة جديدة', 409);
+    }
 
     const saved = await prisma.passkeyCredential.upsert({
       where: { id: credential.id },

@@ -22,7 +22,7 @@ export async function GET() {
         phone: true,
         avatarUrl: true,
         birthDate: true,
-        enrollments: { select: { courseId: true } },
+        enrollments: { where: { status: 'ACTIVE' }, select: { courseId: true } },
       },
     });
     if (!me) return jsonError('الحساب غير موجود', 404);
@@ -44,14 +44,14 @@ export async function GET() {
         prisma.lecture.count({ where: { courseId: { in: courseIds } } }),
         // حاضر لمواده
         prisma.attendance.count({
-          where: { studentId: user.id, status: 'PRESENT', lecture: { courseId: { in: courseIds } } },
+          where: { studentId: user.id, status: 'PRESENT', lecture: { courseId: { in: courseIds }, startsAt: { lt: now }, cancelledAt: null, isOpen: false } },
         }),
         // متأخر لمواده (يحسب نصف حاضِر وفق السياسة)
         prisma.attendance.count({
-          where: { studentId: user.id, status: 'LATE', lecture: { courseId: { in: courseIds } } },
+          where: { studentId: user.id, status: 'LATE', lecture: { courseId: { in: courseIds }, startsAt: { lt: now }, cancelledAt: null, isOpen: false } },
         }),
         // محاضرات ماضية لمواده
-        prisma.lecture.count({ where: { courseId: { in: courseIds }, startsAt: { lt: now } } }),
+        prisma.lecture.count({ where: { courseId: { in: courseIds }, startsAt: { lt: now }, cancelledAt: null, isOpen: false } }),
         // محاضرات ملغاة لمواده
         prisma.lecture.count({ where: { courseId: { in: courseIds }, cancelledAt: { not: null } } }),
         // تاسكات موعد انتهائها فات ولم يسلمها

@@ -27,7 +27,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const admin = await requireUser(['ADMIN']);
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
     const parsed = createUserSchema.safeParse(body);
     if (!parsed.success) {
       return jsonError(parsed.error.issues[0]?.message || 'بيانات غير صالحة');

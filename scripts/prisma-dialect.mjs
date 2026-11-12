@@ -6,6 +6,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import 'dotenv/config'; // يحترم process.env الموجود — لازم قبل قراءة DATABASE_URL
 
 const prismaDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'prisma');
 
@@ -17,10 +18,21 @@ export function resolveDialect(databaseUrl) {
 export function dialectSchemaPath(databaseUrl) {
   const dialect = resolveDialect(databaseUrl);
   const canonical = readFileSync(join(prismaDir, 'schema.prisma'), 'utf8');
-  const adapted = canonical.replace(
+  let adapted = canonical.replace(
     /provider\s*=\s*"sqlite"/,
     `provider = "${dialect}"`,
   );
+  // Postgres على Neon: db push/migrate يشغّل دائمًا على الرابط المباشر (غير الممضمّن PgBouncer) — directUrl
+  if (dialect === 'postgres' && !/directUrl/.test(adapted)) {
+    adapted = adapted.replace(
+      /datasource\s+db\s*\{/,
+      `datasource db {`,
+    );
+    adapted = adapted.replace(
+      /(provider\s*=\s*"postgres"\s*\n\s*url\s*=\s*env\("DATABASE_URL"\))/,
+      `$1\n  directUrl = env("DATABASE_URL_UNPOOLED") // مستقيم (بدون pooler) — الهجرات فقط`,
+    );
+  }
   const out = join(prismaDir, `schema-${dialect}.generated.prisma`);
   writeFileSync(out, adapted);
   return out;

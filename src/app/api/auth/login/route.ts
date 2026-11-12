@@ -37,37 +37,36 @@ export async function POST(request: Request) {
 
     const lower = identifier.toLowerCase();
     const phone = normalizePhone(identifier);
+    // البريد/الهاتف/كود الطالب فقط — الاسم غير فريد وممكن يتشابه بين حسابين
     const user = await prisma.user.findFirst({
       where: {
         OR: [
           { email: lower },
           { phone: identifier },
           { phone },
-          { name: identifier },
+          { studentCode: identifier },
         ],
       },
     });
 
-    // قفل الحساب حتى لو تغيّر الـ IP
-    if (user?.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
-      const minutes = Math.max(
-        1,
-        Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60_000),
-      );
+    const valid = await verifyPassword(password, user?.passwordHash || DUMMY_HASH);
+
+    // القفل يُفحص بعد التحقق من كلمة المرور وحسب وجود الحساب —
+    // حتى لا يصبح القفل (429) وسيلة لتعداد الحسابات.
+    const isLocked =
+      user != null &&
+      user.lockedUntil != null &&
+      user.lockedUntil.getTime() > Date.now();
+    if (isLocked) {
       await logAudit({
         user: { id: user.id, role: user.role },
         request,
         action: 'LOGIN_LOCKED',
         entity: 'User',
-        detail: { identifier, minutes },
+        detail: { identifier },
       });
-      return jsonError(
-        `الحساب مقفول مؤقتًا بسبب محاولات دخول كثيرة. جرّب بعد ${minutes} دقيقة`,
-        429,
-      );
+      return jsonError('بيانات الدخول غير صحيحة. تحقق وحاول مجددًا', 401);
     }
-
-    const valid = await verifyPassword(password, user?.passwordHash || DUMMY_HASH);
 
     if (!user || !valid) {
       if (user) {
@@ -147,9 +146,13 @@ export async function POST(request: Request) {
         avatarUrl: user.avatarUrl,
       },
     });
-    return applyAuthCookie(response, token, Boolean(remember));
+    return applyAuthCookie(response, token, Boolean(remember), request);
   } catch (error) {
     const status = (error as Error & { status?: number }).status || 500;
-    return jsonError((error as Error).message || 'تعذر تسجيل الدخول', status);
+    // خطأ 500 يعمّم تلقائيًا داخل jsonError — لا نمرر رسالة داخلية للعميل.
+    return jsonError(
+      status >= 500 ? 'تعذر تسجيل الدخول' : (error as Error).message || 'تعذر تسجيل الدخول',
+      status,
+    );
   }
 }

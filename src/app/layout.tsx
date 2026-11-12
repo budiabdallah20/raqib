@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from 'next';
+import { headers } from 'next/headers';
 import { Inter, Cairo, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import { LoadingProvider } from '@/components/shared/LoadingProvider';
 import { LanguageProvider } from '@/lib/i18n';
 import './globals.css';
+import '@/styles/obsidian.css';
+import '@/styles/academic-theater-tokens.css';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -30,9 +33,9 @@ const cairo = Cairo({
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://localhost:5000';
 
-const title = 'رقيب | منصة الحضور الذكية — جامعة السويس';
+const title = 'رقيب | بوابة التجربة الأكاديمية';
 const description =
-  'رقيب منصة أكاديمية متكاملة لإدارة الحضور والمحاضرات بتقنية QR لكلية العلوم — جامعة السويس. حضور فوري، تقارير لحظية، وأمان بمعايير مصرفية لطلاب وأعضاء هيئة التدريس.';
+  'رقيب منصة لتنظيم الحضور والمحاضرات والمقررات، مع مسارات واضحة للطالب وعضو هيئة التدريس والإدارة.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
@@ -44,7 +47,7 @@ export const metadata: Metadata = {
   applicationName: 'رقيب',
   authors: [{ name: 'فريق رقيب', url: appUrl }],
   creator: 'فريق رقيب',
-  publisher: 'كلية العلوم — جامعة السويس',
+  publisher: 'فريق رقيب',
   generator: 'Next.js',
   category: 'education',
   classification: 'Education',
@@ -53,14 +56,11 @@ export const metadata: Metadata = {
     'منصة رقيب',
     'الحضور الذكي',
     'حضور QR',
-    'جامعة السويس',
-    'كلية العلوم',
     'إدارة المحاضرات',
     'حضور الطلاب',
     'تسجيل الحضور',
     'RAQiB',
     'attendance system',
-    'Suez University',
   ],
   referrer: 'strict-origin-when-cross-origin',
   alternates: {
@@ -73,8 +73,7 @@ export const metadata: Metadata = {
     icon: [
       { url: '/brand/icon-32.png', type: 'image/png', sizes: '32x32' },
       { url: '/brand/icon-192.png', type: 'image/png', sizes: '192x192' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
-      { url: '/brand/logo-mark.svg', type: 'image/svg+xml' },
+      { url: '/brand/academic-gate-favicon.svg', type: 'image/svg+xml' },
     ],
     shortcut: '/brand/icon-32.png',
     apple: '/brand/apple-touch-icon.png',
@@ -92,7 +91,7 @@ export const metadata: Metadata = {
         url: '/brand/og-1200x630.png',
         width: 1200,
         height: 630,
-        alt: 'رقيب — منصة الحضور الذكية بجامعة السويس',
+        alt: 'رقيب — بوابة التجربة الأكاديمية',
         type: 'image/png',
       },
     ],
@@ -102,7 +101,6 @@ export const metadata: Metadata = {
     title,
     description,
     images: ['/brand/og-1200x630.png'],
-    creator: '@raqib',
   },
   robots: {
     index: true,
@@ -127,12 +125,10 @@ export const metadata: Metadata = {
     address: false,
   },
   other: {
-    'theme-color': '#f7faf7',
-    'color-scheme': 'light',
-    'msapplication-TileColor': '#f7faf7',
+    'theme-color': '#0B1120',
+    'color-scheme': 'dark',
+    'msapplication-TileColor': '#0B1120',
     'msapplication-config': 'none',
-    'geo.region': 'EG-SUZ',
-    'geo.placename': 'السويس، مصر',
     'mobile-web-app-capable': 'yes',
   },
 };
@@ -141,10 +137,10 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-  colorScheme: 'light',
+  colorScheme: 'dark light',
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#f7faf7' },
-    { media: '(prefers-color-scheme: light)', color: '#f7faf7' },
+    { media: '(prefers-color-scheme: dark)', color: '#04060A' },
+    { media: '(prefers-color-scheme: light)', color: '#04060A' },
   ],
 };
 
@@ -152,16 +148,10 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
-      '@type': 'EducationalOrganization',
+      '@type': 'Organization',
       '@id': `${appUrl}/#organization`,
-      name: 'كلية العلوم — جامعة السويس',
-      alternateName: 'Faculty of Science, Suez University',
-      url: 'https://science.suez.edu.eg',
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: 'السويس',
-        addressCountry: 'EG',
-      },
+      name: 'فريق رقيب',
+      url: appUrl,
     },
     {
       '@type': 'WebApplication',
@@ -174,11 +164,6 @@ const jsonLd = {
       browserRequirements: 'Requires JavaScript and a modern browser',
       inLanguage: 'ar',
       description,
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'EGP',
-      },
       publisher: { '@id': `${appUrl}/#organization` },
       featureList: [
         'تسجيل الحضور بالـ QR',
@@ -199,25 +184,42 @@ const jsonLd = {
   ],
 };
 
-export default function RootLayout({
+const SKIP_BOOT_SCRIPT = `try{if(sessionStorage.getItem('raqib-booted'))document.documentElement.dataset.bootSkip='1'}catch(e){}`;
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+  // JSON-LD لا يُنفَّذ، لكن نُهرّب < > & حتى لا يُغلق الوسم مبكرًا.
+  const jsonLdText = JSON.stringify(jsonLd)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
+
   return (
     <html
       lang="ar"
       dir="rtl"
       data-scroll-behavior="smooth"
+      // data-boot-skip يُحقَن قبل التراكت من سكربت <head> — فروق الـ hydration مقصودة
+      suppressHydrationWarning
       className={`${inter.variable} ${cairo.variable} ${grotesk.variable} ${coded.variable}`}
     >
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          nonce={nonce}
+          // الـ nonce يأتي من هيدرات السيرفر فقط — ريأكت يحذّر على فروقه وقت
+          // الـ hydration رغم أنه سلوك مقصود وآمن، فنُسكته صريحًا.
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: jsonLdText }}
         />
+        {/* فلاش-بَرُّوف: لو الجلسة شافت شاشة الإقلاع خلاص، إخفائها يحدث قبل أول رسم */}
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: SKIP_BOOT_SCRIPT }} />
       </head>
-      <body className="font-display antialiased bg-[#f7faf7] text-ink-950">
+      <body className="font-display antialiased bg-[#111014] text-[#FFFFFF]">
         <LanguageProvider>
           <LoadingProvider>{children}</LoadingProvider>
         </LanguageProvider>

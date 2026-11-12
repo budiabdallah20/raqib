@@ -8,7 +8,7 @@ import { DashboardShell } from '@/components/shared/DashboardShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminStatCard } from '@/components/admin/AdminStatCard';
 import { api } from '@/lib/api';
-import { Download, Printer, BookOpen, Users, GraduationCap, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Download, Printer, BookOpen, Users, GraduationCap, AlertTriangle } from 'lucide-react';
 
 type CollegeReport = {
   policy: { attendanceThreshold: number; maxAbsence: number; lateCountsAs: number };
@@ -35,8 +35,6 @@ type CollegeReport = {
 
 export default function AdminReportsPage() {
   const [report, setReport] = React.useState<CollegeReport | null>(null);
-  const [demoMode, setDemoMode] = React.useState(false);
-  const [resetting, setResetting] = React.useState(false);
   const [message, setMessage] = React.useState('');
   const [error, setError] = React.useState('');
 
@@ -44,27 +42,9 @@ export default function AdminReportsPage() {
     api<CollegeReport>('/api/admin/report')
       .then(setReport)
       .catch((e) => setError((e as Error).message));
-    api<{ demoMode?: boolean }>('/api/admin/stats')
-      .then((d) => setDemoMode(Boolean(d.demoMode)))
-      .catch(() => {});
   }, []);
 
   React.useEffect(load, [load]);
-
-  async function resetDemo() {
-    setResetting(true);
-    setMessage('');
-    setError('');
-    try {
-      const res = await api<{ ok: boolean }>('/api/admin/demo/reset', { method: 'POST' });
-      setMessage(res.ok ? '✅ تم إعادة توليد بيانات العرض بنجاح — قد يستغرق الانعكاس ثواني.' : 'تم');
-      setTimeout(() => window.location.reload(), 1500);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setResetting(false);
-    }
-  }
 
   if (!report && !error) {
     return (
@@ -80,11 +60,6 @@ export default function AdminReportsPage() {
         <div>
           <h1 className="flex items-center gap-3 font-display text-3xl font-bold text-gold-gradient">
             تقارير الكلية
-            {demoMode && (
-              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] font-bold tracking-wide text-amber-300">
-                بيانات تجريبية · DEMO MODE
-              </span>
-            )}
           </h1>
           <p className="mt-1 text-sm text-ink-500">ملخص حضور كل المواد — محسوب فعليًا من سجلات المنصة.</p>
         </div>
@@ -100,14 +75,6 @@ export default function AdminReportsPage() {
             className="inline-flex items-center gap-2 rounded-xl border border-brand-900/10 bg-white/60 px-4 py-2.5 text-sm font-semibold text-ink-700 transition hover:bg-brand-500/10"
           >
             <Printer className="h-4 w-4" /> طباعة / PDF
-          </button>
-          <button
-            onClick={resetDemo}
-            disabled={resetting}
-            className="inline-flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/[0.06] px-4 py-2.5 text-sm font-semibold text-rose-300 transition hover:bg-rose-500/[0.12] disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${resetting ? 'animate-spin' : ''}`} />
-            {resetting ? 'جارِ إعادة الضبط…' : 'إعادة ضبط بيانات العرض'}
           </button>
         </div>
       </div>
@@ -177,3 +144,4 @@ export default function AdminReportsPage() {
     </DashboardShell>
   );
 }
+

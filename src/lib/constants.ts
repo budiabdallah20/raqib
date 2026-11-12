@@ -4,12 +4,34 @@ export const FACULTY = 'كلية العلوم — جامعة السويس';
 export const DEPARTMENT = 'قسم رياضيات وعلوم الحاسب';
 
 export const COOKIE_NAME = 'raqib_token';
-export const JWT_EXPIRES_IN = 60 * 60 * 24 * 7;
+/**
+ * عمر الجلسة:
+ * — «تذكرني» ✅ → 30 يومًا: الجلسة محفوظة في القاعدة (Session) وكوكي httpOnly
+ *   على جهاز المستخدم، وقابلة للإبطال من السيرفر في أي لحظة (revokedAt).
+ * — بدون «تذكرني» → 12 ساعة فقط (كوكي جلسة يموت مع إغلاق المتصفح).
+ * تقليل نافذة غير المتذكر يحدّ من أثر سرقة الكوكي أو الجهاز المفقود.
+ */
+export const SESSION_SHORT_IN = 60 * 60 * 12;
+export const SESSION_REMEMBER_IN = 60 * 60 * 24 * 30;
+/** للتوافق مع الاستخدامات القديمة (QR وسواها) — أقصر عمر */
+export const JWT_EXPIRES_IN = SESSION_SHORT_IN;
 export const QR_TTL_MS = 15 * 60 * 1000;
-/** تدوير رمز QR داخل نفس المحاضرة — كل 20 ثانية (WP3) */
-export const QR_ROTATE_MS = 20_000;
-/** عمر الرمز بعد كل تدوير — هامش لتغطية أي تأخير في الشبكة */
-export const QR_SESSION_TTL_MS = 60_000;
+/** تدوير رمز QR داخل نفس المحاضرة — كل 10 ثوانٍ (WP3 / spec 5–10s) */
+export const QR_ROTATE_MS = 10_000;
+/** عمر الرمز الديناميكي بعد كل تدوير — JWT exp=15s كما في المواصفة */
+export const QR_SESSION_TTL_MS = 15_000;
+/** القيم المسموحة لمدة دوران QR من لوحة الأدمن (§6.7 — صف 20) */
+export const QR_ROTATE_PRESETS = [5, 10, 15, 20] as const;
+
+/**
+ * قراءة إعداد «qr_rotation_seconds» من AppSetting.
+ * القيم المسموحة 5/10/15/20 ثانية — أي قيمة أخرى أو فراغ يرجع للثابت 10.
+ */
+export function qrRotationMs(value: string | null | undefined) {
+  const seconds = Math.round(Number(String(value ?? '').trim()));
+  if (!Number.isFinite(seconds) || seconds <= 0) return QR_ROTATE_MS;
+  return Math.min(20, Math.max(5, seconds)) * 1000;
+}
 
 export const RESET_CODE_TTL_MS = 10 * 60 * 1000;
 export const RESET_MAX_ATTEMPTS = 5;
@@ -34,12 +56,17 @@ export const PUBLIC_PATHS = [  '/',
   '/brand',
   '/status',
   '/changelog',
+  // مؤقتًا: معاينة نظام التصميم (لا تعرض أي بيانات) — تُزال عند تسليم المرحلة 2
+  '/design',
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/admin',
   '/api/auth/forgot',
   '/api/auth/reset',
   '/api/auth/logout',
+  // دخول البصمة عام بطبيعته: التحدي في كوكي httpOnly والتحقق في السيرفر.
+  '/api/auth/passkey/auth-options',
+  '/api/auth/passkey/auth-verify',
   '/api/upload/avatar',
   '/api/public/metrics',
   '/api/health',

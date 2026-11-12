@@ -1,3 +1,5 @@
+@import '@/styles/external-theater.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -154,6 +156,35 @@ input:-webkit-autofill:focus {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  /* أزرق العلامة — لشاشة التحميل والعناصر الزرقاء */
+  .text-sky-gradient {
+    background: linear-gradient(180deg, #d9efff 0%, #6cb1e8 45%, #3d8ecf 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* مدار الحظ around the seal (شاشة التحميل) — أُزيل مع العلامة المائية */
+
+  /* رسم سداسي شاشة التحميل — كل خط مائل يتقدّم بالتناوب (pathLength=1) */
+  @keyframes rqb-draw {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  .rqb-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: rqb-draw 0.6s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rqb-draw {
+      stroke-dashoffset: 0;
+      animation: none;
+    }
   }
 
   .text-glow {
@@ -352,6 +383,11 @@ input:-webkit-autofill:focus {
   .text-stroke-teal {
     color: transparent;
     -webkit-text-stroke: 1.6px rgba(94, 234, 212, 0.42);
+  }
+
+  .text-stroke-sky {
+    color: transparent;
+    -webkit-text-stroke: 1.6px rgba(125, 211, 252, 0.42);
   }
 
   .text-stroke-sand {
@@ -609,6 +645,12 @@ input:-webkit-autofill:focus {
     transform: scale(0.2) translateY(-22px);
     opacity: 0;
   }
+}
+
+/* شاشة الإقلاع تكشف مرة واحدة لكل جلسة:
+   السمة boot-skip يحطها سكربت <head> قبل أول رسم — نُخفيها بدون أي وميض */
+html[data-boot-skip='1'] [data-splash] {
+  display: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

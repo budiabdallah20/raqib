@@ -1,0 +1,30 @@
+.stage-footlights {
+  position: absolute;
+  bottom: 0;
+  left: 6%;
+  right: 6%;
+  height: 3px;
+  z-index: 15;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    #F28C28 15%,
+    #FFB45C 35%,
+    #FF914D 50%,
+    #FFB45C 65%,
+    #F28C28 85%,
+    transparent 100%
+  );
+  box-shadow:
+    0 -16px 55px 10px rgba(242, 140, 40, 0.4),
+    0 -32px 100px 20px rgba(255, 180, 92, 0.2);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-footlights {
+    animation: none !important;
+    box-shadow:
+      0 -12px 40px 6px rgba(242, 140, 40, 0.25),
+      0 -24px 70px 14px rgba(255, 180, 92, 0.15) !important;
+  }
+}

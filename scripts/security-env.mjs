@@ -65,12 +65,6 @@ if (!readValue('TRUST_PROXY')) {
   changes.push('TRUST_PROXY=0');
 }
 
-// إعادة ضبط الديمو مسموحة محليًا فقط (الكود يمنعها في production)
-if (!readValue('ALLOW_DEMO_RESET')) {
-  setValue('ALLOW_DEMO_RESET', process.env.NODE_ENV === 'production' ? '0' : '1');
-  changes.push('ALLOW_DEMO_RESET');
-}
-
 let adminCode = null;
 if (!skipAdmin) {
   adminCode = Array.from({ length: 16 }, () => randomInt(0, 10)).join('');
@@ -95,3 +89,4 @@ if (adminCode) {
 if (rotate || isWeak(currentSecret)) {
   console.log('⚠️  تغيير JWT_SECRET يُنهي كل الجلسات الحالية؛ سيحتاج الجميع لتسجيل الدخول من جديد.\n');
 }
+
